@@ -1,19 +1,20 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { matchesService } from '@/services';
-import { teamSettingsService } from '@/services/team-settings.service';
-import { useCanManage } from '@/hooks/use-can-manage';
-import { Calendar } from '@/components/calendar';
-import { ScoreModal } from '@/components/score-modal';
-import { useConfirm } from '@/contexts/confirm-context';
-import type { Match } from '@/types';
+import { Calendar } from "@/components/calendar";
+import { ScoreModal } from "@/components/score-modal";
+import { HomePageSkeleton } from "@/components/skeleton";
+import { useConfirm } from "@/contexts/confirm-context";
+import { useCanManage } from "@/hooks/use-can-manage";
+import { matchesService } from "@/services";
+import { teamSettingsService } from "@/services/team-settings.service";
+import type { Match } from "@/types";
+import { useEffect, useMemo, useState } from "react";
 
 export default function HomePage() {
   const canManage = useCanManage();
   const confirm = useConfirm();
   const [matches, setMatches] = useState<Match[]>([]);
-  const [teamName, setTeamName] = useState('default');
+  const [teamName, setTeamName] = useState("default");
   const [loading, setLoading] = useState(true);
   const [scoreMatch, setScoreMatch] = useState<Match | null>(null);
 
@@ -23,8 +24,13 @@ export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T15:00`;
-  const [form, setForm] = useState({ opponent: '', matchDate: todayStr, location: '', notes: '' });
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}T15:00`;
+  const [form, setForm] = useState({
+    opponent: "",
+    matchDate: todayStr,
+    location: "",
+    notes: "",
+  });
 
   const loadData = async () => {
     setLoading(true);
@@ -33,18 +39,20 @@ export default function HomePage() {
       teamSettingsService.get(),
     ]);
     setMatches(data);
-    setTeamName(settings.name || 'My Squad');
+    setTeamName(settings.name || "My Squad");
     setLoading(false);
   };
 
-  useEffect(() => { loadData() }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   // Group matches by month
   const matchesByMonth = useMemo(() => {
     const groups: Record<string, Match[]> = {};
     matches.forEach((m) => {
       const d = new Date(m.matchDate);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       if (!groups[key]) groups[key] = [];
       groups[key].push(m);
     });
@@ -56,19 +64,23 @@ export default function HomePage() {
     if (!selectedDate) return null;
     return matches.filter((m) => {
       const d = new Date(m.matchDate);
-      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       return dateStr === selectedDate;
     });
   }, [selectedDate, matches]);
 
   const handlePrev = () => {
-    if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1); }
-    else setCalMonth(calMonth - 1);
+    if (calMonth === 0) {
+      setCalMonth(11);
+      setCalYear(calYear - 1);
+    } else setCalMonth(calMonth - 1);
   };
 
   const handleNext = () => {
-    if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1); }
-    else setCalMonth(calMonth + 1);
+    if (calMonth === 11) {
+      setCalMonth(0);
+      setCalYear(calYear + 1);
+    } else setCalMonth(calMonth + 1);
   };
 
   const handleSelectDate = (date: string) => {
@@ -81,16 +93,16 @@ export default function HomePage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const ok = await confirm({
-      title: 'Create Match',
+      title: "Create Match",
       message: `Create match vs ${form.opponent}?`,
-      confirmText: 'Create',
+      confirmText: "Create",
     });
     if (!ok) return;
     await matchesService.create({
       ...form,
       matchDate: new Date(form.matchDate).toISOString(),
     });
-    setForm({ opponent: '', matchDate: todayStr, location: '', notes: '' });
+    setForm({ opponent: "", matchDate: todayStr, location: "", notes: "" });
     setShowForm(false);
     loadData();
   };
@@ -106,9 +118,10 @@ export default function HomePage() {
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
-      title: 'Delete Match',
-      message: 'Are you sure you want to delete this match? This action cannot be undone.',
-      confirmText: 'Delete',
+      title: "Delete Match",
+      message:
+        "Are you sure you want to delete this match? This action cannot be undone.",
+      confirmText: "Delete",
       danger: true,
     });
     if (!ok) return;
@@ -116,34 +129,45 @@ export default function HomePage() {
     loadData();
   };
 
-  const matchResult = (m: Match): 'win' | 'lose' | 'draw' | null => {
-    if (m.status !== 'completed' || m.homeScore == null || m.awayScore == null) return null;
-    if (m.homeScore > m.awayScore) return 'win';
-    if (m.homeScore < m.awayScore) return 'lose';
-    return 'draw';
+  const matchResult = (m: Match): "win" | "lose" | "draw" | null => {
+    if (m.status !== "completed" || m.homeScore == null || m.awayScore == null)
+      return null;
+    if (m.homeScore > m.awayScore) return "win";
+    if (m.homeScore < m.awayScore) return "lose";
+    return "draw";
   };
 
-  const resultColor = (r: 'win' | 'lose' | 'draw' | null) => {
-    if (r === 'win') return 'text-accent';
-    if (r === 'lose') return 'text-danger';
-    if (r === 'draw') return 'text-yellow-400';
-    return 'text-muted';
+  const resultColor = (r: "win" | "lose" | "draw" | null) => {
+    if (r === "win") return "text-accent";
+    if (r === "lose") return "text-danger";
+    if (r === "draw") return "text-yellow-400";
+    return "text-muted";
   };
 
   const resultDot = (m: Match) => {
     const r = matchResult(m);
-    if (r === 'win') return 'bg-accent';
-    if (r === 'lose') return 'bg-danger';
-    if (r === 'draw') return 'bg-yellow-400';
-    if (m.status === 'cancelled') return 'bg-danger';
-    return 'bg-primary';
+    if (r === "win") return "bg-accent";
+    if (r === "lose") return "bg-danger";
+    if (r === "draw") return "bg-yellow-400";
+    if (m.status === "cancelled") return "bg-danger";
+    return "bg-primary";
   };
 
   const formatMonthLabel = (key: string) => {
-    const [y, m] = key.split('-');
+    const [y, m] = key.split("-");
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     return `${months[Number(m) - 1]} ${y}`;
   };
@@ -159,32 +183,44 @@ export default function HomePage() {
           {new Date(m.matchDate).getDate()}
         </span>
         <span className="text-[10px] text-muted uppercase">
-          {new Date(m.matchDate).toLocaleDateString('en', { weekday: 'short' })}
+          {new Date(m.matchDate).toLocaleDateString("en", { weekday: "short" })}
         </span>
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${resultDot(m)}`} />
+          <span
+            className={`w-2 h-2 rounded-full flex-shrink-0 ${resultDot(m)}`}
+          />
           <span className="font-medium truncate">
-            {teamName} <span className="text-muted font-normal">vs</span> {m.opponent}
+            {teamName} <span className="text-muted font-normal">vs</span>{" "}
+            {m.opponent}
           </span>
-          {m.status === 'completed' && (
-            <span className={`text-sm font-bold ml-auto flex-shrink-0 ${resultColor(matchResult(m))}`}>
+          {m.status === "completed" && (
+            <span
+              className={`text-sm font-bold ml-auto flex-shrink-0 ${resultColor(matchResult(m))}`}
+            >
               {m.homeScore} - {m.awayScore}
             </span>
           )}
         </div>
         <div className="text-xs text-muted mt-0.5">
-          {new Date(m.matchDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-          {' · '}{m.location}
+          {new Date(m.matchDate).toLocaleTimeString("vi-VN", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          {" · "}
+          {m.location}
         </div>
       </div>
 
       {canManage && (
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
           <button
-            onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(m.id);
+            }}
             className="px-2 py-1 bg-danger/20 text-danger rounded text-xs hover:bg-danger/30"
           >
             Del
@@ -214,8 +250,10 @@ export default function HomePage() {
           {selectedDate && selectedMatches && (
             <div className="bg-card rounded-lg p-4">
               <h3 className="text-sm font-semibold mb-2">
-                {new Date(selectedDate + 'T00:00').toLocaleDateString('en', {
-                  weekday: 'long', day: 'numeric', month: 'long',
+                {new Date(selectedDate + "T00:00").toLocaleDateString("en", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
                 })}
               </h3>
               {selectedMatches.length === 0 ? (
@@ -234,35 +272,43 @@ export default function HomePage() {
                 onClick={() => setShowForm(!showForm)}
                 className="w-full text-sm font-medium text-primary hover:text-primary-hover transition-colors text-left"
               >
-                {showForm ? '- Cancel' : '+ Create new match'}
+                {showForm ? "- Cancel" : "+ Create new match"}
               </button>
               {showForm && (
                 <form onSubmit={handleCreate} className="mt-3 space-y-3">
                   <input
                     placeholder="Opponent"
                     value={form.opponent}
-                    onChange={(e) => setForm({ ...form, opponent: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, opponent: e.target.value })
+                    }
                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
                     required
                   />
                   <input
                     type="datetime-local"
                     value={form.matchDate}
-                    onChange={(e) => setForm({ ...form, matchDate: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, matchDate: e.target.value })
+                    }
                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
                     required
                   />
                   <input
                     placeholder="Location"
                     value={form.location}
-                    onChange={(e) => setForm({ ...form, location: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, location: e.target.value })
+                    }
                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
                     required
                   />
                   <input
                     placeholder="Notes (optional)"
                     value={form.notes}
-                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, notes: e.target.value })
+                    }
                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
                   />
                   <button
@@ -280,12 +326,14 @@ export default function HomePage() {
         {/* Right: Match list grouped by month (40%) */}
         <div className="lg:col-span-2">
           {loading ? (
-            <p className="text-muted">Loading...</p>
+            <HomePageSkeleton />
           ) : matchesByMonth.length === 0 ? (
             <div className="bg-card rounded-lg p-8 text-center">
               <p className="text-muted">No matches scheduled yet.</p>
               {canManage && (
-                <p className="text-xs text-muted mt-1">Click a date on the calendar to get started.</p>
+                <p className="text-xs text-muted mt-1">
+                  Click a date on the calendar to get started.
+                </p>
               )}
             </div>
           ) : (
@@ -298,7 +346,8 @@ export default function HomePage() {
                     </h2>
                     <div className="flex-1 h-px bg-border" />
                     <span className="text-xs text-muted">
-                      {monthMatches.length} match{monthMatches.length > 1 ? 'es' : ''}
+                      {monthMatches.length} match
+                      {monthMatches.length > 1 ? "es" : ""}
                     </span>
                   </div>
                   <div className="space-y-2">

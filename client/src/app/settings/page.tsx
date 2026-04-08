@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { teamSettingsService } from '@/services/team-settings.service';
-import { useCanManage } from '@/hooks/use-can-manage';
-import { useConfirm } from '@/contexts/confirm-context';
-import type { TeamSettings } from '@/types/team-settings';
+import { SettingsPageSkeleton } from "@/components/skeleton";
+import { useConfirm } from "@/contexts/confirm-context";
+import { useCanManage } from "@/hooks/use-can-manage";
+import { teamSettingsService } from "@/services/team-settings.service";
+import type { TeamSettings } from "@/types/team-settings";
+import { useEffect, useState } from "react";
 
 export default function SettingsPage() {
   const canManage = useCanManage();
@@ -13,11 +14,11 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
-    name: '',
-    description: '',
-    foundedDate: '',
-    logo: '',
-    homeStadium: '',
+    name: "",
+    description: "",
+    foundedDate: "",
+    logo: "",
+    homeStadium: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -26,23 +27,25 @@ export default function SettingsPage() {
     const data = await teamSettingsService.get();
     setSettings(data);
     setForm({
-      name: data.name || '',
-      description: data.description || '',
-      foundedDate: data.foundedDate || '',
-      logo: data.logo || '',
-      homeStadium: data.homeStadium || '',
+      name: data.name || "",
+      description: data.description || "",
+      foundedDate: data.foundedDate || "",
+      logo: data.logo || "",
+      homeStadium: data.homeStadium || "",
     });
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const ok = await confirm({
-      title: 'Save Settings',
-      message: 'Save changes to team settings?',
-      confirmText: 'Save',
+      title: "Save Settings",
+      message: "Save changes to team settings?",
+      confirmText: "Save",
     });
     if (!ok) return;
     setSaving(true);
@@ -52,7 +55,7 @@ export default function SettingsPage() {
     setSaving(false);
   };
 
-  if (loading) return <p className="text-muted">Loading...</p>;
+  if (loading) return <SettingsPageSkeleton />;
 
   return (
     <div>
@@ -69,7 +72,10 @@ export default function SettingsPage() {
       </div>
 
       {editing ? (
-        <form onSubmit={handleSave} className="bg-card rounded-lg p-6 space-y-4 max-w-2xl">
+        <form
+          onSubmit={handleSave}
+          className="bg-card rounded-lg p-6 space-y-4 max-w-2xl"
+        >
           <div>
             <label className="block text-sm font-medium mb-1">Team Name</label>
             <input
@@ -80,29 +86,41 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
+            <label className="block text-sm font-medium mb-1">
+              Description
+            </label>
             <textarea
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
               rows={3}
               className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Founded Date</label>
+              <label className="block text-sm font-medium mb-1">
+                Founded Date
+              </label>
               <input
                 type="date"
                 value={form.foundedDate}
-                onChange={(e) => setForm({ ...form, foundedDate: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, foundedDate: e.target.value })
+                }
                 className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Home Stadium</label>
+              <label className="block text-sm font-medium mb-1">
+                Home Stadium
+              </label>
               <input
                 value={form.homeStadium}
-                onChange={(e) => setForm({ ...form, homeStadium: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, homeStadium: e.target.value })
+                }
                 placeholder="Stadium name"
                 className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -123,7 +141,7 @@ export default function SettingsPage() {
               disabled={saving}
               className="px-6 py-2 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-lg text-sm transition-colors"
             >
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? "Saving..." : "Save"}
             </button>
             <button
               type="button"
@@ -135,7 +153,7 @@ export default function SettingsPage() {
           </div>
         </form>
       ) : (
-        <div className="max-w-2xl space-y-6">
+        <div className="space-y-6">
           {/* Team card */}
           <div className="bg-card rounded-lg p-6">
             <div className="flex items-center gap-4 mb-4">
@@ -151,29 +169,35 @@ export default function SettingsPage() {
                 </div>
               )}
               <div>
-                <h2 className="text-xl font-bold">{settings?.name || 'My Squad'}</h2>
+                <h2 className="text-xl font-bold">
+                  {settings?.name || "My Squad"}
+                </h2>
                 {settings?.description && (
-                  <p className="text-sm text-muted mt-1">{settings.description}</p>
+                  <p className="text-sm text-muted mt-1">
+                    {settings.description}
+                  </p>
                 )}
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-background rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-primary">{settings?.playerCount ?? 0}</div>
+                <div className="text-2xl font-bold text-primary">
+                  {settings?.playerCount ?? 0}
+                </div>
                 <div className="text-xs text-muted mt-1">Players</div>
               </div>
               <div className="bg-background rounded-lg p-4 text-center">
                 <div className="text-sm font-medium">
                   {settings?.foundedDate
-                    ? new Date(settings.foundedDate).toLocaleDateString('vi-VN')
-                    : '-'}
+                    ? new Date(settings.foundedDate).toLocaleDateString("vi-VN")
+                    : "-"}
                 </div>
                 <div className="text-xs text-muted mt-1">Founded</div>
               </div>
               <div className="bg-background rounded-lg p-4 text-center">
                 <div className="text-sm font-medium truncate">
-                  {settings?.homeStadium || '-'}
+                  {settings?.homeStadium || "-"}
                 </div>
                 <div className="text-xs text-muted mt-1">Home Stadium</div>
               </div>

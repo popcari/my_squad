@@ -34,7 +34,7 @@ export function Header() {
     : '?';
 
   return (
-    <header className="h-14 bg-card border-b border-border flex items-center justify-between px-6 flex-shrink-0">
+    <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4 pl-14 md:pl-6 md:px-6 flex-shrink-0 min-w-0 max-w-full">
       {/* Page title */}
       <div />
 

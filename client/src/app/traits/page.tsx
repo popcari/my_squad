@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { traitsService, usersService, userTraitsService } from '@/services';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { useConfirm } from '@/contexts/confirm-context';
+import { TraitsPageSkeleton } from '@/components/skeleton';
 import type { Trait, User, UserTrait } from '@/types';
 
 export default function TraitsPage() {
@@ -179,7 +180,7 @@ export default function TraitsPage() {
         <div>
           <h2 className="text-lg font-semibold mb-3">All Traits</h2>
           {loading ? (
-            <p className="text-muted">Loading...</p>
+            <TraitsPageSkeleton />
           ) : traits.length === 0 ? (
             <p className="text-muted">No traits yet.</p>
           ) : (

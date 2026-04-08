@@ -1,14 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { usersService, positionsService, userPositionsService } from '@/services';
-import { useCanManage } from '@/hooks/use-can-manage';
-import { useConfirm } from '@/contexts/confirm-context';
-import type { User, Position, UserPosition } from '@/types';
+import { PlayersPageSkeleton } from "@/components/skeleton";
+import { useConfirm } from "@/contexts/confirm-context";
+import { useCanManage } from "@/hooks/use-can-manage";
+import {
+  positionsService,
+  userPositionsService,
+  usersService,
+} from "@/services";
+import type { Position, User, UserPosition } from "@/types";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
-type SortKey = 'jerseyNumber' | 'displayName' | 'email' | 'position';
-type SortDir = 'asc' | 'desc';
+type SortKey = "jerseyNumber" | "displayName" | "email" | "position";
+type SortDir = "asc" | "desc";
 
 interface PlayerRow extends User {
   positionNames: string;
@@ -23,11 +28,14 @@ export default function PlayersPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
-    email: '', displayName: '', role: 'player' as const, jerseyNumber: '',
+    email: "",
+    displayName: "",
+    role: "player" as const,
+    jerseyNumber: "",
   });
   const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
-  const [sortKey, setSortKey] = useState<SortKey>('jerseyNumber');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [sortKey, setSortKey] = useState<SortKey>("jerseyNumber");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const load = async () => {
     setLoading(true);
@@ -39,12 +47,16 @@ export default function PlayersPage() {
     setPositions(pos);
 
     // Load positions for all players
-    const upResults = await Promise.all(p.map((u) => userPositionsService.getByUser(u.id)));
+    const upResults = await Promise.all(
+      p.map((u) => userPositionsService.getByUser(u.id)),
+    );
     setAllUserPositions(upResults.flat());
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   // Build rows with position names
   const rows: PlayerRow[] = useMemo(() => {
@@ -55,8 +67,8 @@ export default function PlayersPage() {
       const names = userPosIds
         .map((id) => positions.find((pos) => pos.id === id)?.name)
         .filter(Boolean)
-        .join(', ');
-      return { ...p, positionNames: names || '-' };
+        .join(", ");
+      return { ...p, positionNames: names || "-" };
     });
   }, [players, allUserPositions, positions]);
 
@@ -65,43 +77,43 @@ export default function PlayersPage() {
     return [...rows].sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
-        case 'jerseyNumber':
+        case "jerseyNumber":
           cmp = (a.jerseyNumber ?? 0) - (b.jerseyNumber ?? 0);
           break;
-        case 'displayName':
+        case "displayName":
           cmp = a.displayName.localeCompare(b.displayName);
           break;
-        case 'email':
+        case "email":
           cmp = a.email.localeCompare(b.email);
           break;
-        case 'position':
+        case "position":
           cmp = a.positionNames.localeCompare(b.positionNames);
           break;
       }
-      return sortDir === 'asc' ? cmp : -cmp;
+      return sortDir === "asc" ? cmp : -cmp;
     });
   }, [rows, sortKey, sortDir]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
-      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
       setSortKey(key);
-      setSortDir('asc');
+      setSortDir("asc");
     }
   };
 
   const sortIcon = (key: SortKey) => {
-    if (sortKey !== key) return '↕';
-    return sortDir === 'asc' ? '↑' : '↓';
+    if (sortKey !== key) return "↕";
+    return sortDir === "asc" ? "↑" : "↓";
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const ok = await confirm({
-      title: 'Create Player',
+      title: "Create Player",
       message: `Add ${form.displayName} to the squad?`,
-      confirmText: 'Create',
+      confirmText: "Create",
     });
     if (!ok) return;
     const user = await usersService.create({
@@ -111,7 +123,7 @@ export default function PlayersPage() {
     for (const posId of selectedPositions) {
       await userPositionsService.assign({ userId: user.id, positionId: posId });
     }
-    setForm({ email: '', displayName: '', role: 'player', jerseyNumber: '' });
+    setForm({ email: "", displayName: "", role: "player", jerseyNumber: "" });
     setSelectedPositions([]);
     setShowForm(false);
     load();
@@ -119,15 +131,16 @@ export default function PlayersPage() {
 
   const togglePosition = (posId: string) => {
     setSelectedPositions((prev) =>
-      prev.includes(posId) ? prev.filter((p) => p !== posId) : [...prev, posId]
+      prev.includes(posId) ? prev.filter((p) => p !== posId) : [...prev, posId],
     );
   };
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
-      title: 'Delete Player',
-      message: 'Are you sure you want to delete this player? This action cannot be undone.',
-      confirmText: 'Delete',
+      title: "Delete Player",
+      message:
+        "Are you sure you want to delete this player? This action cannot be undone.",
+      confirmText: "Delete",
       danger: true,
     });
     if (!ok) return;
@@ -144,18 +157,23 @@ export default function PlayersPage() {
             onClick={() => setShowForm(!showForm)}
             className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm transition-colors"
           >
-            {showForm ? 'Cancel' : '+ Add Player'}
+            {showForm ? "Cancel" : "+ Add Player"}
           </button>
         )}
       </div>
 
       {canManage && showForm && (
-        <form onSubmit={handleCreate} className="bg-card p-4 rounded-lg mb-6 space-y-4">
+        <form
+          onSubmit={handleCreate}
+          className="bg-card p-4 rounded-lg mb-6 space-y-4"
+        >
           <div className="grid grid-cols-2 gap-4">
             <input
               placeholder="Display Name"
               value={form.displayName}
-              onChange={(e) => setForm({ ...form, displayName: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, displayName: e.target.value })
+              }
               className="bg-background border border-border rounded px-3 py-2 text-sm"
               required
             />
@@ -173,12 +191,16 @@ export default function PlayersPage() {
               min={1}
               max={99}
               value={form.jerseyNumber}
-              onChange={(e) => setForm({ ...form, jerseyNumber: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, jerseyNumber: e.target.value })
+              }
               className="bg-background border border-border rounded px-3 py-2 text-sm"
             />
             <select
               value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value as 'player' })}
+              onChange={(e) =>
+                setForm({ ...form, role: e.target.value as "player" })
+              }
               className="bg-background border border-border rounded px-3 py-2 text-sm"
             >
               <option value="player">Player</option>
@@ -196,8 +218,8 @@ export default function PlayersPage() {
                   onClick={() => togglePosition(pos.id)}
                   className={`px-3 py-1 rounded-full text-xs transition-colors ${
                     selectedPositions.includes(pos.id)
-                      ? 'bg-primary text-white'
-                      : 'bg-card-hover text-muted hover:text-foreground'
+                      ? "bg-primary text-white"
+                      : "bg-card-hover text-muted hover:text-foreground"
                   }`}
                 >
                   {pos.name}
@@ -205,56 +227,57 @@ export default function PlayersPage() {
               ))}
             </div>
           </div>
-          <button type="submit" className="w-full bg-accent hover:bg-accent/80 text-white py-2 rounded-lg text-sm transition-colors">
+          <button
+            type="submit"
+            className="w-full bg-accent hover:bg-accent/80 text-white py-2 rounded-lg text-sm transition-colors"
+          >
             Create Player
           </button>
         </form>
       )}
 
       {loading ? (
-        <p className="text-muted">Loading...</p>
+        <PlayersPageSkeleton />
       ) : sortedRows.length === 0 ? (
         <p className="text-muted">No players yet.</p>
       ) : (
-        <div className="bg-card rounded-lg overflow-hidden border border-border">
+        <div className="bg-card rounded-lg overflow-x-auto border border-border">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-card-hover">
                 <th
                   className="text-left px-4 py-3 font-medium text-muted cursor-pointer hover:text-foreground transition-colors select-none w-20"
-                  onClick={() => handleSort('jerseyNumber')}
+                  onClick={() => handleSort("jerseyNumber")}
                 >
                   <span className="flex items-center gap-1">
-                    # {sortIcon('jerseyNumber')}
+                    # {sortIcon("jerseyNumber")}
                   </span>
                 </th>
                 <th
                   className="text-left px-4 py-3 font-medium text-muted cursor-pointer hover:text-foreground transition-colors select-none"
-                  onClick={() => handleSort('displayName')}
+                  onClick={() => handleSort("displayName")}
                 >
                   <span className="flex items-center gap-1">
-                    Name {sortIcon('displayName')}
+                    Name {sortIcon("displayName")}
                   </span>
                 </th>
                 <th
                   className="text-left px-4 py-3 font-medium text-muted cursor-pointer hover:text-foreground transition-colors select-none"
-                  onClick={() => handleSort('email')}
+                  onClick={() => handleSort("email")}
                 >
                   <span className="flex items-center gap-1">
-                    Email {sortIcon('email')}
+                    Email {sortIcon("email")}
                   </span>
                 </th>
                 <th
                   className="text-left px-4 py-3 font-medium text-muted cursor-pointer hover:text-foreground transition-colors select-none"
-                  onClick={() => handleSort('position')}
+                  onClick={() => handleSort("position")}
                 >
                   <span className="flex items-center gap-1">
-                    Position {sortIcon('position')}
+                    Position {sortIcon("position")}
                   </span>
                 </th>
-                {canManage && (
-                  <th className="w-16 px-4 py-3" />
-                )}
+                {canManage && <th className="w-16 px-4 py-3" />}
               </tr>
             </thead>
             <tbody>
@@ -265,7 +288,7 @@ export default function PlayersPage() {
                 >
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs">
-                      {p.jerseyNumber ?? '-'}
+                      {p.jerseyNumber ?? "-"}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -279,15 +302,13 @@ export default function PlayersPage() {
                       {p.role}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-muted">
-                    {p.email}
-                  </td>
+                  <td className="px-4 py-3 text-muted">{p.email}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
-                      {p.positionNames === '-' ? (
+                      {p.positionNames === "-" ? (
                         <span className="text-muted">-</span>
                       ) : (
-                        p.positionNames.split(', ').map((name) => (
+                        p.positionNames.split(", ").map((name) => (
                           <span
                             key={name}
                             className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent"
@@ -302,9 +323,15 @@ export default function PlayersPage() {
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => handleDelete(p.id)}
-                        className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
+                        className="w-8 h-8 flex items-center justify-center text-danger hover:bg-danger/20 rounded-lg transition-all"
+                        title="Delete player"
                       >
-                        Del
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
                       </button>
                     </td>
                   )}
