@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { MatchGoalsService } from '../match-goals/match-goals.service';
+import { UploadService } from '../upload/upload.service';
 import { UserPositionsService } from '../user-positions/user-positions.service';
 import { UserTraitsService } from '../user-traits/user-traits.service';
 import { UserRole } from './types';
@@ -14,6 +15,7 @@ describe('UsersController', () => {
   let mockUserPositionsService: Partial<UserPositionsService>;
   let mockUserTraitsService: Partial<UserTraitsService>;
   let mockMatchGoalsService: Partial<MatchGoalsService>;
+  let mockUploadService: Partial<UploadService>;
 
   beforeEach(async () => {
     mockService = {
@@ -38,6 +40,13 @@ describe('UsersController', () => {
       findByAssist: jest.fn().mockResolvedValue([]),
     };
 
+    mockUploadService = {
+      upload: jest.fn().mockResolvedValue({
+        url: 'https://res.cloudinary.com/test/avatars/123.png',
+        publicId: 'avatars/123',
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
       providers: [
@@ -45,10 +54,18 @@ describe('UsersController', () => {
         { provide: UserPositionsService, useValue: mockUserPositionsService },
         { provide: UserTraitsService, useValue: mockUserTraitsService },
         { provide: MatchGoalsService, useValue: mockMatchGoalsService },
+        { provide: UploadService, useValue: mockUploadService },
       ],
     }).compile();
 
     app = module.createNestApplication();
+    app.use((req: any, _res: any, next: any) => {
+      const userId = req.headers['x-user-id'];
+      if (userId) {
+        req.user = { id: userId };
+      }
+      next();
+    });
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -287,6 +304,114 @@ describe('UsersController', () => {
       );
 
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe('POST /users/:id/avatar', () => {
+    it('should upload avatar and update user', async () => {
+      const updatedUser = {
+        id: 'user-1',
+        email: 'test@test.com',
+        displayName: 'Test',
+        role: UserRole.PLAYER,
+        avatar: 'https://res.cloudinary.com/test/avatars/123.png',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      (mockService.update as jest.Mock).mockResolvedValue(updatedUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/users/user-1/avatar')
+        .attach('avatar', Buffer.from('fake-image'), 'avatar.png');
+
+      expect(response.status).toBe(201);
+      expect(mockUploadService.upload).toHaveBeenCalledWith(
+        expect.objectContaining({ originalname: 'avatar.png' }),
+        'avatars',
+      );
+      expect(mockService.update).toHaveBeenCalledWith('user-1', {
+        avatar: 'https://res.cloudinary.com/test/avatars/123.png',
+      });
+      expect(response.body.avatar).toBe(
+        'https://res.cloudinary.com/test/avatars/123.png',
+      );
+    });
+
+    it('should return 400 when no file is provided', async () => {
+      const response = await request(app.getHttpServer()).post(
+        '/users/user-1/avatar',
+      );
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should return 403 when player tries to upload another player avatar', async () => {
+      (mockService.findOne as jest.Mock).mockResolvedValue({
+        id: 'requester',
+        role: UserRole.PLAYER,
+      });
+
+      const response = await request(app.getHttpServer())
+        .post('/users/other-user/avatar')
+        .set('X-User-Id', 'requester')
+        .attach('avatar', Buffer.from('fake-image'), 'avatar.png');
+
+      expect(response.status).toBe(403);
+      expect(mockUploadService.upload).not.toHaveBeenCalled();
+    });
+
+    it('should allow player to upload their own avatar', async () => {
+      const updatedUser = {
+        id: 'user-1',
+        avatar: 'https://res.cloudinary.com/test/avatars/123.png',
+      };
+      (mockService.update as jest.Mock).mockResolvedValue(updatedUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/users/user-1/avatar')
+        .set('X-User-Id', 'user-1')
+        .attach('avatar', Buffer.from('fake-image'), 'avatar.png');
+
+      expect(response.status).toBe(201);
+      expect(mockUploadService.upload).toHaveBeenCalled();
+    });
+
+    it('should return 403 when coach tries to upload another player avatar', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/users/other-user/avatar')
+        .set('X-User-Id', 'coach-1')
+        .attach('avatar', Buffer.from('fake-image'), 'avatar.png');
+
+      expect(response.status).toBe(403);
+      expect(mockUploadService.upload).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when uploading non-image file', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/users/user-1/avatar')
+        .set('X-User-Id', 'user-1')
+        .attach('avatar', Buffer.from('fake-doc'), {
+          filename: 'file.xlsx',
+          contentType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+      expect(response.status).toBe(400);
+      expect(mockUploadService.upload).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when uploading .docx file', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/users/user-1/avatar')
+        .set('X-User-Id', 'user-1')
+        .attach('avatar', Buffer.from('fake-doc'), {
+          filename: 'report.docx',
+          contentType:
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        });
+
+      expect(response.status).toBe(400);
+      expect(mockUploadService.upload).not.toHaveBeenCalled();
     });
   });
 });

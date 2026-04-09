@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthMiddleware } from './common';
+import cloudinaryConfig from './config/cloudinary.config';
 import { FirebaseModule, firebaseConfig } from './config';
 import { AuthModule } from './modules/auth/auth.module';
 import { MatchGoalsModule } from './modules/match-goals/match-goals.module';
@@ -19,7 +20,7 @@ import { UsersModule } from './modules/users/users.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [firebaseConfig],
+      load: [firebaseConfig, cloudinaryConfig],
     }),
     FirebaseModule,
     UsersModule,

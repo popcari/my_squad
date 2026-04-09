@@ -12,11 +12,8 @@ import type { Position, User, UserPosition } from '@/types';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
-type SortKey = 'jerseyNumber' | 'displayName' | 'email' | 'position';
-type SortDir = 'asc' | 'desc';
-
-interface PlayerRow extends User {
-  positionNames: string;
+interface PlayerWithPositions extends User {
+  positionNames: string[];
 }
 
 export default function PlayersPage() {
@@ -34,79 +31,69 @@ export default function PlayersPage() {
     jerseyNumber: '',
   });
   const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
-  const [sortKey, setSortKey] = useState<SortKey>('jerseyNumber');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
 
-  const load = async () => {
-    setLoading(true);
+  const reload = async () => {
     const [p, pos] = await Promise.all([
       usersService.getAll(),
       positionsService.getAll(),
     ]);
-    setPlayers(p);
-    setPositions(pos);
-
-    // Load positions for all players
     const upResults = await Promise.all(
       p.map((u) => userPositionsService.getByUser(u.id)),
     );
+    setPlayers(p);
+    setPositions(pos);
     setAllUserPositions(upResults.flat());
     setLoading(false);
   };
 
   useEffect(() => {
-    load();
+    reload();
   }, []);
 
-  // Build rows with position names
-  const rows: PlayerRow[] = useMemo(() => {
+  // Build players with position names
+  const playersWithPositions: PlayerWithPositions[] = useMemo(() => {
     return players.map((p) => {
       const userPosIds = allUserPositions
         .filter((up) => up.userId === p.id)
         .map((up) => up.positionId);
       const names = userPosIds
         .map((id) => positions.find((pos) => pos.id === id)?.name)
-        .filter(Boolean)
-        .join(', ');
-      return { ...p, positionNames: names || '-' };
+        .filter((n): n is string => Boolean(n));
+      return { ...p, positionNames: names };
     });
   }, [players, allUserPositions, positions]);
 
-  // Sort rows
-  const sortedRows = useMemo(() => {
-    return [...rows].sort((a, b) => {
-      let cmp = 0;
-      switch (sortKey) {
-        case 'jerseyNumber':
-          cmp = (a.jerseyNumber ?? 0) - (b.jerseyNumber ?? 0);
-          break;
-        case 'displayName':
-          cmp = a.displayName.localeCompare(b.displayName);
-          break;
-        case 'email':
-          cmp = a.email.localeCompare(b.email);
-          break;
-        case 'position':
-          cmp = a.positionNames.localeCompare(b.positionNames);
-          break;
+  // Group players by position, sorted by jersey number within each group
+  const groupedByPosition = useMemo(() => {
+    const groups: Record<string, PlayerWithPositions[]> = {};
+
+    for (const player of playersWithPositions) {
+      const posNames =
+        player.positionNames.length > 0
+          ? player.positionNames
+          : ['Unassigned'];
+      for (const name of posNames) {
+        if (!groups[name]) groups[name] = [];
+        groups[name].push(player);
       }
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-  }, [rows, sortKey, sortDir]);
-
-  const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortKey(key);
-      setSortDir('asc');
     }
-  };
 
-  const sortIcon = (key: SortKey) => {
-    if (sortKey !== key) return '↕';
-    return sortDir === 'asc' ? '↑' : '↓';
-  };
+    // Sort players within each group by jersey number
+    for (const key of Object.keys(groups)) {
+      groups[key].sort(
+        (a, b) => (a.jerseyNumber ?? 99) - (b.jerseyNumber ?? 99),
+      );
+    }
+
+    // Sort groups: position names alphabetically, "Unassigned" last
+    const sortedEntries = Object.entries(groups).sort(([a], [b]) => {
+      if (a === 'Unassigned') return 1;
+      if (b === 'Unassigned') return -1;
+      return a.localeCompare(b);
+    });
+
+    return sortedEntries;
+  }, [playersWithPositions]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +113,8 @@ export default function PlayersPage() {
     setForm({ email: '', displayName: '', role: 'player', jerseyNumber: '' });
     setSelectedPositions([]);
     setShowForm(false);
-    load();
+    setLoading(true);
+    await reload();
   };
 
   const togglePosition = (posId: string) => {
@@ -145,7 +133,8 @@ export default function PlayersPage() {
     });
     if (!ok) return;
     await usersService.remove(id);
-    load();
+    setLoading(true);
+    await reload();
   };
 
   return (
@@ -238,116 +227,57 @@ export default function PlayersPage() {
 
       {loading ? (
         <PlayersPageSkeleton />
-      ) : sortedRows.length === 0 ? (
+      ) : groupedByPosition.length === 0 ? (
         <p className="text-muted">No players yet.</p>
       ) : (
-        <div className="bg-card rounded-lg overflow-x-auto border border-border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-card-hover">
-                <th
-                  className="text-left px-4 py-3 font-medium text-muted cursor-pointer hover:text-foreground transition-colors select-none w-20"
-                  onClick={() => handleSort('jerseyNumber')}
-                >
-                  <span className="flex items-center gap-1">
-                    # {sortIcon('jerseyNumber')}
-                  </span>
-                </th>
-                <th
-                  className="text-left px-4 py-3 font-medium text-muted cursor-pointer hover:text-foreground transition-colors select-none"
-                  onClick={() => handleSort('displayName')}
-                >
-                  <span className="flex items-center gap-1">
-                    Name {sortIcon('displayName')}
-                  </span>
-                </th>
-                <th
-                  className="text-left px-4 py-3 font-medium text-muted cursor-pointer hover:text-foreground transition-colors select-none"
-                  onClick={() => handleSort('email')}
-                >
-                  <span className="flex items-center gap-1">
-                    Email {sortIcon('email')}
-                  </span>
-                </th>
-                <th
-                  className="text-left px-4 py-3 font-medium text-muted cursor-pointer hover:text-foreground transition-colors select-none"
-                  onClick={() => handleSort('position')}
-                >
-                  <span className="flex items-center gap-1">
-                    Position {sortIcon('position')}
-                  </span>
-                </th>
-                {canManage && <th className="w-16 px-4 py-3" />}
-              </tr>
-            </thead>
-            <tbody>
-              {sortedRows.map((p) => (
-                <tr
-                  key={p.id}
-                  className="border-b border-border last:border-b-0 hover:bg-card-hover transition-colors group"
-                >
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs">
-                      {p.jerseyNumber ?? '-'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/players/${p.id}`}
-                      className="font-medium hover:text-primary transition-colors"
-                    >
-                      {p.displayName}
-                    </Link>
-                    <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary capitalize">
-                      {p.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-muted">{p.email}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {p.positionNames === '-' ? (
-                        <span className="text-muted">-</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {groupedByPosition.map(([positionName, posPlayers]) => (
+            <div key={positionName}>
+              <h2 className="text-lg font-bold mb-3">{positionName}</h2>
+              <div className="space-y-1">
+                {posPlayers.map((p) => (
+                  <Link
+                    key={`${positionName}-${p.id}`}
+                    href={`/players/${p.id}`}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
+                      {p.avatar ? (
+                        <img
+                          src={p.avatar}
+                          alt={p.displayName}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        p.positionNames.split(', ').map((name) => (
-                          <span
-                            key={name}
-                            className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent"
-                          >
-                            {name}
-                          </span>
-                        ))
+                        <span className="text-primary font-bold text-sm">
+                          {p.displayName.charAt(0).toUpperCase()}
+                        </span>
                       )}
                     </div>
-                  </td>
-                  {canManage && (
-                    <td className="px-4 py-3 text-right">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                        {p.displayName}
+                      </p>
+                      <p className="text-xs text-muted">
+                        {p.jerseyNumber ?? '-'} &middot; {p.email}
+                      </p>
+                    </div>
+                    {canManage && (
                       <button
-                        onClick={() => handleDelete(p.id)}
-                        className="w-8 h-8 flex items-center justify-center text-danger hover:bg-danger/20 rounded-lg transition-all"
-                        title="Delete player"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDelete(p.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
                       >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          <line x1="10" y1="11" x2="10" y2="17" />
-                          <line x1="14" y1="11" x2="14" y2="17" />
-                        </svg>
+                        Delete
                       </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

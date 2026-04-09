@@ -5,7 +5,7 @@ import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { traitsService, usersService, userTraitsService } from '@/services';
 import type { Trait, User, UserTrait } from '@/types';
-import { startTransition, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function TraitsPage() {
   const canManage = useCanManage();
@@ -35,9 +35,7 @@ export default function TraitsPage() {
   };
 
   useEffect(() => {
-    startTransition(() => {
-      reload();
-    });
+    reload();
   }, []);
 
   const loadPlayerTraits = async (userId: string) => {

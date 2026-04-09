@@ -9,4 +9,9 @@ export const usersService = {
   update: (id: string, data: Partial<User>) =>
     api.patch<User>(`/users/${id}`, data),
   remove: (id: string) => api.delete(`/users/${id}`),
+  uploadAvatar: (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return api.upload<{ avatar: string }>(`/users/${id}/avatar`, formData);
+  },
 };
