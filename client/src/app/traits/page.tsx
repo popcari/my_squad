@@ -5,7 +5,7 @@ import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { traitsService, usersService, userTraitsService } from '@/services';
 import type { Trait, User, UserTrait } from '@/types';
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 
 export default function TraitsPage() {
   const canManage = useCanManage();
@@ -24,8 +24,7 @@ export default function TraitsPage() {
   const [playerTraits, setPlayerTraits] = useState<UserTrait[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState('');
 
-  const load = async () => {
-    setLoading(true);
+  const reload = async () => {
     const [t, p] = await Promise.all([
       traitsService.getAll(),
       usersService.getAll(),
@@ -36,7 +35,9 @@ export default function TraitsPage() {
   };
 
   useEffect(() => {
-    load();
+    startTransition(() => {
+      reload();
+    });
   }, []);
 
   const loadPlayerTraits = async (userId: string) => {
@@ -60,7 +61,8 @@ export default function TraitsPage() {
     await traitsService.create(form);
     setForm({ name: '', description: '' });
     setShowForm(false);
-    load();
+    setLoading(true);
+    await reload();
   };
 
   const handleDelete = async (id: string) => {
@@ -73,7 +75,8 @@ export default function TraitsPage() {
     });
     if (!ok) return;
     await traitsService.remove(id);
-    load();
+    setLoading(true);
+    await reload();
   };
 
   const handleAssign = async (e: React.FormEvent) => {
