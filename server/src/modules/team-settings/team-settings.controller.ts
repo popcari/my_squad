@@ -9,12 +9,8 @@ export class TeamSettingsController {
   constructor(private readonly teamSettingsService: TeamSettingsService) {}
 
   @Get()
-  async get() {
-    const [settings, playerCount] = await Promise.all([
-      this.teamSettingsService.get(),
-      this.teamSettingsService.getPlayerCount(),
-    ]);
-    return { ...settings, playerCount };
+  get() {
+    return this.teamSettingsService.getCached();
   }
 
   @Patch()
