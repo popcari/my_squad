@@ -17,7 +17,13 @@ let mockConfirmResult = true;
 
 vi.mock('@/contexts/auth-context', () => ({
   useAuth: () => ({
-    user: { id: '1', displayName: 'Coach Minh', email: 'coach@test.com', role: 'coach', jerseyNumber: 99 },
+    user: {
+      id: '1',
+      displayName: 'Coach Minh',
+      email: 'coach@test.com',
+      role: 'coach',
+      jerseyNumber: 99,
+    },
     logout: mockLogout,
   }),
 }));
@@ -27,7 +33,8 @@ vi.mock('@/contexts/theme-context', () => ({
 }));
 
 vi.mock('@/contexts/confirm-context', () => ({
-  useConfirm: () => (opts: { message: string }) => Promise.resolve(mockConfirmResult),
+  useConfirm: () => (opts: { message: string }) =>
+    Promise.resolve(mockConfirmResult),
 }));
 
 describe('Header', () => {

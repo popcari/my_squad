@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { Calendar } from "@/components/calendar";
-import { ScoreModal } from "@/components/score-modal";
-import { HomePageSkeleton } from "@/components/skeleton";
-import { useConfirm } from "@/contexts/confirm-context";
-import { useCanManage } from "@/hooks/use-can-manage";
-import { matchesService } from "@/services";
-import { teamSettingsService } from "@/services/team-settings.service";
-import type { Match } from "@/types";
-import { useEffect, useMemo, useState } from "react";
+import { Calendar } from '@/components/calendar';
+import { ScoreModal } from '@/components/score-modal';
+import { HomePageSkeleton } from '@/components/skeleton';
+import { useConfirm } from '@/contexts/confirm-context';
+import { useCanManage } from '@/hooks/use-can-manage';
+import { matchesService } from '@/services';
+import { teamSettingsService } from '@/services/team-settings.service';
+import type { Match } from '@/types';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function HomePage() {
   const canManage = useCanManage();
   const confirm = useConfirm();
   const [matches, setMatches] = useState<Match[]>([]);
-  const [teamName, setTeamName] = useState("default");
+  const [teamName, setTeamName] = useState('default');
   const [loading, setLoading] = useState(true);
   const [scoreMatch, setScoreMatch] = useState<Match | null>(null);
 
@@ -24,12 +24,12 @@ export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}T15:00`;
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T15:00`;
   const [form, setForm] = useState({
-    opponent: "",
+    opponent: '',
     matchDate: todayStr,
-    location: "",
-    notes: "",
+    location: '',
+    notes: '',
   });
 
   const loadData = async () => {
@@ -39,7 +39,7 @@ export default function HomePage() {
       teamSettingsService.get(),
     ]);
     setMatches(data);
-    setTeamName(settings.name || "My Squad");
+    setTeamName(settings.name || 'My Squad');
     setLoading(false);
   };
 
@@ -52,7 +52,7 @@ export default function HomePage() {
     const groups: Record<string, Match[]> = {};
     matches.forEach((m) => {
       const d = new Date(m.matchDate);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       if (!groups[key]) groups[key] = [];
       groups[key].push(m);
     });
@@ -64,7 +64,7 @@ export default function HomePage() {
     if (!selectedDate) return null;
     return matches.filter((m) => {
       const d = new Date(m.matchDate);
-      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       return dateStr === selectedDate;
     });
   }, [selectedDate, matches]);
@@ -93,16 +93,16 @@ export default function HomePage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const ok = await confirm({
-      title: "Create Match",
+      title: 'Create Match',
       message: `Create match vs ${form.opponent}?`,
-      confirmText: "Create",
+      confirmText: 'Create',
     });
     if (!ok) return;
     await matchesService.create({
       ...form,
       matchDate: new Date(form.matchDate).toISOString(),
     });
-    setForm({ opponent: "", matchDate: todayStr, location: "", notes: "" });
+    setForm({ opponent: '', matchDate: todayStr, location: '', notes: '' });
     setShowForm(false);
     loadData();
   };
@@ -118,10 +118,10 @@ export default function HomePage() {
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
-      title: "Delete Match",
+      title: 'Delete Match',
       message:
-        "Are you sure you want to delete this match? This action cannot be undone.",
-      confirmText: "Delete",
+        'Are you sure you want to delete this match? This action cannot be undone.',
+      confirmText: 'Delete',
       danger: true,
     });
     if (!ok) return;
@@ -129,45 +129,45 @@ export default function HomePage() {
     loadData();
   };
 
-  const matchResult = (m: Match): "win" | "lose" | "draw" | null => {
-    if (m.status !== "completed" || m.homeScore == null || m.awayScore == null)
+  const matchResult = (m: Match): 'win' | 'lose' | 'draw' | null => {
+    if (m.status !== 'completed' || m.homeScore == null || m.awayScore == null)
       return null;
-    if (m.homeScore > m.awayScore) return "win";
-    if (m.homeScore < m.awayScore) return "lose";
-    return "draw";
+    if (m.homeScore > m.awayScore) return 'win';
+    if (m.homeScore < m.awayScore) return 'lose';
+    return 'draw';
   };
 
-  const resultColor = (r: "win" | "lose" | "draw" | null) => {
-    if (r === "win") return "text-accent";
-    if (r === "lose") return "text-danger";
-    if (r === "draw") return "text-yellow-400";
-    return "text-muted";
+  const resultColor = (r: 'win' | 'lose' | 'draw' | null) => {
+    if (r === 'win') return 'text-accent';
+    if (r === 'lose') return 'text-danger';
+    if (r === 'draw') return 'text-yellow-400';
+    return 'text-muted';
   };
 
   const resultDot = (m: Match) => {
     const r = matchResult(m);
-    if (r === "win") return "bg-accent";
-    if (r === "lose") return "bg-danger";
-    if (r === "draw") return "bg-yellow-400";
-    if (m.status === "cancelled") return "bg-danger";
-    return "bg-primary";
+    if (r === 'win') return 'bg-accent';
+    if (r === 'lose') return 'bg-danger';
+    if (r === 'draw') return 'bg-yellow-400';
+    if (m.status === 'cancelled') return 'bg-danger';
+    return 'bg-primary';
   };
 
   const formatMonthLabel = (key: string) => {
-    const [y, m] = key.split("-");
+    const [y, m] = key.split('-');
     const months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return `${months[Number(m) - 1]} ${y}`;
   };
@@ -183,7 +183,7 @@ export default function HomePage() {
           {new Date(m.matchDate).getDate()}
         </span>
         <span className="text-[10px] text-muted uppercase">
-          {new Date(m.matchDate).toLocaleDateString("en", { weekday: "short" })}
+          {new Date(m.matchDate).toLocaleDateString('en', { weekday: 'short' })}
         </span>
       </div>
 
@@ -193,10 +193,10 @@ export default function HomePage() {
             className={`w-2 h-2 rounded-full flex-shrink-0 ${resultDot(m)}`}
           />
           <span className="font-medium truncate">
-            {teamName} <span className="text-muted font-normal">vs</span>{" "}
+            {teamName} <span className="text-muted font-normal">vs</span>{' '}
             {m.opponent}
           </span>
-          {m.status === "completed" && (
+          {m.status === 'completed' && (
             <span
               className={`text-sm font-bold ml-auto flex-shrink-0 ${resultColor(matchResult(m))}`}
             >
@@ -205,11 +205,11 @@ export default function HomePage() {
           )}
         </div>
         <div className="text-xs text-muted mt-0.5">
-          {new Date(m.matchDate).toLocaleTimeString("vi-VN", {
-            hour: "2-digit",
-            minute: "2-digit",
+          {new Date(m.matchDate).toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
           })}
-          {" · "}
+          {' · '}
           {m.location}
         </div>
       </div>
@@ -250,10 +250,10 @@ export default function HomePage() {
           {selectedDate && selectedMatches && (
             <div className="bg-card rounded-lg p-4">
               <h3 className="text-sm font-semibold mb-2">
-                {new Date(selectedDate + "T00:00").toLocaleDateString("en", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
+                {new Date(selectedDate + 'T00:00').toLocaleDateString('en', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
                 })}
               </h3>
               {selectedMatches.length === 0 ? (
@@ -272,7 +272,7 @@ export default function HomePage() {
                 onClick={() => setShowForm(!showForm)}
                 className="w-full text-sm font-medium text-primary hover:text-primary-hover transition-colors text-left"
               >
-                {showForm ? "- Cancel" : "+ Create new match"}
+                {showForm ? '- Cancel' : '+ Create new match'}
               </button>
               {showForm && (
                 <form onSubmit={handleCreate} className="mt-3 space-y-3">
@@ -347,7 +347,7 @@ export default function HomePage() {
                     <div className="flex-1 h-px bg-border" />
                     <span className="text-xs text-muted">
                       {monthMatches.length} match
-                      {monthMatches.length > 1 ? "es" : ""}
+                      {monthMatches.length > 1 ? 'es' : ''}
                     </span>
                   </div>
                   <div className="space-y-2">

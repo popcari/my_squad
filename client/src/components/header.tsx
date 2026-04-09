@@ -30,7 +30,12 @@ export function Header() {
   };
 
   const initials = user?.displayName
-    ? user.displayName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+    ? user.displayName
+        .split(' ')
+        .map((w) => w[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
     : '?';
 
   return (
@@ -67,22 +72,33 @@ export function Header() {
               {initials}
             </div>
             <div className="text-left hidden sm:block">
-              <p className="text-sm font-medium leading-tight">{user?.displayName}</p>
-              <p className="text-[10px] text-muted leading-tight capitalize">{user?.role}</p>
+              <p className="text-sm font-medium leading-tight">
+                {user?.displayName}
+              </p>
+              <p className="text-[10px] text-muted leading-tight capitalize">
+                {user?.role}
+              </p>
             </div>
           </button>
 
           {showMenu && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowMenu(false)}
+              />
               <div className="absolute right-0 top-full mt-1 w-56 bg-card border border-border rounded-lg shadow-lg z-50 py-1">
                 {/* User info */}
                 <div className="px-4 py-3 border-b border-border">
                   <p className="text-sm font-medium">{user?.displayName}</p>
                   <p className="text-xs text-muted">{user?.email}</p>
-                  <p className="text-xs text-primary capitalize mt-0.5">{user?.role}</p>
+                  <p className="text-xs text-primary capitalize mt-0.5">
+                    {user?.role}
+                  </p>
                   {user?.jerseyNumber && (
-                    <p className="text-xs text-muted">Jersey #{user.jerseyNumber}</p>
+                    <p className="text-xs text-muted">
+                      Jersey #{user.jerseyNumber}
+                    </p>
                   )}
                 </div>
 

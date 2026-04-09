@@ -19,7 +19,13 @@ export function Skeleton({ className = '', width, height }: SkeletonProps) {
   );
 }
 
-export function SkeletonText({ lines = 3, className = '' }: { lines?: number; className?: string }) {
+export function SkeletonText({
+  lines = 3,
+  className = '',
+}: {
+  lines?: number;
+  className?: string;
+}) {
   return (
     <div className={`space-y-2 ${className}`}>
       {Array.from({ length: lines }).map((_, i) => (
@@ -71,7 +77,10 @@ export function HomePageSkeleton() {
               </div>
               <div className="space-y-2">
                 {[1, 2].map((card) => (
-                  <div key={card} className="bg-card-hover p-3 rounded-lg flex items-center gap-3">
+                  <div
+                    key={card}
+                    className="bg-card-hover p-3 rounded-lg flex items-center gap-3"
+                  >
                     <Skeleton width="48px" height="48px" />
                     <div className="flex-1 space-y-2">
                       <Skeleton height="16px" width="80%" />
@@ -99,28 +108,54 @@ export function PlayersPageSkeleton() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-card-hover">
-              <th className="text-left px-4 py-3 w-20"><Skeleton height="16px" width="24px" /></th>
-              <th className="text-left px-4 py-3"><Skeleton height="16px" width="60px" /></th>
-              <th className="text-left px-4 py-3"><Skeleton height="16px" width="60px" /></th>
-              <th className="text-left px-4 py-3"><Skeleton height="16px" width="80px" /></th>
+              <th className="text-left px-4 py-3 w-20">
+                <Skeleton height="16px" width="24px" />
+              </th>
+              <th className="text-left px-4 py-3">
+                <Skeleton height="16px" width="60px" />
+              </th>
+              <th className="text-left px-4 py-3">
+                <Skeleton height="16px" width="60px" />
+              </th>
+              <th className="text-left px-4 py-3">
+                <Skeleton height="16px" width="80px" />
+              </th>
             </tr>
           </thead>
           <tbody>
             {Array.from({ length: 6 }).map((_, i) => (
               <tr key={i} className="border-b border-border last:border-b-0">
                 <td className="px-4 py-3">
-                  <Skeleton width="32px" height="32px" className="rounded-full" />
+                  <Skeleton
+                    width="32px"
+                    height="32px"
+                    className="rounded-full"
+                  />
                 </td>
                 <td className="px-4 py-3">
-                  <Skeleton height="16px" width={`${60 + Math.random() * 40}%`} />
+                  <Skeleton
+                    height="16px"
+                    width={`${60 + Math.random() * 40}%`}
+                  />
                 </td>
                 <td className="px-4 py-3">
-                  <Skeleton height="16px" width={`${50 + Math.random() * 30}%`} />
+                  <Skeleton
+                    height="16px"
+                    width={`${50 + Math.random() * 30}%`}
+                  />
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
-                    <Skeleton height="22px" width="50px" className="rounded-full" />
-                    <Skeleton height="22px" width="40px" className="rounded-full" />
+                    <Skeleton
+                      height="22px"
+                      width="50px"
+                      className="rounded-full"
+                    />
+                    <Skeleton
+                      height="22px"
+                      width="40px"
+                      className="rounded-full"
+                    />
                   </div>
                 </td>
               </tr>
@@ -149,7 +184,10 @@ export function SettingsPageSkeleton() {
           </div>
           <div className="grid grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-background rounded-lg p-4 text-center space-y-2">
+              <div
+                key={i}
+                className="bg-background rounded-lg p-4 text-center space-y-2"
+              >
                 <Skeleton height="28px" width="40px" className="mx-auto" />
                 <Skeleton height="12px" width="60px" className="mx-auto" />
               </div>
@@ -177,9 +215,15 @@ export function TraitsPageSkeleton() {
           <Skeleton width="100px" height="22px" className="mb-3" />
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="bg-card p-3 rounded-lg flex items-center justify-between">
+              <div
+                key={i}
+                className="bg-card p-3 rounded-lg flex items-center justify-between"
+              >
                 <div className="space-y-1.5 flex-1">
-                  <Skeleton height="16px" width={`${40 + Math.random() * 30}%`} />
+                  <Skeleton
+                    height="16px"
+                    width={`${40 + Math.random() * 30}%`}
+                  />
                 </div>
               </div>
             ))}

@@ -40,7 +40,9 @@ export default function LoginPage() {
               <span className="text-3xl">⚽</span>
             </div>
             <h1 className="text-2xl font-bold">My Squad</h1>
-            <p className="text-sm text-muted mt-1">Sign in to manage your team</p>
+            <p className="text-sm text-muted mt-1">
+              Sign in to manage your team
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

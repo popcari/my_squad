@@ -15,12 +15,28 @@ interface CalendarProps {
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 export function Calendar({
-  year, month, matches, selectedDate, onSelectDate, onPrev, onNext,
+  year,
+  month,
+  matches,
+  selectedDate,
+  onSelectDate,
+  onPrev,
+  onNext,
 }: CalendarProps) {
   const { days, matchDates } = useMemo(() => {
     const firstDay = new Date(year, month, 1);
@@ -44,7 +60,9 @@ export function Calendar({
 
   const today = new Date();
   const isToday = (day: number) =>
-    today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+    today.getFullYear() === year &&
+    today.getMonth() === month &&
+    today.getDate() === day;
 
   const toDateStr = (day: number) =>
     `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -100,7 +118,9 @@ export function Calendar({
             >
               {day}
               {hasMatch && (
-                <span className={`absolute bottom-1 w-2 h-2 rounded-full ${isSelected ? 'bg-white' : 'bg-accent'}`} />
+                <span
+                  className={`absolute bottom-1 w-2 h-2 rounded-full ${isSelected ? 'bg-white' : 'bg-accent'}`}
+                />
               )}
             </button>
           );

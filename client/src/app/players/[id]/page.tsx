@@ -46,7 +46,10 @@ export default function PlayerProfilePage() {
 
   return (
     <div>
-      <Link href="/players" className="text-sm text-muted hover:text-primary mb-4 inline-block">
+      <Link
+        href="/players"
+        className="text-sm text-muted hover:text-primary mb-4 inline-block"
+      >
         &larr; Back to Players
       </Link>
 
@@ -60,7 +63,10 @@ export default function PlayerProfilePage() {
             <p className="text-sm text-muted">{profile.email}</p>
             <div className="flex gap-2 mt-2">
               {positionNames.map((name) => (
-                <span key={name} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
+                <span
+                  key={name}
+                  className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium"
+                >
                   {name}
                 </span>
               ))}
@@ -78,11 +84,15 @@ export default function PlayerProfilePage() {
           <h2 className="text-lg font-semibold mb-4">Stats</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-background rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-primary">{profile.stats.goals}</div>
+              <div className="text-3xl font-bold text-primary">
+                {profile.stats.goals}
+              </div>
               <div className="text-sm text-muted">Goals</div>
             </div>
             <div className="bg-background rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-accent">{profile.stats.assists}</div>
+              <div className="text-3xl font-bold text-accent">
+                {profile.stats.assists}
+              </div>
               <div className="text-sm text-muted">Assists</div>
             </div>
           </div>
@@ -99,7 +109,9 @@ export default function PlayerProfilePage() {
                 <div key={t.name}>
                   <div className="flex justify-between text-sm mb-1">
                     <span>{t.name}</span>
-                    <span className="text-muted">{t.rating}/{maxRating}</span>
+                    <span className="text-muted">
+                      {t.rating}/{maxRating}
+                    </span>
                   </div>
                   <div className="w-full bg-background rounded-full h-2">
                     <div

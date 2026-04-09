@@ -54,7 +54,10 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="displayName" className="block text-sm font-medium mb-1">
+              <label
+                htmlFor="displayName"
+                className="block text-sm font-medium mb-1"
+              >
                 Display Name
               </label>
               <input
@@ -62,7 +65,9 @@ export default function RegisterPage() {
                 type="text"
                 placeholder="Nguyen Van A"
                 value={form.displayName}
-                onChange={(e) => setForm({ ...form, displayName: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, displayName: e.target.value })
+                }
                 className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 required
                 autoFocus
@@ -86,13 +91,18 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="role" className="block text-sm font-medium mb-1">
+                <label
+                  htmlFor="role"
+                  className="block text-sm font-medium mb-1"
+                >
                   Role
                 </label>
                 <select
                   id="role"
                   value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}
+                  onChange={(e) =>
+                    setForm({ ...form, role: e.target.value as UserRole })
+                  }
                   className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 >
                   <option value="player">Player</option>
@@ -102,7 +112,10 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label htmlFor="jersey" className="block text-sm font-medium mb-1">
+                <label
+                  htmlFor="jersey"
+                  className="block text-sm font-medium mb-1"
+                >
                   Jersey #
                 </label>
                 <input
@@ -112,7 +125,9 @@ export default function RegisterPage() {
                   max={99}
                   placeholder="10"
                   value={form.jerseyNumber}
-                  onChange={(e) => setForm({ ...form, jerseyNumber: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, jerseyNumber: e.target.value })
+                  }
                   className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>

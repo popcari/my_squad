@@ -20,7 +20,9 @@ const ConfirmContext = createContext<ConfirmContextType>({
 
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   const [options, setOptions] = useState<ConfirmOptions | null>(null);
-  const [resolver, setResolver] = useState<((value: boolean) => void) | null>(null);
+  const [resolver, setResolver] = useState<((value: boolean) => void) | null>(
+    null,
+  );
 
   const confirm = useCallback((opts: ConfirmOptions): Promise<boolean> => {
     setOptions(opts);
@@ -47,7 +49,10 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
 
       {options && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60" onClick={handleCancel} />
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={handleCancel}
+          />
           <div className="relative bg-card border border-border rounded-2xl p-6 w-full max-w-sm shadow-xl">
             <h3 className="text-lg font-bold mb-2">
               {options.title || 'Confirm'}

@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { SettingsPageSkeleton } from "@/components/skeleton";
-import { useConfirm } from "@/contexts/confirm-context";
-import { useCanManage } from "@/hooks/use-can-manage";
-import { teamSettingsService } from "@/services/team-settings.service";
-import type { TeamSettings } from "@/types/team-settings";
-import { useEffect, useState } from "react";
+import { SettingsPageSkeleton } from '@/components/skeleton';
+import { useConfirm } from '@/contexts/confirm-context';
+import { useCanManage } from '@/hooks/use-can-manage';
+import { teamSettingsService } from '@/services/team-settings.service';
+import type { TeamSettings } from '@/types/team-settings';
+import { useEffect, useState } from 'react';
 
 export default function SettingsPage() {
   const canManage = useCanManage();
@@ -14,11 +14,11 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
-    name: "",
-    description: "",
-    foundedDate: "",
-    logo: "",
-    homeStadium: "",
+    name: '',
+    description: '',
+    foundedDate: '',
+    logo: '',
+    homeStadium: '',
   });
   const [saving, setSaving] = useState(false);
 
@@ -27,11 +27,11 @@ export default function SettingsPage() {
     const data = await teamSettingsService.get();
     setSettings(data);
     setForm({
-      name: data.name || "",
-      description: data.description || "",
-      foundedDate: data.foundedDate || "",
-      logo: data.logo || "",
-      homeStadium: data.homeStadium || "",
+      name: data.name || '',
+      description: data.description || '',
+      foundedDate: data.foundedDate || '',
+      logo: data.logo || '',
+      homeStadium: data.homeStadium || '',
     });
     setLoading(false);
   };
@@ -43,9 +43,9 @@ export default function SettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const ok = await confirm({
-      title: "Save Settings",
-      message: "Save changes to team settings?",
-      confirmText: "Save",
+      title: 'Save Settings',
+      message: 'Save changes to team settings?',
+      confirmText: 'Save',
     });
     if (!ok) return;
     setSaving(true);
@@ -141,7 +141,7 @@ export default function SettingsPage() {
               disabled={saving}
               className="px-6 py-2 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-lg text-sm transition-colors"
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? 'Saving...' : 'Save'}
             </button>
             <button
               type="button"
@@ -170,7 +170,7 @@ export default function SettingsPage() {
               )}
               <div>
                 <h2 className="text-xl font-bold">
-                  {settings?.name || "My Squad"}
+                  {settings?.name || 'My Squad'}
                 </h2>
                 {settings?.description && (
                   <p className="text-sm text-muted mt-1">
@@ -190,14 +190,14 @@ export default function SettingsPage() {
               <div className="bg-background rounded-lg p-4 text-center">
                 <div className="text-sm font-medium">
                   {settings?.foundedDate
-                    ? new Date(settings.foundedDate).toLocaleDateString("vi-VN")
-                    : "-"}
+                    ? new Date(settings.foundedDate).toLocaleDateString('vi-VN')
+                    : '-'}
                 </div>
                 <div className="text-xs text-muted mt-1">Founded</div>
               </div>
               <div className="bg-background rounded-lg p-4 text-center">
                 <div className="text-sm font-medium truncate">
-                  {settings?.homeStadium || "-"}
+                  {settings?.homeStadium || '-'}
                 </div>
                 <div className="text-xs text-muted mt-1">Home Stadium</div>
               </div>

@@ -25,11 +25,21 @@ interface ScoreModalProps {
   onSaved: () => void;
 }
 
-export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: ScoreModalProps) {
+export function ScoreModal({
+  match,
+  teamName,
+  canManage,
+  onClose,
+  onSaved,
+}: ScoreModalProps) {
   const confirmDialog = useConfirm();
   const [players, setPlayers] = useState<User[]>([]);
-  const [homeScore, setHomeScore] = useState(match.homeScore?.toString() ?? '0');
-  const [awayScore, setAwayScore] = useState(match.awayScore?.toString() ?? '0');
+  const [homeScore, setHomeScore] = useState(
+    match.homeScore?.toString() ?? '0',
+  );
+  const [awayScore, setAwayScore] = useState(
+    match.awayScore?.toString() ?? '0',
+  );
   const [goals, setGoals] = useState<GoalEntry[]>([]);
   const [lineups, setLineups] = useState<LineupEntry[]>([]);
   const [saving, setSaving] = useState(false);
@@ -45,19 +55,23 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
       setPlayers(p);
 
       if (existingGoals.length > 0) {
-        setGoals(existingGoals.map((g) => ({
-          scorerId: g.scorerId,
-          assistId: g.assistId || '',
-          minute: String(g.minute),
-        })));
+        setGoals(
+          existingGoals.map((g) => ({
+            scorerId: g.scorerId,
+            assistId: g.assistId || '',
+            minute: String(g.minute),
+          })),
+        );
       }
 
       if (existingLineups.length > 0) {
-        setLineups(existingLineups.map((l) => ({
-          id: l.id,
-          userId: l.userId,
-          type: l.type as 'starting' | 'substitute',
-        })));
+        setLineups(
+          existingLineups.map((l) => ({
+            id: l.id,
+            userId: l.userId,
+            type: l.type as 'starting' | 'substitute',
+          })),
+        );
       }
 
       setLoading(false);
@@ -86,7 +100,7 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
   };
 
   const updateGoal = (index: number, field: keyof GoalEntry, value: string) => {
-    setGoals(goals.map((g, i) => i === index ? { ...g, [field]: value } : g));
+    setGoals(goals.map((g, i) => (i === index ? { ...g, [field]: value } : g)));
   };
 
   const removeGoal = (index: number) => {
@@ -165,13 +179,23 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
             <h2 className="text-lg font-bold">Match Detail</h2>
             <p className="text-xs text-muted">
               {new Date(match.matchDate).toLocaleDateString('vi-VN', {
-                weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit',
+                weekday: 'long',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
               })}
-              {' · '}{match.location}
+              {' · '}
+              {match.location}
             </p>
           </div>
-          <button onClick={onClose} className="text-muted hover:text-foreground text-xl">&times;</button>
+          <button
+            onClick={onClose}
+            className="text-muted hover:text-foreground text-xl"
+          >
+            &times;
+          </button>
         </div>
 
         {loading ? (
@@ -195,7 +219,9 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
                     <div className="text-2xl font-bold">{homeScore}</div>
                   )}
                 </div>
-                <div className="text-center text-2xl font-bold text-muted">-</div>
+                <div className="text-center text-2xl font-bold text-muted">
+                  -
+                </div>
                 <div className="text-center">
                   <p className="text-xs text-muted mb-2">{match.opponent}</p>
                   {canManage ? (
@@ -220,11 +246,16 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
                 {/* Starting */}
                 <div className="bg-background rounded-lg p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-primary uppercase">Starting ({startingPlayers.length})</span>
+                    <span className="text-xs font-semibold text-primary uppercase">
+                      Starting ({startingPlayers.length})
+                    </span>
                   </div>
                   <div className="space-y-1">
                     {startingPlayers.map((l) => (
-                      <div key={l.userId} className="flex items-center justify-between text-sm py-1">
+                      <div
+                        key={l.userId}
+                        className="flex items-center justify-between text-sm py-1"
+                      >
                         <span>{getPlayerName(l.userId)}</span>
                         {canManage && (
                           <button
@@ -248,7 +279,9 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
                     >
                       <option value="">+ Add starting...</option>
                       {availablePlayers.map((p) => (
-                        <option key={p.id} value={p.id}>#{p.jerseyNumber} {p.displayName}</option>
+                        <option key={p.id} value={p.id}>
+                          #{p.jerseyNumber} {p.displayName}
+                        </option>
                       ))}
                     </select>
                   )}
@@ -257,11 +290,16 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
                 {/* Substitutes */}
                 <div className="bg-background rounded-lg p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-yellow-400 uppercase">Substitute ({substitutePlayers.length})</span>
+                    <span className="text-xs font-semibold text-yellow-400 uppercase">
+                      Substitute ({substitutePlayers.length})
+                    </span>
                   </div>
                   <div className="space-y-1">
                     {substitutePlayers.map((l) => (
-                      <div key={l.userId} className="flex items-center justify-between text-sm py-1">
+                      <div
+                        key={l.userId}
+                        className="flex items-center justify-between text-sm py-1"
+                      >
                         <span>{getPlayerName(l.userId)}</span>
                         {canManage && (
                           <button
@@ -280,12 +318,16 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
                   {canManage && availablePlayers.length > 0 && (
                     <select
                       value=""
-                      onChange={(e) => addToLineup(e.target.value, 'substitute')}
+                      onChange={(e) =>
+                        addToLineup(e.target.value, 'substitute')
+                      }
                       className="mt-2 w-full bg-card border border-border rounded px-2 py-1.5 text-xs"
                     >
                       <option value="">+ Add substitute...</option>
                       {availablePlayers.map((p) => (
-                        <option key={p.id} value={p.id}>#{p.jerseyNumber} {p.displayName}</option>
+                        <option key={p.id} value={p.id}>
+                          #{p.jerseyNumber} {p.displayName}
+                        </option>
                       ))}
                     </select>
                   )}
@@ -313,9 +355,14 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
               ) : canManage ? (
                 <div className="space-y-3">
                   {goals.map((goal, i) => (
-                    <div key={i} className="bg-background rounded-lg p-3 space-y-2">
+                    <div
+                      key={i}
+                      className="bg-background rounded-lg p-3 space-y-2"
+                    >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted font-medium">Goal #{i + 1}</span>
+                        <span className="text-xs text-muted font-medium">
+                          Goal #{i + 1}
+                        </span>
                         <button
                           type="button"
                           onClick={() => removeGoal(i)}
@@ -327,7 +374,9 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
                       <div className="grid grid-cols-5 gap-2">
                         <select
                           value={goal.scorerId}
-                          onChange={(e) => updateGoal(i, 'scorerId', e.target.value)}
+                          onChange={(e) =>
+                            updateGoal(i, 'scorerId', e.target.value)
+                          }
                           className="col-span-2 bg-card border border-border rounded px-2 py-1.5 text-sm"
                         >
                           <option value="">Scorer *</option>
@@ -339,7 +388,9 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
                         </select>
                         <select
                           value={goal.assistId}
-                          onChange={(e) => updateGoal(i, 'assistId', e.target.value)}
+                          onChange={(e) =>
+                            updateGoal(i, 'assistId', e.target.value)
+                          }
                           className="col-span-2 bg-card border border-border rounded px-2 py-1.5 text-sm"
                         >
                           <option value="">Assist</option>
@@ -357,7 +408,9 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
                           max={120}
                           placeholder="Min"
                           value={goal.minute}
-                          onChange={(e) => updateGoal(i, 'minute', e.target.value)}
+                          onChange={(e) =>
+                            updateGoal(i, 'minute', e.target.value)
+                          }
                           className="bg-card border border-border rounded px-2 py-1.5 text-sm text-center"
                         />
                       </div>
@@ -368,11 +421,20 @@ export function ScoreModal({ match, teamName, canManage, onClose, onSaved }: Sco
                 /* Read-only goals for player role */
                 <div className="space-y-2">
                   {goals.map((goal, i) => (
-                    <div key={i} className="bg-background rounded-lg p-2 flex items-center gap-3 text-sm">
-                      <span className="text-muted text-xs w-10">{goal.minute}&apos;</span>
-                      <span className="font-medium">{getPlayerName(goal.scorerId)}</span>
+                    <div
+                      key={i}
+                      className="bg-background rounded-lg p-2 flex items-center gap-3 text-sm"
+                    >
+                      <span className="text-muted text-xs w-10">
+                        {goal.minute}&apos;
+                      </span>
+                      <span className="font-medium">
+                        {getPlayerName(goal.scorerId)}
+                      </span>
                       {goal.assistId && (
-                        <span className="text-muted text-xs">(ast. {getPlayerName(goal.assistId)})</span>
+                        <span className="text-muted text-xs">
+                          (ast. {getPlayerName(goal.assistId)})
+                        </span>
                       )}
                     </div>
                   ))}
