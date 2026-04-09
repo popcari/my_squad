@@ -19,22 +19,38 @@ export function AvatarPickerModal({
   >([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [dragOver, setDragOver] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    usersService.listAvatars().then((data) => {
+  const loadImages = () => {
+    return usersService.listAvatars().then((data) => {
       setImages(data);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    loadImages();
   }, []);
 
   const handleUpload = useCallback(
     async (file: File) => {
       if (!file.type.startsWith('image/')) return;
       setUploading(true);
-      const result = await usersService.uploadAvatar(userId, file);
-      onSelect(result.avatar);
+      setUploadProgress(0);
+      try {
+        const result = await usersService.uploadAvatar(
+          userId,
+          file,
+          (p) => setUploadProgress(p),
+        );
+        onSelect(result.avatar);
+      } finally {
+        setUploading(false);
+        setUploadProgress(0);
+      }
     },
     [userId, onSelect],
   );
@@ -52,11 +68,27 @@ export function AvatarPickerModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handleUpload(file);
+    // Reset input so same file can be re-selected
+    e.target.value = '';
   };
 
   const handleSelectExisting = async (url: string) => {
     await usersService.update(userId, { avatar: url });
     onSelect(url);
+  };
+
+  const handleDeleteImage = async (
+    e: React.MouseEvent,
+    publicId: string,
+  ) => {
+    e.stopPropagation();
+    setDeletingId(publicId);
+    try {
+      await usersService.deleteAvatar(publicId);
+      setImages((prev) => prev.filter((img) => img.publicId !== publicId));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -88,15 +120,23 @@ export function AvatarPickerModal({
             }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-              dragOver
-                ? 'border-primary bg-primary/10'
-                : 'border-border hover:border-primary/50'
-            }`}
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+              uploading
+                ? 'cursor-default border-primary/50'
+                : 'cursor-pointer hover:border-primary/50'
+            } ${dragOver ? 'border-primary bg-primary/10' : 'border-border'}`}
           >
             {uploading ? (
-              <p className="text-sm text-muted">Uploading...</p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted">Uploading... {uploadProgress}%</p>
+                <div className="w-full bg-background rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-primary h-2 rounded-full transition-all duration-200"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
             ) : (
               <>
                 <p className="text-sm font-medium">Drag & drop an image here</p>
@@ -127,17 +167,31 @@ export function AvatarPickerModal({
           ) : (
             <div className="grid grid-cols-4 gap-2">
               {images.map((img) => (
-                <button
-                  key={img.publicId}
-                  onClick={() => handleSelectExisting(img.url)}
-                  className="aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-colors"
-                >
-                  <img
-                    src={img.url}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                </button>
+                <div key={img.publicId} className="relative group aspect-square">
+                  <button
+                    onClick={() => handleSelectExisting(img.url)}
+                    className="w-full h-full rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-colors"
+                  >
+                    <img
+                      src={img.url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                  {/* Delete button */}
+                  <button
+                    onClick={(e) => handleDeleteImage(e, img.publicId)}
+                    disabled={deletingId === img.publicId}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-danger transition-all"
+                    title="Delete image"
+                  >
+                    {deletingId === img.publicId ? (
+                      <span className="animate-spin inline-block w-3 h-3 border border-white border-t-transparent rounded-full" />
+                    ) : (
+                      '×'
+                    )}
+                  </button>
+                </div>
               ))}
             </div>
           )}

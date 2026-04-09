@@ -3,6 +3,7 @@
 import { AvatarPickerModal } from '@/components/avatar-picker-modal';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import {
   positionsService,
   traitsService,
@@ -17,8 +18,9 @@ import { useEffect, useState } from 'react';
 
 export default function PlayerProfilePage() {
   const params = useParams();
-  const id = params.id as string;
+  const playerId = params.id as string;
   const canManage = useCanManage();
+  const currentUser = useCurrentUser();
   const confirm = useConfirm();
 
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
@@ -45,7 +47,7 @@ export default function PlayerProfilePage() {
 
   const reload = async () => {
     const [p, pos, traits] = await Promise.all([
-      usersService.getProfile(id),
+      usersService.getProfile(playerId),
       positionsService.getAll(),
       traitsService.getAll(),
     ]);
@@ -57,7 +59,7 @@ export default function PlayerProfilePage() {
 
   useEffect(() => {
     reload();
-  }, [id]);
+  }, [playerId]);
 
   const startEdit = () => {
     if (!profile) return;
@@ -76,7 +78,7 @@ export default function PlayerProfilePage() {
   const saveEdit = async () => {
     if (!profile) return;
     setSaving(true);
-    await usersService.update(id, {
+    await usersService.update(playerId, {
       displayName: editForm.displayName,
       jerseyNumber: editForm.jerseyNumber
         ? Number(editForm.jerseyNumber)
@@ -111,7 +113,7 @@ export default function PlayerProfilePage() {
       await userPositionsService.remove(existingSub.id);
     }
     await userPositionsService.assign({
-      userId: id,
+      userId: playerId,
       positionId,
       type: 'primary',
     });
@@ -127,7 +129,7 @@ export default function PlayerProfilePage() {
       await userPositionsService.remove(existing.id);
     } else {
       await userPositionsService.assign({
-        userId: id,
+        userId: playerId,
         positionId,
         type: 'sub',
       });
@@ -140,7 +142,7 @@ export default function PlayerProfilePage() {
     e.preventDefault();
     if (!assignTraitForm.traitId) return;
     await userTraitsService.assign({
-      userId: id,
+      userId: playerId,
       traitId: assignTraitForm.traitId,
       rating: Number(assignTraitForm.rating),
     });
@@ -183,7 +185,7 @@ export default function PlayerProfilePage() {
         href="/players"
         className="text-sm text-muted hover:text-primary mb-4 inline-block"
       >
-        &larr; Back to Players
+        &larr; Back
       </Link>
 
       {/* Profile Header */}
@@ -201,7 +203,7 @@ export default function PlayerProfilePage() {
                 profile.jerseyNumber || '#'
               )}
             </div>
-            {canManage && (
+            {currentUser?.id === playerId && (
               <button
                 onClick={() => setShowAvatarPicker(true)}
                 className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition-opacity"
@@ -514,7 +516,7 @@ export default function PlayerProfilePage() {
 
       {showAvatarPicker && (
         <AvatarPickerModal
-          userId={id}
+          userId={playerId}
           onSelect={handleAvatarSelected}
           onClose={() => setShowAvatarPicker(false)}
         />

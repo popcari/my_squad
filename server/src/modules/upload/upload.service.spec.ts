@@ -8,6 +8,7 @@ jest.mock('cloudinary', () => ({
     config: jest.fn(),
     uploader: {
       upload_stream: jest.fn(),
+      destroy: jest.fn(),
     },
     api: {
       resources: jest.fn(),
@@ -181,6 +182,28 @@ describe('UploadService', () => {
 
       const result = await service.listImages('avatars');
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('deleteImage', () => {
+    it('should call cloudinary destroy with the given publicId', async () => {
+      (cloudinary.uploader.destroy as jest.Mock).mockResolvedValue({
+        result: 'ok',
+      });
+
+      await service.deleteImage('avatars/123');
+
+      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('avatars/123');
+    });
+
+    it('should propagate error when cloudinary destroy fails', async () => {
+      (cloudinary.uploader.destroy as jest.Mock).mockRejectedValue(
+        new Error('Destroy failed'),
+      );
+
+      await expect(service.deleteImage('avatars/123')).rejects.toThrow(
+        'Destroy failed',
+      );
     });
   });
 });

@@ -50,4 +50,8 @@ export class UploadService implements OnModuleInit {
       }),
     );
   }
+
+  async deleteImage(publicId: string): Promise<void> {
+    await cloudinary.uploader.destroy(publicId);
+  }
 }

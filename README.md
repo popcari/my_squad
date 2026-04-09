@@ -91,6 +91,13 @@ cp .env.example .env  # Configure your environment variables
 npm run dev or yarn dev
 ```
 
+### Seed data (admin player)
+
+```bash
+cd client
+npm run seed or yarn seed
+```
+
 ### Running Tests
 
 ```bash
