@@ -66,7 +66,7 @@ export function Header() {
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="flex items-center gap-2 hover:bg-card-hover rounded-lg px-2 py-1 transition-colors"
+            className="flex items-center gap-2 hover:bg-card-hover rounded-lg transition-colors"
           >
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
               {initials}

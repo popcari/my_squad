@@ -13,7 +13,21 @@ import { z } from 'zod';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().superRefine((val, ctx) => {
+    if (val.length === 0) {
+      ctx.addIssue({ code: 'custom', message: 'Password is required' });
+      return;
+    }
+    if (val.length < 6) {
+      ctx.addIssue({ code: 'custom', message: 'Password must be at least 6 characters' });
+    }
+    if (!/[A-Z]/.test(val)) {
+      ctx.addIssue({ code: 'custom', message: 'Password must contain at least 1 uppercase letter' });
+    }
+    if (!/\d/.test(val)) {
+      ctx.addIssue({ code: 'custom', message: 'Password must contain at least 1 number' });
+    }
+  }),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -31,6 +45,7 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
     mode: 'onTouched',
     reValidateMode: 'onChange',
+    criteriaMode: 'all',
   });
 
   const onSubmit = async (data: LoginForm) => {
@@ -45,9 +60,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="min-h-screen w-[370px] md:w-[600px] m-auto flex items-center justify-center bg-background">
       <ThemeToggle />
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-lg">
         <div className="bg-card rounded-2xl p-8 shadow-lg border border-border">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">

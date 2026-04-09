@@ -3,6 +3,8 @@
 import { useAuth } from '@/contexts/auth-context';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Header } from './header';
+import { Sidebar } from './sidebar';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -27,5 +29,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (!user && !isPublic) return null;
 
-  return <>{children}</>;
+  if (isPublic) return <>{children}</>;
+
+  return (
+    <>
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 w-full">
+        <Header />
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">{children}</main>
+      </div>
+    </>
+  );
 }

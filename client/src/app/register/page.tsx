@@ -75,9 +75,9 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="min-h-screen w-[370px] md:w-[600px] m-auto flex items-center justify-center bg-background">
       <ThemeToggle />
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-lg">
         <div className="bg-card rounded-2xl p-8 shadow-lg border border-border">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
