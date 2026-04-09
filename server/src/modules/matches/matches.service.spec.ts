@@ -96,6 +96,52 @@ describe('MatchesService', () => {
     });
   });
 
+  describe('findByMonth', () => {
+    it('should return matches within the given month', async () => {
+      const mockDocs = [
+        {
+          id: 'm-1',
+          data: () => ({
+            opponent: 'April Team',
+            matchDate: { toDate: () => new Date('2026-04-15') },
+            location: 'Stadium',
+            status: MatchStatus.SCHEDULED,
+            createdAt: { toDate: () => new Date() },
+            updatedAt: { toDate: () => new Date() },
+          }),
+        },
+      ];
+
+      const whereChain = {
+        where: jest.fn().mockReturnValue({
+          orderBy: jest.fn().mockReturnValue({
+            get: jest.fn().mockResolvedValue({ docs: mockDocs }),
+          }),
+        }),
+      };
+      mockCollection.where.mockReturnValue(whereChain);
+
+      const result = await service.findByMonth(2026, 4);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].opponent).toBe('April Team');
+    });
+
+    it('should return empty array when no matches in month', async () => {
+      const whereChain = {
+        where: jest.fn().mockReturnValue({
+          orderBy: jest.fn().mockReturnValue({
+            get: jest.fn().mockResolvedValue({ docs: [] }),
+          }),
+        }),
+      };
+      mockCollection.where.mockReturnValue(whereChain);
+
+      const result = await service.findByMonth(2026, 1);
+      expect(result).toEqual([]);
+    });
+  });
+
   describe('findUpcoming', () => {
     it('should return only scheduled matches from now', async () => {
       const mockDocs = [

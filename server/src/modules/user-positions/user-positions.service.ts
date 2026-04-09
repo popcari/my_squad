@@ -26,6 +26,7 @@ export class UserPositionsService {
   }
 
   async assign(dto: AssignPositionDto): Promise<UserPosition> {
+    // Check duplicate position
     const existing = await this.collection
       .where('userId', '==', dto.userId)
       .where('positionId', '==', dto.positionId)
@@ -33,6 +34,18 @@ export class UserPositionsService {
 
     if (!existing.empty) {
       throw new ConflictException('Position already assigned to this user');
+    }
+
+    // Enforce max 1 primary position per user
+    if (dto.type === 'primary') {
+      const hasPrimary = await this.collection
+        .where('userId', '==', dto.userId)
+        .where('type', '==', 'primary')
+        .get();
+
+      if (!hasPrimary.empty) {
+        throw new ConflictException('User already has a primary position');
+      }
     }
 
     const data = { ...dto, createdAt: new Date() };

@@ -97,8 +97,32 @@ export default function PlayerProfilePage() {
     setUploading(false);
   };
 
-  // Position toggles
-  const handleTogglePosition = async (positionId: string) => {
+  // Position management
+  const handleSetPrimary = async (positionId: string) => {
+    if (!profile) return;
+    // Remove existing primary if any
+    const existingPrimary = profile.positions.find(
+      (up) => up.type === 'primary',
+    );
+    if (existingPrimary) {
+      await userPositionsService.remove(existingPrimary.id);
+    }
+    // Remove this position if it was a sub
+    const existingSub = profile.positions.find(
+      (up) => up.positionId === positionId && up.type === 'sub',
+    );
+    if (existingSub) {
+      await userPositionsService.remove(existingSub.id);
+    }
+    await userPositionsService.assign({
+      userId: id,
+      positionId,
+      type: 'primary',
+    });
+    await reload();
+  };
+
+  const handleToggleSub = async (positionId: string) => {
     if (!profile) return;
     const existing = profile.positions.find(
       (up) => up.positionId === positionId,
@@ -106,7 +130,11 @@ export default function PlayerProfilePage() {
     if (existing) {
       await userPositionsService.remove(existing.id);
     } else {
-      await userPositionsService.assign({ userId: id, positionId });
+      await userPositionsService.assign({
+        userId: id,
+        positionId,
+        type: 'sub',
+      });
     }
     await reload();
   };
@@ -261,20 +289,30 @@ export default function PlayerProfilePage() {
                   )}
                 </div>
                 <p className="text-sm text-muted">{profile.email}</p>
-                <div className="flex gap-2 mt-2">
-                  {profile.positions.map((up) => {
-                    const pos = allPositions.find(
-                      (p) => p.id === up.positionId,
-                    );
-                    return (
-                      <span
-                        key={up.id}
-                        className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium"
-                      >
-                        {pos?.name || up.positionId}
-                      </span>
-                    );
-                  })}
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {profile.positions
+                    .slice()
+                    .sort((a, b) =>
+                      a.type === 'primary' ? -1 : b.type === 'primary' ? 1 : 0,
+                    )
+                    .map((up) => {
+                      const pos = allPositions.find(
+                        (p) => p.id === up.positionId,
+                      );
+                      const isPrimary = up.type === 'primary';
+                      return (
+                        <span
+                          key={up.id}
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            isPrimary
+                              ? 'bg-primary text-white'
+                              : 'bg-primary/10 text-primary'
+                          }`}
+                        >
+                          {pos?.name || up.positionId}
+                        </span>
+                      );
+                    })}
                   <span className="px-2 py-1 bg-accent/10 text-accent rounded text-xs font-medium capitalize">
                     {profile.role}
                   </span>
@@ -288,24 +326,64 @@ export default function PlayerProfilePage() {
       {/* Positions Edit */}
       {canManage && (
         <div className="bg-card rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-3">Positions</h2>
-          <div className="flex flex-wrap gap-2">
-            {allPositions.map((pos) => {
-              const active = playerPosIds.includes(pos.id);
-              return (
-                <button
-                  key={pos.id}
-                  onClick={() => handleTogglePosition(pos.id)}
-                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                    active
-                      ? 'bg-primary text-white'
-                      : 'bg-card-hover text-muted hover:text-foreground'
-                  }`}
-                >
-                  {pos.name}
-                </button>
-              );
-            })}
+          <h2 className="text-lg font-semibold mb-4">Positions</h2>
+
+          <div className="mb-4">
+            <p className="text-xs text-muted mb-2 uppercase tracking-wide">
+              Primary Position (click to set)
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {allPositions.map((pos) => {
+                const up = profile.positions.find(
+                  (p) => p.positionId === pos.id,
+                );
+                const isPrimary = up?.type === 'primary';
+                return (
+                  <button
+                    key={pos.id}
+                    onClick={() => handleSetPrimary(pos.id)}
+                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                      isPrimary
+                        ? 'bg-primary text-white'
+                        : 'bg-card-hover text-muted hover:text-foreground'
+                    }`}
+                  >
+                    {pos.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted mb-2 uppercase tracking-wide">
+              Sub Positions (click to toggle)
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {allPositions.map((pos) => {
+                const up = profile.positions.find(
+                  (p) => p.positionId === pos.id,
+                );
+                const isPrimary = up?.type === 'primary';
+                const isSub = up?.type === 'sub';
+                return (
+                  <button
+                    key={pos.id}
+                    onClick={() => handleToggleSub(pos.id)}
+                    disabled={isPrimary}
+                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                      isPrimary
+                        ? 'bg-primary/30 text-primary/50 cursor-not-allowed'
+                        : isSub
+                          ? 'bg-accent text-white'
+                          : 'bg-card-hover text-muted hover:text-foreground'
+                    }`}
+                  >
+                    {pos.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

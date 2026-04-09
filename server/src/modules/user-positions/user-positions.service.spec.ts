@@ -67,8 +67,7 @@ describe('UserPositionsService', () => {
   });
 
   describe('assign', () => {
-    it('should assign position to user', async () => {
-      // No existing assignment
+    it('should assign position with type to user', async () => {
       const whereChain = {
         where: jest.fn().mockReturnValue({
           get: jest.fn().mockResolvedValue({ empty: true }),
@@ -80,14 +79,34 @@ describe('UserPositionsService', () => {
       const result = await service.assign({
         userId: 'user-1',
         positionId: 'pos-1',
+        type: 'primary',
       });
 
       expect(result.id).toBe('new-up');
       expect(result.userId).toBe('user-1');
       expect(result.positionId).toBe('pos-1');
+      expect(result.type).toBe('primary');
     });
 
-    it('should throw ConflictException when already assigned', async () => {
+    it('should assign sub position', async () => {
+      const whereChain = {
+        where: jest.fn().mockReturnValue({
+          get: jest.fn().mockResolvedValue({ empty: true }),
+        }),
+      };
+      mockCollection.where.mockReturnValue(whereChain);
+      mockCollection.add.mockResolvedValue({ id: 'new-up-2' });
+
+      const result = await service.assign({
+        userId: 'user-1',
+        positionId: 'pos-2',
+        type: 'sub',
+      });
+
+      expect(result.type).toBe('sub');
+    });
+
+    it('should throw ConflictException when position already assigned', async () => {
       const whereChain = {
         where: jest.fn().mockReturnValue({
           get: jest.fn().mockResolvedValue({ empty: false }),
@@ -96,7 +115,36 @@ describe('UserPositionsService', () => {
       mockCollection.where.mockReturnValue(whereChain);
 
       await expect(
-        service.assign({ userId: 'user-1', positionId: 'pos-1' }),
+        service.assign({ userId: 'user-1', positionId: 'pos-1', type: 'sub' }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw ConflictException when assigning second primary position', async () => {
+      let callCount = 0;
+      mockCollection.where.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // First call: duplicate check (userId == user-1) -> chains to positionId check
+          return {
+            where: jest.fn().mockReturnValue({
+              get: jest.fn().mockResolvedValue({ empty: true }), // no duplicate
+            }),
+          };
+        }
+        // Second call: primary check (userId == user-1) -> chains to type check
+        return {
+          where: jest.fn().mockReturnValue({
+            get: jest.fn().mockResolvedValue({ empty: false }), // already has primary
+          }),
+        };
+      });
+
+      await expect(
+        service.assign({
+          userId: 'user-1',
+          positionId: 'pos-2',
+          type: 'primary',
+        }),
       ).rejects.toThrow(ConflictException);
     });
   });

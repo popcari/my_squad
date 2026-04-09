@@ -32,32 +32,25 @@ export default function HomePage() {
     notes: '',
   });
 
-  const loadData = async () => {
-    setLoading(true);
-    const [data, settings] = await Promise.all([
-      matchesService.getAll(),
-      teamSettingsService.get(),
-    ]);
-    setMatches(data);
+  const loadSettings = async () => {
+    const settings = await teamSettingsService.get();
     setTeamName(settings.name || 'My Squad');
+  };
+
+  const loadMatches = async (year: number, month: number) => {
+    setLoading(true);
+    const data = await matchesService.getByMonth(year, month + 1);
+    setMatches(data);
     setLoading(false);
   };
 
   useEffect(() => {
-    loadData();
+    loadSettings();
   }, []);
 
-  // Group matches by month
-  const matchesByMonth = useMemo(() => {
-    const groups: Record<string, Match[]> = {};
-    matches.forEach((m) => {
-      const d = new Date(m.matchDate);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(m);
-    });
-    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
-  }, [matches]);
+  useEffect(() => {
+    loadMatches(calYear, calMonth);
+  }, [calYear, calMonth]);
 
   // Matches for selected date
   const selectedMatches = useMemo(() => {
@@ -104,7 +97,7 @@ export default function HomePage() {
     });
     setForm({ opponent: '', matchDate: todayStr, location: '', notes: '' });
     setShowForm(false);
-    loadData();
+    loadMatches(calYear, calMonth);
   };
 
   const handleOpenScore = (m: Match) => {
@@ -113,7 +106,7 @@ export default function HomePage() {
 
   const handleScoreSaved = () => {
     setScoreMatch(null);
-    loadData();
+    loadMatches(calYear, calMonth);
   };
 
   const handleDelete = async (id: string) => {
@@ -126,7 +119,7 @@ export default function HomePage() {
     });
     if (!ok) return;
     await matchesService.remove(id);
-    loadData();
+    loadMatches(calYear, calMonth);
   };
 
   const matchResult = (m: Match): 'win' | 'lose' | 'draw' | null => {
@@ -153,24 +146,10 @@ export default function HomePage() {
     return 'bg-primary';
   };
 
-  const formatMonthLabel = (key: string) => {
-    const [y, m] = key.split('-');
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return `${months[Number(m) - 1]} ${y}`;
-  };
+  const monthLabel = new Date(calYear, calMonth).toLocaleDateString('en', {
+    month: 'long',
+    year: 'numeric',
+  });
 
   const renderMatchCard = (m: Match) => (
     <div
@@ -323,13 +302,13 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Right: Match list grouped by month (40%) */}
+        {/* Right: Match list for current month */}
         <div className="lg:col-span-2">
           {loading ? (
             <HomePageSkeleton />
-          ) : matchesByMonth.length === 0 ? (
+          ) : matches.length === 0 ? (
             <div className="bg-card rounded-lg p-8 text-center">
-              <p className="text-muted">No matches scheduled yet.</p>
+              <p className="text-muted">No matches in {monthLabel}.</p>
               {canManage && (
                 <p className="text-xs text-muted mt-1">
                   Click a date on the calendar to get started.
@@ -337,24 +316,20 @@ export default function HomePage() {
               )}
             </div>
           ) : (
-            <div className="space-y-6">
-              {matchesByMonth.map(([monthKey, monthMatches]) => (
-                <div key={monthKey}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
-                      {formatMonthLabel(monthKey)}
-                    </h2>
-                    <div className="flex-1 h-px bg-border" />
-                    <span className="text-xs text-muted">
-                      {monthMatches.length} match
-                      {monthMatches.length > 1 ? 'es' : ''}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {monthMatches.map(renderMatchCard)}
-                  </div>
-                </div>
-              ))}
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
+                  {monthLabel}
+                </h2>
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted">
+                  {matches.length} match
+                  {matches.length > 1 ? 'es' : ''}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {matches.map(renderMatchCard)}
+              </div>
             </div>
           )}
         </div>

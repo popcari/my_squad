@@ -53,29 +53,28 @@ export default function PlayersPage() {
   // Build players with position names
   const playersWithPositions: PlayerWithPositions[] = useMemo(() => {
     return players.map((p) => {
-      const userPosIds = allUserPositions
-        .filter((up) => up.userId === p.id)
-        .map((up) => up.positionId);
-      const names = userPosIds
-        .map((id) => positions.find((pos) => pos.id === id)?.name)
+      const userPos = allUserPositions.filter((up) => up.userId === p.id);
+      const names = userPos
+        .map((up) => positions.find((pos) => pos.id === up.positionId)?.name)
         .filter((n): n is string => Boolean(n));
       return { ...p, positionNames: names };
     });
   }, [players, allUserPositions, positions]);
 
-  // Group players by position, sorted by jersey number within each group
+  // Group players by PRIMARY position, sorted by jersey number within each group
   const groupedByPosition = useMemo(() => {
     const groups: Record<string, PlayerWithPositions[]> = {};
 
     for (const player of playersWithPositions) {
-      const posNames =
-        player.positionNames.length > 0
-          ? player.positionNames
-          : ['Unassigned'];
-      for (const name of posNames) {
-        if (!groups[name]) groups[name] = [];
-        groups[name].push(player);
-      }
+      const primaryUp = allUserPositions.find(
+        (up) => up.userId === player.id && up.type === 'primary',
+      );
+      const groupName = primaryUp
+        ? positions.find((p) => p.id === primaryUp.positionId)?.name ||
+          'Unassigned'
+        : 'Unassigned';
+      if (!groups[groupName]) groups[groupName] = [];
+      groups[groupName].push(player);
     }
 
     // Sort players within each group by jersey number
@@ -107,8 +106,12 @@ export default function PlayersPage() {
       ...form,
       jerseyNumber: form.jerseyNumber ? Number(form.jerseyNumber) : undefined,
     });
-    for (const posId of selectedPositions) {
-      await userPositionsService.assign({ userId: user.id, positionId: posId });
+    for (let i = 0; i < selectedPositions.length; i++) {
+      await userPositionsService.assign({
+        userId: user.id,
+        positionId: selectedPositions[i],
+        type: i === 0 ? 'primary' : 'sub',
+      });
     }
     setForm({ email: '', displayName: '', role: 'player', jerseyNumber: '' });
     setSelectedPositions([]);

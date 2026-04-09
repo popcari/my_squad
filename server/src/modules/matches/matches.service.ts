@@ -29,6 +29,17 @@ export class MatchesService {
     return mapFirestoreDoc<Match>(doc);
   }
 
+  async findByMonth(year: number, month: number): Promise<Match[]> {
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 1);
+    const snapshot = await this.collection
+      .where('matchDate', '>=', start)
+      .where('matchDate', '<', end)
+      .orderBy('matchDate', 'asc')
+      .get();
+    return snapshot.docs.map((doc) => mapFirestoreDoc<Match>(doc));
+  }
+
   async findUpcoming(): Promise<Match[]> {
     const snapshot = await this.collection
       .where('status', '==', MatchStatus.SCHEDULED)

@@ -3,6 +3,8 @@ import { api } from './api';
 
 export const matchesService = {
   getAll: () => api.get<Match[]>('/matches'),
+  getByMonth: (year: number, month: number) =>
+    api.get<Match[]>(`/matches/month?year=${year}&month=${month}`),
   getUpcoming: () => api.get<Match[]>('/matches/upcoming'),
   getOne: (id: string) => api.get<Match>(`/matches/${id}`),
   create: (data: Partial<Match>) => api.post<Match>('/matches', data),

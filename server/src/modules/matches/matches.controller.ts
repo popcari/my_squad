@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Roles, RolesGuard } from '../../common';
@@ -21,6 +22,11 @@ export class MatchesController {
   @Get()
   findAll() {
     return this.matchesService.findAll();
+  }
+
+  @Get('month')
+  findByMonth(@Query('year') year: string, @Query('month') month: string) {
+    return this.matchesService.findByMonth(Number(year), Number(month));
   }
 
   @Get('upcoming')
