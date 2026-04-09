@@ -327,9 +327,7 @@ export default function HomePage() {
                   {matches.length > 1 ? 'es' : ''}
                 </span>
               </div>
-              <div className="space-y-2">
-                {matches.map(renderMatchCard)}
-              </div>
+              <div className="space-y-2">{matches.map(renderMatchCard)}</div>
             </div>
           )}
         </div>

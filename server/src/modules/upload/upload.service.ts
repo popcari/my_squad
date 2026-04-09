@@ -31,4 +31,23 @@ export class UploadService implements OnModuleInit {
 
     return { url: result.secure_url, publicId: result.public_id };
   }
+
+  async listImages(
+    folder: string,
+  ): Promise<{ url: string; publicId: string; createdAt: string }[]> {
+    const result = await cloudinary.api.resources({
+      type: 'upload',
+      prefix: folder,
+      max_results: 50,
+      resource_type: 'image',
+    });
+
+    return result.resources.map(
+      (r: { secure_url: string; public_id: string; created_at: string }) => ({
+        url: r.secure_url,
+        publicId: r.public_id,
+        createdAt: r.created_at,
+      }),
+    );
+  }
 }

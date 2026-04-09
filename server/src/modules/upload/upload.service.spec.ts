@@ -9,6 +9,9 @@ jest.mock('cloudinary', () => ({
     uploader: {
       upload_stream: jest.fn(),
     },
+    api: {
+      resources: jest.fn(),
+    },
   },
 }));
 
@@ -72,7 +75,8 @@ describe('UploadService', () => {
 
     it('should upload file and return secure_url', async () => {
       const mockResult = {
-        secure_url: 'https://res.cloudinary.com/test/image/upload/v1/avatars/123.png',
+        secure_url:
+          'https://res.cloudinary.com/test/image/upload/v1/avatars/123.png',
         public_id: 'avatars/123',
       };
 
@@ -110,7 +114,8 @@ describe('UploadService', () => {
 
     it('should use default folder when not specified', async () => {
       const mockResult = {
-        secure_url: 'https://res.cloudinary.com/test/image/upload/v1/uploads/123.png',
+        secure_url:
+          'https://res.cloudinary.com/test/image/upload/v1/uploads/123.png',
         public_id: 'uploads/123',
       };
 
@@ -127,6 +132,55 @@ describe('UploadService', () => {
         { folder: 'uploads' },
         expect.any(Function),
       );
+    });
+  });
+
+  describe('listImages', () => {
+    it('should return images from a folder', async () => {
+      (cloudinary.api.resources as jest.Mock).mockResolvedValue({
+        resources: [
+          {
+            secure_url: 'https://res.cloudinary.com/test/avatars/a.png',
+            public_id: 'avatars/a',
+            created_at: '2026-01-01',
+          },
+          {
+            secure_url: 'https://res.cloudinary.com/test/avatars/b.png',
+            public_id: 'avatars/b',
+            created_at: '2026-01-02',
+          },
+        ],
+      });
+
+      const result = await service.listImages('avatars');
+
+      expect(result).toEqual([
+        {
+          url: 'https://res.cloudinary.com/test/avatars/a.png',
+          publicId: 'avatars/a',
+          createdAt: '2026-01-01',
+        },
+        {
+          url: 'https://res.cloudinary.com/test/avatars/b.png',
+          publicId: 'avatars/b',
+          createdAt: '2026-01-02',
+        },
+      ]);
+      expect(cloudinary.api.resources).toHaveBeenCalledWith({
+        type: 'upload',
+        prefix: 'avatars',
+        max_results: 50,
+        resource_type: 'image',
+      });
+    });
+
+    it('should return empty array when no images', async () => {
+      (cloudinary.api.resources as jest.Mock).mockResolvedValue({
+        resources: [],
+      });
+
+      const result = await service.listImages('avatars');
+      expect(result).toEqual([]);
     });
   });
 });

@@ -7,7 +7,12 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
 @Module({
-  imports: [UserPositionsModule, UserTraitsModule, MatchGoalsModule, UploadModule],
+  imports: [
+    UserPositionsModule,
+    UserTraitsModule,
+    MatchGoalsModule,
+    UploadModule,
+  ],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService],

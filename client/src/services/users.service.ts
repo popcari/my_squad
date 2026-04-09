@@ -14,4 +14,8 @@ export const usersService = {
     formData.append('avatar', file);
     return api.upload<{ avatar: string }>(`/users/${id}/avatar`, formData);
   },
+  listAvatars: () =>
+    api.get<{ url: string; publicId: string; createdAt: string }[]>(
+      '/uploads/images?folder=avatars',
+    ),
 };

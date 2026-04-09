@@ -1,5 +1,6 @@
 'use client';
 
+import { AvatarPickerModal } from '@/components/avatar-picker-modal';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import {
@@ -12,7 +13,7 @@ import {
 import type { PlayerProfile, Position, Trait } from '@/types';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function PlayerProfilePage() {
   const params = useParams();
@@ -33,8 +34,7 @@ export default function PlayerProfilePage() {
     role: '' as string,
   });
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
 
   // Assign trait state
   const [showAssignTrait, setShowAssignTrait] = useState(false);
@@ -88,13 +88,9 @@ export default function PlayerProfilePage() {
     setEditing(false);
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    await usersService.uploadAvatar(id, file);
+  const handleAvatarSelected = async (_avatarUrl: string) => {
+    setShowAvatarPicker(false);
     await reload();
-    setUploading(false);
   };
 
   // Position management
@@ -206,22 +202,12 @@ export default function PlayerProfilePage() {
               )}
             </div>
             {canManage && (
-              <>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition-opacity"
-                >
-                  {uploading ? '...' : 'Edit'}
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
-              </>
+              <button
+                onClick={() => setShowAvatarPicker(true)}
+                className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition-opacity"
+              >
+                Edit
+              </button>
             )}
           </div>
 
@@ -525,6 +511,14 @@ export default function PlayerProfilePage() {
           )}
         </div>
       </div>
+
+      {showAvatarPicker && (
+        <AvatarPickerModal
+          userId={id}
+          onSelect={handleAvatarSelected}
+          onClose={() => setShowAvatarPicker(false)}
+        />
+      )}
     </div>
   );
 }

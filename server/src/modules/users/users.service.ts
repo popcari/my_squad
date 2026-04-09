@@ -87,5 +87,4 @@ export class UsersService {
     const snapshot = await this.collection.where('role', '==', role).get();
     return snapshot.docs.map((doc) => mapFirestoreDoc<User>(doc));
   }
-
 }
