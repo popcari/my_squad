@@ -1,6 +1,7 @@
 'use client';
 
 import { AvatarPickerModal } from '@/components/avatar-picker-modal';
+import { PlayerProfilePageSkeleton } from '@/components/skeleton';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -168,7 +169,7 @@ export default function PlayerProfilePage() {
     await reload();
   };
 
-  if (loading) return <p className="text-muted">Loading...</p>;
+  if (loading) return <PlayerProfilePageSkeleton />;
   if (!profile) return <p className="text-danger">Player not found.</p>;
 
   const playerPosIds = profile.positions.map((up) => up.positionId);

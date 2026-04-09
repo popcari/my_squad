@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/auth-context';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { LoadingSpinner } from './loading-spinner';
 import { Header } from './header';
 import { Sidebar } from './sidebar';
 
@@ -20,11 +21,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [user, loading, isPublic, router]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted">Loading...</p>
-      </div>
-    );
+    return <LoadingSpinner fullPage label="Authenticating" />;
   }
 
   if (!user && !isPublic) return null;

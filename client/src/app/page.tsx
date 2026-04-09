@@ -213,6 +213,9 @@ export default function HomePage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Match Schedule</h1>
 
+      {loading ? (
+        <HomePageSkeleton />
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Left: Calendar + Form (60%) */}
         <div className="lg:col-span-3 space-y-4">
@@ -304,9 +307,7 @@ export default function HomePage() {
 
         {/* Right: Match list for current month */}
         <div className="lg:col-span-2">
-          {loading ? (
-            <HomePageSkeleton />
-          ) : matches.length === 0 ? (
+          {matches.length === 0 ? (
             <div className="bg-card rounded-lg p-8 text-center">
               <p className="text-muted">No matches in {monthLabel}.</p>
               {canManage && (
@@ -332,6 +333,7 @@ export default function HomePage() {
           )}
         </div>
       </div>
+      )}
 
       {scoreMatch && (
         <ScoreModal
