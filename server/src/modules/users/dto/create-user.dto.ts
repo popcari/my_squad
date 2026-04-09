@@ -5,8 +5,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Matches,
   Max,
+  MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
 import { UserRole } from '../types';
 
@@ -18,6 +21,18 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   displayName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6, { message: 'Password must be at least 6 characters' })
+  @MaxLength(32)
+  @Matches(/(?=.*[A-Z])/, {
+    message: 'Password must contain at least 1 uppercase letter',
+  })
+  @Matches(/(?=.*\d)/, {
+    message: 'Password must contain at least 1 number',
+  })
+  password: string;
 
   @IsEnum(UserRole)
   role: UserRole;

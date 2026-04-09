@@ -196,6 +196,7 @@ describe('UsersController', () => {
         email: 'new@test.com',
         displayName: 'New User',
         role: 'player',
+        password: 'Hello123',
       };
       const createdUser = {
         id: 'new-id',
@@ -247,6 +248,7 @@ describe('UsersController', () => {
         email: 'player@test.com',
         displayName: 'Player',
         role: 'player',
+        password: 'Hello123',
         jerseyNumber: 10,
       };
       const created = {

@@ -1,32 +1,46 @@
 'use client';
 
+import { InputText } from '@/components/input-text';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useAuth } from '@/contexts/auth-context';
 import { authService } from '@/services/auth.service';
+import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
+  });
 
+  const onSubmit = async (data: LoginForm) => {
+    setServerError('');
     try {
-      const user = await authService.login(email);
+      const user = await authService.login(data.email, data.password);
       login(user);
       router.push('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
-    } finally {
-      setLoading(false);
+      setServerError(err instanceof Error ? err.message : 'Login failed');
     }
   };
 
@@ -37,7 +51,7 @@ export default function LoginPage() {
         <div className="bg-card rounded-2xl p-8 shadow-lg border border-border">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">⚽</span>
+              <span className="text-3xl">&#9917;</span>
             </div>
             <h1 className="text-2xl font-bold">My Squad</h1>
             <p className="text-sm text-muted mt-1">
@@ -45,35 +59,38 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                required
-                autoFocus
-              />
-            </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <InputText
+              id="email"
+              label="Email"
+              type="email"
+              placeholder="your@email.com"
+              error={errors.email}
+              autoFocus
+              {...register('email')}
+            />
 
-            {error && (
+            <InputText
+              id="password"
+              label="Password"
+              type="password"
+              placeholder="Enter your password"
+              error={errors.password}
+              {...register('password')}
+            />
+
+            {serverError && (
               <div className="text-danger text-sm bg-danger/10 rounded-lg px-3 py-2">
-                {error}
+                {serverError}
               </div>
             )}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting || !isValid}
               className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-3 rounded-lg text-sm font-medium transition-colors"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
             </button>
 
             <p className="text-center text-sm text-muted">
