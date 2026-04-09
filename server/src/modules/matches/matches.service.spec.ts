@@ -1,8 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { MatchesService } from './matches.service';
-import { FIRESTORE } from '../../config';
-import { MatchStatus } from './types';
 import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { FIRESTORE } from '../../config';
+import { MatchesService } from './matches.service';
+import { MatchStatus } from './types';
 
 describe('MatchesService', () => {
   let service: MatchesService;

@@ -1,8 +1,8 @@
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from './users.service';
 import { FIRESTORE } from '../../config';
 import { UserRole } from './types';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import { UsersService } from './users.service';
 
 describe('UsersService', () => {
   let service: UsersService;

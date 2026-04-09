@@ -1,9 +1,9 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FIRESTORE } from '../../config';
 import { mapFirestoreDoc } from '../../common';
-import { MatchGoal } from './types';
+import { FIRESTORE } from '../../config';
 import { AddGoalDto } from './dto/add-goal.dto';
+import { MatchGoal } from './types';
 
 @Injectable()
 export class MatchGoalsService {

@@ -7,13 +7,13 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { MatchGoalsService } from '../match-goals/match-goals.service';
+import { UserPositionsService } from '../user-positions/user-positions.service';
+import { UserTraitsService } from '../user-traits/user-traits.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from './types';
-import { UserPositionsService } from '../user-positions/user-positions.service';
-import { UserTraitsService } from '../user-traits/user-traits.service';
-import { MatchGoalsService } from '../match-goals/match-goals.service';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {

@@ -1,12 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
+import { MatchGoalsService } from '../match-goals/match-goals.service';
 import { UserPositionsService } from '../user-positions/user-positions.service';
 import { UserTraitsService } from '../user-traits/user-traits.service';
-import { MatchGoalsService } from '../match-goals/match-goals.service';
 import { UserRole } from './types';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 
 describe('UsersController', () => {
   let app: INestApplication;

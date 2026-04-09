@@ -6,5 +6,6 @@
   "printWidth": 80,
   "useTabs": false,
   "bracketSpacing": true,
-  "arrowParens": "always"
+  "arrowParens": "always",
+  "plugins": ["prettier-plugin-organize-imports"]
 }

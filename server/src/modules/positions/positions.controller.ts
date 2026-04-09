@@ -8,11 +8,11 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { PositionsService } from './positions.service';
-import { CreatePositionDto } from './dto/create-position.dto';
-import { UpdatePositionDto } from './dto/update-position.dto';
 import { Roles, RolesGuard } from '../../common';
 import { UserRole } from '../users/types';
+import { CreatePositionDto } from './dto/create-position.dto';
+import { UpdatePositionDto } from './dto/update-position.dto';
+import { PositionsService } from './positions.service';
 
 @Controller('positions')
 export class PositionsController {

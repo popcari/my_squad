@@ -78,9 +78,7 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const snapshot = await this.collection
-      .where('email', '==', email)
-      .get();
+    const snapshot = await this.collection.where('email', '==', email).get();
     if (snapshot.empty) return null;
     return mapFirestoreDoc<User>(snapshot.docs[0]);
   }

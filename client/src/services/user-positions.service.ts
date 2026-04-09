@@ -1,5 +1,5 @@
-import { api } from './api';
 import type { UserPosition } from '@/types';
+import { api } from './api';
 
 export const userPositionsService = {
   getByUser: (userId: string) =>

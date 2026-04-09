@@ -1,5 +1,5 @@
-import { api } from './api';
 import type { Position } from '@/types';
+import { api } from './api';
 
 export const positionsService = {
   getAll: () => api.get<Position[]>('/positions'),

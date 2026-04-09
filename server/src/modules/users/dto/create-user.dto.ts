@@ -5,8 +5,8 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  Min,
   Max,
+  Min,
 } from 'class-validator';
 import { UserRole } from '../types';
 

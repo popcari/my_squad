@@ -8,11 +8,11 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { UserTraitsService } from './user-traits.service';
-import { AssignTraitDto } from './dto/assign-trait.dto';
-import { UpdateTraitRatingDto } from './dto/update-trait-rating.dto';
 import { Roles, RolesGuard } from '../../common';
 import { UserRole } from '../users/types';
+import { AssignTraitDto } from './dto/assign-trait.dto';
+import { UpdateTraitRatingDto } from './dto/update-trait-rating.dto';
+import { UserTraitsService } from './user-traits.service';
 
 @Controller('user-traits')
 export class UserTraitsController {

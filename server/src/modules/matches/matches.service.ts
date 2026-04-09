@@ -1,10 +1,10 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FIRESTORE } from '../../config';
 import { mapFirestoreDoc } from '../../common';
-import { Match, MatchStatus } from './types';
+import { FIRESTORE } from '../../config';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
+import { Match, MatchStatus } from './types';
 
 @Injectable()
 export class MatchesService {
@@ -37,7 +37,10 @@ export class MatchesService {
     return snapshot.docs
       .map((doc) => mapFirestoreDoc<Match>(doc))
       .filter((m) => new Date(m.matchDate) >= now)
-      .sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime());
+      .sort(
+        (a, b) =>
+          new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime(),
+      );
   }
 
   async create(dto: CreateMatchDto): Promise<Match> {

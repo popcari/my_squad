@@ -1,7 +1,7 @@
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TraitsService } from './traits.service';
 import { FIRESTORE } from '../../config';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import { TraitsService } from './traits.service';
 
 describe('TraitsService', () => {
   let service: TraitsService;

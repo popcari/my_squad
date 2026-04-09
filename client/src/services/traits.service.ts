@@ -1,5 +1,5 @@
-import { api } from './api';
 import type { Trait } from '@/types';
+import { api } from './api';
 
 export const traitsService = {
   getAll: () => api.get<Trait[]>('/traits'),

@@ -1,15 +1,15 @@
 import {
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
-  ConflictException,
 } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FIRESTORE } from '../../config';
 import { mapFirestoreDoc } from '../../common';
-import { Position } from './types';
+import { FIRESTORE } from '../../config';
 import { CreatePositionDto } from './dto/create-position.dto';
 import { UpdatePositionDto } from './dto/update-position.dto';
+import { Position } from './types';
 
 @Injectable()
 export class PositionsService {

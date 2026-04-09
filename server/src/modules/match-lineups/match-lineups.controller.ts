@@ -1,8 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { MatchLineupsService } from './match-lineups.service';
-import { AddLineupDto } from './dto/add-lineup.dto';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { Roles, RolesGuard } from '../../common';
 import { UserRole } from '../users/types';
+import { AddLineupDto } from './dto/add-lineup.dto';
+import { MatchLineupsService } from './match-lineups.service';
 
 @Controller('match-lineups')
 export class MatchLineupsController {

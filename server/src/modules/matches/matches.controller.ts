@@ -8,11 +8,11 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { MatchesService } from './matches.service';
-import { CreateMatchDto } from './dto/create-match.dto';
-import { UpdateMatchDto } from './dto/update-match.dto';
 import { Roles, RolesGuard } from '../../common';
 import { UserRole } from '../users/types';
+import { CreateMatchDto } from './dto/create-match.dto';
+import { UpdateMatchDto } from './dto/update-match.dto';
+import { MatchesService } from './matches.service';
 
 @Controller('matches')
 export class MatchesController {

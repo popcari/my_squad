@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
 import type { Match } from '@/types';
+import { useMemo } from 'react';
 
 interface CalendarProps {
   year: number;

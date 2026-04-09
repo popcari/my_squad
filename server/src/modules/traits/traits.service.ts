@@ -1,15 +1,15 @@
 import {
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
-  ConflictException,
 } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FIRESTORE } from '../../config';
 import { mapFirestoreDoc } from '../../common';
-import { Trait } from './types';
+import { FIRESTORE } from '../../config';
 import { CreateTraitDto } from './dto/create-trait.dto';
 import { UpdateTraitDto } from './dto/update-trait.dto';
+import { Trait } from './types';
 
 @Injectable()
 export class TraitsService {

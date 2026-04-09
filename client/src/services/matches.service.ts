@@ -1,5 +1,5 @@
+import type { Match, MatchGoal, MatchLineup } from '@/types';
 import { api } from './api';
-import type { Match, MatchLineup, MatchGoal } from '@/types';
 
 export const matchesService = {
   getAll: () => api.get<Match[]>('/matches'),

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
-import { useTheme } from '@/contexts/theme-context';
 import { useConfirm } from '@/contexts/confirm-context';
+import { useTheme } from '@/contexts/theme-context';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export function Header() {
   const pathname = usePathname();

@@ -1,13 +1,13 @@
 'use client';
 
+import type { User } from '@/types';
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
-  useCallback,
 } from 'react';
-import type { User } from '@/types';
 
 interface AuthContextType {
   user: User | null;

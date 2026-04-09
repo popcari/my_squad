@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * A slim progress bar at the very top of the viewport.

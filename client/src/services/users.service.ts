@@ -1,5 +1,5 @@
+import type { PlayerProfile, User } from '@/types';
 import { api } from './api';
-import type { User, PlayerProfile } from '@/types';
 
 export const usersService = {
   getAll: () => api.get<User[]>('/users'),

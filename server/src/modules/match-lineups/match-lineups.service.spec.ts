@@ -1,8 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { MatchLineupsService } from './match-lineups.service';
-import { FIRESTORE } from '../../config';
-import { LineupType } from './types';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { FIRESTORE } from '../../config';
+import { MatchLineupsService } from './match-lineups.service';
+import { LineupType } from './types';
 
 describe('MatchLineupsService', () => {
   let service: MatchLineupsService;

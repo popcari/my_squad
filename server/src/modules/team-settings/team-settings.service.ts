@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { FIRESTORE } from '../../config';
-import { TeamSettings } from './types';
 import { UpdateTeamSettingsDto } from './dto/update-team-settings.dto';
+import { TeamSettings } from './types';
 
 const DOC_ID = 'default';
 

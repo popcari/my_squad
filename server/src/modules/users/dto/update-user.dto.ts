@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsOptional, IsString, Min, Max } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { UserRole } from '../types';
 
 export class UpdateUserDto {

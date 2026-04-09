@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { MatchGoalsService } from './match-goals.service';
-import { FIRESTORE } from '../../config';
 import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { FIRESTORE } from '../../config';
+import { MatchGoalsService } from './match-goals.service';
 
 describe('MatchGoalsService', () => {
   let service: MatchGoalsService;

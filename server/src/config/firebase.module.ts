@@ -1,8 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import {
+  FIREBASE_AUTH,
   firebaseProviders,
   FIRESTORE,
-  FIREBASE_AUTH,
 } from './firebase.provider';
 
 @Global()

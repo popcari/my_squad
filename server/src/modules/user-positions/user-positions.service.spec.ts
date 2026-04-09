@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { UserPositionsService } from './user-positions.service';
-import { FIRESTORE } from '../../config';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { FIRESTORE } from '../../config';
+import { UserPositionsService } from './user-positions.service';
 
 describe('UserPositionsService', () => {
   let service: UserPositionsService;

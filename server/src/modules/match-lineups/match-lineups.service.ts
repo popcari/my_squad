@@ -1,14 +1,14 @@
 import {
+  ConflictException,
   Inject,
   Injectable,
-  ConflictException,
   NotFoundException,
 } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FIRESTORE } from '../../config';
 import { mapFirestoreDoc } from '../../common';
-import { MatchLineup } from './types';
+import { FIRESTORE } from '../../config';
 import { AddLineupDto } from './dto/add-lineup.dto';
+import { MatchLineup } from './types';
 
 @Injectable()
 export class MatchLineupsService {

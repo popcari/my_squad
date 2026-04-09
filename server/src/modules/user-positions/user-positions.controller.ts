@@ -1,8 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { UserPositionsService } from './user-positions.service';
-import { AssignPositionDto } from './dto/assign-position.dto';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { Roles, RolesGuard } from '../../common';
 import { UserRole } from '../users/types';
+import { AssignPositionDto } from './dto/assign-position.dto';
+import { UserPositionsService } from './user-positions.service';
 
 @Controller('user-positions')
 export class UserPositionsController {

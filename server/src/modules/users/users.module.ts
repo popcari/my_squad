@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
+import { MatchGoalsModule } from '../match-goals/match-goals.module';
 import { UserPositionsModule } from '../user-positions/user-positions.module';
 import { UserTraitsModule } from '../user-traits/user-traits.module';
-import { MatchGoalsModule } from '../match-goals/match-goals.module';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 
 @Module({
   imports: [UserPositionsModule, UserTraitsModule, MatchGoalsModule],

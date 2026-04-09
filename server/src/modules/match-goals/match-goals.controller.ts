@@ -1,8 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { MatchGoalsService } from './match-goals.service';
-import { AddGoalDto } from './dto/add-goal.dto';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { Roles, RolesGuard } from '../../common';
 import { UserRole } from '../users/types';
+import { AddGoalDto } from './dto/add-goal.dto';
+import { MatchGoalsService } from './match-goals.service';
 
 @Controller('match-goals')
 export class MatchGoalsController {

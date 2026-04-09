@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { usersService, positionsService, traitsService } from '@/services';
+import { positionsService, traitsService, usersService } from '@/services';
 import type { PlayerProfile, Position, Trait } from '@/types';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function PlayerProfilePage() {
   const params = useParams();

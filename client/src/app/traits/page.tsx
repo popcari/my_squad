@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { traitsService, usersService, userTraitsService } from '@/services';
-import { useCanManage } from '@/hooks/use-can-manage';
-import { useConfirm } from '@/contexts/confirm-context';
 import { TraitsPageSkeleton } from '@/components/skeleton';
+import { useConfirm } from '@/contexts/confirm-context';
+import { useCanManage } from '@/hooks/use-can-manage';
+import { traitsService, usersService, userTraitsService } from '@/services';
 import type { Trait, User, UserTrait } from '@/types';
+import { useEffect, useState } from 'react';
 
 export default function TraitsPage() {
   const canManage = useCanManage();

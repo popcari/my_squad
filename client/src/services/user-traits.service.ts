@@ -1,5 +1,5 @@
-import { api } from './api';
 import type { UserTrait } from '@/types';
+import { api } from './api';
 
 export const userTraitsService = {
   getByUser: (userId: string) => api.get<UserTrait[]>(`/user-traits/${userId}`),

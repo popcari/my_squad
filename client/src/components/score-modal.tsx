@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usersService, matchesService } from '@/services';
 import { useConfirm } from '@/contexts/confirm-context';
-import type { User, Match, MatchLineup } from '@/types';
+import { matchesService, usersService } from '@/services';
+import type { Match, User } from '@/types';
+import { useEffect, useState } from 'react';
 
 interface GoalEntry {
   scorerId: string;
