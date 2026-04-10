@@ -13,6 +13,7 @@ import {
   usersService,
 } from '@/services';
 import type { PlayerProfile, Position, Trait } from '@/types';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -59,7 +60,18 @@ export default function PlayerProfilePage() {
   };
 
   useEffect(() => {
-    reload();
+    const load = async () => {
+      const [p, pos, traits] = await Promise.all([
+        usersService.getProfile(playerId),
+        positionsService.getAll(),
+        traitsService.getAll(),
+      ]);
+      setProfile(p);
+      setAllPositions(pos);
+      setAllTraits(traits);
+      setLoading(false);
+    };
+    load();
   }, [playerId]);
 
   const startEdit = () => {
@@ -91,7 +103,7 @@ export default function PlayerProfilePage() {
     setEditing(false);
   };
 
-  const handleAvatarSelected = async (_avatarUrl: string) => {
+  const handleAvatarSelected = async () => {
     setShowAvatarPicker(false);
     await reload();
   };
@@ -172,7 +184,6 @@ export default function PlayerProfilePage() {
   if (loading) return <PlayerProfilePageSkeleton />;
   if (!profile) return <p className="text-danger">Player not found.</p>;
 
-  const playerPosIds = profile.positions.map((up) => up.positionId);
   const assignedTraitIds = profile.traits.map((ut) => ut.traitId);
   const unassignedTraits = allTraits.filter(
     (t) => !assignedTraitIds.includes(t.id),
@@ -195,9 +206,11 @@ export default function PlayerProfilePage() {
           <div className="relative group">
             <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-2xl font-bold overflow-hidden">
               {profile.avatar ? (
-                <img
+                <Image
                   src={profile.avatar}
                   alt={profile.displayName}
+                  width={64}
+                  height={64}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -268,6 +281,15 @@ export default function PlayerProfilePage() {
               <>
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-bold">{profile.displayName}</h1>
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                      profile.status === 1
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-red-500/20 text-red-400'
+                    }`}
+                  >
+                    {profile.status === 1 ? 'Active' : 'Inactive'}
+                  </span>
                   {canManage && (
                     <button
                       onClick={startEdit}
@@ -277,7 +299,7 @@ export default function PlayerProfilePage() {
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-muted">{profile.email}</p>
+                <p className="text-sm text-muted">{profile.phone} &middot; {profile.email}</p>
                 <div className="flex gap-2 mt-2 flex-wrap">
                   {profile.positions
                     .slice()

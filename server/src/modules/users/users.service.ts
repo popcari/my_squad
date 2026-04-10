@@ -47,6 +47,7 @@ export class UsersService {
     const now = new Date();
     const data = {
       ...dto,
+      status: dto.status ?? 1,
       createdAt: now,
       updatedAt: now,
     };

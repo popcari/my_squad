@@ -33,8 +33,7 @@ vi.mock('@/contexts/theme-context', () => ({
 }));
 
 vi.mock('@/contexts/confirm-context', () => ({
-  useConfirm: () => (opts: { message: string }) =>
-    Promise.resolve(mockConfirmResult),
+  useConfirm: () => () => Promise.resolve(mockConfirmResult),
 }));
 
 describe('Header', () => {

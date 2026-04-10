@@ -37,6 +37,10 @@ export class CreateUserDto {
   @IsEnum(UserRole)
   role: UserRole;
 
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+
   @IsInt()
   @Min(1)
   @Max(99)
@@ -46,4 +50,10 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   avatar?: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(1)
+  @IsOptional()
+  status?: number;
 }

@@ -5,6 +5,7 @@ import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { teamSettingsService } from '@/services/team-settings.service';
 import type { TeamSettings } from '@/types/team-settings';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 export default function SettingsPage() {
@@ -37,7 +38,20 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    load();
+    const init = async () => {
+      setLoading(true);
+      const data = await teamSettingsService.get();
+      setSettings(data);
+      setForm({
+        name: data.name || '',
+        description: data.description || '',
+        foundedDate: data.foundedDate || '',
+        logo: data.logo || '',
+        homeStadium: data.homeStadium || '',
+      });
+      setLoading(false);
+    };
+    init();
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -158,9 +172,11 @@ export default function SettingsPage() {
           <div className="bg-card rounded-lg p-6">
             <div className="flex items-center gap-4 mb-4">
               {settings?.logo ? (
-                <img
+                <Image
                   src={settings.logo}
                   alt="Team logo"
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-full object-cover"
                 />
               ) : (

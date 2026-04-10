@@ -36,12 +36,26 @@ describe('AuthController', () => {
   });
 
   describe('POST /auth/register', () => {
+    it('should return 400 when phone is missing on register', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/register')
+        .send({
+          email: 'test@test.com',
+          displayName: 'Test',
+          role: 'player',
+          password: 'Hello123',
+        });
+
+      expect(response.status).toBe(400);
+    });
+
     it('should return 201 when registering with valid password', async () => {
       const dto = {
         email: 'test@test.com',
         displayName: 'Test',
         role: 'player',
         password: 'Hello123',
+        phone: '0901234567',
       };
       (mockUsersService.create as jest.Mock).mockResolvedValue({
         id: 'new-id',
@@ -68,6 +82,7 @@ describe('AuthController', () => {
           displayName: 'Test',
           role: 'player',
           password: 'hello123',
+          phone: '0901234567',
         });
 
       expect(response.status).toBe(400);
@@ -81,6 +96,7 @@ describe('AuthController', () => {
           displayName: 'Test',
           role: 'player',
           password: 'HelloWorld',
+          phone: '0901234567',
         });
 
       expect(response.status).toBe(400);
@@ -94,6 +110,7 @@ describe('AuthController', () => {
           displayName: 'Test',
           role: 'player',
           password: 'A1' + 'a'.repeat(31),
+          phone: '0901234567',
         });
 
       expect(response.status).toBe(400);
@@ -106,6 +123,7 @@ describe('AuthController', () => {
           email: 'test@test.com',
           displayName: 'Test',
           role: 'player',
+          phone: '0901234567',
         });
 
       expect(response.status).toBe(400);
@@ -117,6 +135,7 @@ describe('AuthController', () => {
         displayName: 'Test',
         role: 'player',
         password: 'Hello123',
+        phone: '0901234567',
       };
       (mockUsersService.create as jest.Mock).mockResolvedValue({
         id: 'new-id',

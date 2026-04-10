@@ -120,7 +120,7 @@ export function PlayersPageSkeleton() {
             </tr>
           </thead>
           <tbody>
-            {Array.from({ length: 6 }).map((_, i) => (
+            {[75, 90, 65, 80, 70, 85].map((w, i) => (
               <tr key={i} className="border-b border-border last:border-b-0">
                 <td className="px-4 py-3">
                   <Skeleton
@@ -132,13 +132,13 @@ export function PlayersPageSkeleton() {
                 <td className="px-4 py-3">
                   <Skeleton
                     height="16px"
-                    width={`${60 + Math.random() * 40}%`}
+                    width={`${w}%`}
                   />
                 </td>
                 <td className="px-4 py-3">
                   <Skeleton
                     height="16px"
-                    width={`${50 + Math.random() * 30}%`}
+                    width={`${w - 15}%`}
                   />
                 </td>
                 <td className="px-4 py-3">
@@ -211,7 +211,7 @@ export function TraitsPageSkeleton() {
         <div>
           <Skeleton width="100px" height="22px" className="mb-3" />
           <div className="space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {[55, 45, 60, 50, 65].map((w, i) => (
               <div
                 key={i}
                 className="bg-card p-3 rounded-lg flex items-center justify-between"
@@ -219,7 +219,7 @@ export function TraitsPageSkeleton() {
                 <div className="space-y-1.5 flex-1">
                   <Skeleton
                     height="16px"
-                    width={`${40 + Math.random() * 30}%`}
+                    width={`${w}%`}
                   />
                 </div>
               </div>

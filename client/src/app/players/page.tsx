@@ -9,6 +9,7 @@ import {
   usersService,
 } from '@/services';
 import type { Position, User, UserPosition } from '@/types';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -23,14 +24,6 @@ export default function PlayersPage() {
   const [positions, setPositions] = useState<Position[]>([]);
   const [allUserPositions, setAllUserPositions] = useState<UserPosition[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    email: '',
-    displayName: '',
-    role: 'player' as const,
-    jerseyNumber: '',
-  });
-  const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
 
   const reload = async () => {
     const [p, pos] = await Promise.all([
@@ -47,7 +40,20 @@ export default function PlayersPage() {
   };
 
   useEffect(() => {
-    reload();
+    const load = async () => {
+      const [p, pos] = await Promise.all([
+        usersService.getAll(),
+        positionsService.getAll(),
+      ]);
+      const upResults = await Promise.all(
+        p.map((u) => userPositionsService.getByUser(u.id)),
+      );
+      setPlayers(p);
+      setPositions(pos);
+      setAllUserPositions(upResults.flat());
+      setLoading(false);
+    };
+    load();
   }, []);
 
   // Build players with position names
@@ -92,39 +98,7 @@ export default function PlayersPage() {
     });
 
     return sortedEntries;
-  }, [playersWithPositions]);
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const ok = await confirm({
-      title: 'Create Player',
-      message: `Add ${form.displayName} to the squad?`,
-      confirmText: 'Create',
-    });
-    if (!ok) return;
-    const user = await usersService.create({
-      ...form,
-      jerseyNumber: form.jerseyNumber ? Number(form.jerseyNumber) : undefined,
-    });
-    for (let i = 0; i < selectedPositions.length; i++) {
-      await userPositionsService.assign({
-        userId: user.id,
-        positionId: selectedPositions[i],
-        type: i === 0 ? 'primary' : 'sub',
-      });
-    }
-    setForm({ email: '', displayName: '', role: 'player', jerseyNumber: '' });
-    setSelectedPositions([]);
-    setShowForm(false);
-    setLoading(true);
-    await reload();
-  };
-
-  const togglePosition = (posId: string) => {
-    setSelectedPositions((prev) =>
-      prev.includes(posId) ? prev.filter((p) => p !== posId) : [...prev, posId],
-    );
-  };
+  }, [playersWithPositions, allUserPositions, positions]);
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
@@ -144,89 +118,7 @@ export default function PlayersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Players</h1>
-        {canManage && (
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm transition-colors"
-          >
-            {showForm ? 'Cancel' : '+ Add Player'}
-          </button>
-        )}
       </div>
-
-      {canManage && showForm && (
-        <form
-          onSubmit={handleCreate}
-          className="bg-card p-4 rounded-lg mb-6 space-y-4"
-        >
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              placeholder="Display Name"
-              value={form.displayName}
-              onChange={(e) =>
-                setForm({ ...form, displayName: e.target.value })
-              }
-              className="bg-background border border-border rounded px-3 py-2 text-sm"
-              required
-            />
-            <input
-              placeholder="Email"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="bg-background border border-border rounded px-3 py-2 text-sm"
-              required
-            />
-            <input
-              placeholder="Jersey # (1-99)"
-              type="number"
-              min={1}
-              max={99}
-              value={form.jerseyNumber}
-              onChange={(e) =>
-                setForm({ ...form, jerseyNumber: e.target.value })
-              }
-              className="bg-background border border-border rounded px-3 py-2 text-sm"
-            />
-            <select
-              value={form.role}
-              onChange={(e) =>
-                setForm({ ...form, role: e.target.value as 'player' })
-              }
-              className="bg-background border border-border rounded px-3 py-2 text-sm"
-            >
-              <option value="player">Player</option>
-              <option value="coach">Coach</option>
-              <option value="president">President</option>
-            </select>
-          </div>
-          <div>
-            <p className="text-sm text-muted mb-2">Positions:</p>
-            <div className="flex flex-wrap gap-2">
-              {positions.map((pos) => (
-                <button
-                  key={pos.id}
-                  type="button"
-                  onClick={() => togglePosition(pos.id)}
-                  className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                    selectedPositions.includes(pos.id)
-                      ? 'bg-primary text-white'
-                      : 'bg-card-hover text-muted hover:text-foreground'
-                  }`}
-                >
-                  {pos.name}
-                </button>
-              ))}
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-accent hover:bg-accent/80 text-white py-2 rounded-lg text-sm transition-colors"
-          >
-            Create Player
-          </button>
-        </form>
-      )}
 
       {loading ? (
         <PlayersPageSkeleton />
@@ -246,9 +138,11 @@ export default function PlayersPage() {
                   >
                     <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
                       {p.avatar ? (
-                        <img
+                        <Image
                           src={p.avatar}
                           alt={p.displayName}
+                          width={40}
+                          height={40}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -258,11 +152,22 @@ export default function PlayersPage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-                        {p.displayName}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                          {p.displayName}
+                        </p>
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            p.status === 1
+                              ? 'bg-green-500/20 text-green-400'
+                              : 'bg-red-500/20 text-red-400'
+                          }`}
+                        >
+                          {p.status === 1 ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
                       <p className="text-xs text-muted">
-                        {p.jerseyNumber ?? '-'} &middot; {p.email}
+                        {p.jerseyNumber ?? '-'} &middot; {p.phone} &middot; {p.email}
                       </p>
                     </div>
                     {canManage && (

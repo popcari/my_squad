@@ -17,9 +17,11 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Close mobile sidebar on route change
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setMobileOpen(false);
-  }, [pathname]);
+  }
 
   // Prevent body scroll when mobile sidebar is open
   useEffect(() => {

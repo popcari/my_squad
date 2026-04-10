@@ -32,6 +32,7 @@ const registerSchema = z.object({
       ctx.addIssue({ code: 'custom', message: 'Password must contain at least 1 number' });
     }
   }),
+  phone: z.string().min(1, 'Phone number is required'),
   jerseyNumber: z.string().optional(),
 });
 
@@ -60,6 +61,7 @@ export default function RegisterPage() {
         displayName: data.displayName,
         email: data.email,
         password: data.password,
+        phone: data.phone,
         role: 'player',
         jerseyNumber: data.jerseyNumber
           ? Number(data.jerseyNumber)
@@ -114,6 +116,15 @@ export default function RegisterPage() {
               error={errors.password}
               maxLength={32}
               {...register('password')}
+            />
+
+            <InputText
+              id="phone"
+              label="Phone"
+              type="tel"
+              placeholder="0901234567"
+              error={errors.phone}
+              {...register('phone')}
             />
 
             <InputText

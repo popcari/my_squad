@@ -197,6 +197,7 @@ describe('UsersController', () => {
         displayName: 'New User',
         role: 'player',
         password: 'Hello123',
+        phone: '0901234567',
       };
       const createdUser = {
         id: 'new-id',
@@ -212,12 +213,26 @@ describe('UsersController', () => {
 
       expect(response.status).toBe(201);
       expect(response.body.id).toBe('new-id');
+      expect(response.body.phone).toBe('0901234567');
+    });
+
+    it('should return 400 when phone is missing', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          email: 'test@test.com',
+          displayName: 'No Phone',
+          role: 'player',
+          password: 'Hello123',
+        });
+
+      expect(response.status).toBe(400);
     });
 
     it('should return 400 when email is missing', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
-        .send({ displayName: 'No Email', role: 'player' });
+        .send({ displayName: 'No Email', role: 'player', phone: '0901234567' });
 
       expect(response.status).toBe(400);
     });
@@ -249,6 +264,7 @@ describe('UsersController', () => {
         displayName: 'Player',
         role: 'player',
         password: 'Hello123',
+        phone: '0901234567',
         jerseyNumber: 10,
       };
       const created = {
@@ -292,6 +308,74 @@ describe('UsersController', () => {
       const response = await request(app.getHttpServer())
         .patch('/users/user-1')
         .send({ role: 'admin' });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should return 200 when updating status to 0 (inactive)', async () => {
+      const updatedUser = {
+        id: 'user-1',
+        email: 'test@test.com',
+        displayName: 'Test',
+        role: UserRole.PLAYER,
+        status: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      (mockService.update as jest.Mock).mockResolvedValue(updatedUser);
+
+      const response = await request(app.getHttpServer())
+        .patch('/users/user-1')
+        .send({ status: 0 });
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe(0);
+    });
+
+    it('should return 200 when updating status to 1 (active)', async () => {
+      const updatedUser = {
+        id: 'user-1',
+        email: 'test@test.com',
+        displayName: 'Test',
+        role: UserRole.PLAYER,
+        status: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      (mockService.update as jest.Mock).mockResolvedValue(updatedUser);
+
+      const response = await request(app.getHttpServer())
+        .patch('/users/user-1')
+        .send({ status: 1 });
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe(1);
+    });
+
+    it('should return 200 when updating phone', async () => {
+      const updatedUser = {
+        id: 'user-1',
+        email: 'test@test.com',
+        displayName: 'Test',
+        role: UserRole.PLAYER,
+        phone: '0909999888',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      (mockService.update as jest.Mock).mockResolvedValue(updatedUser);
+
+      const response = await request(app.getHttpServer())
+        .patch('/users/user-1')
+        .send({ phone: '0909999888' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.phone).toBe('0909999888');
+    });
+
+    it('should return 400 when status is invalid value', async () => {
+      const response = await request(app.getHttpServer())
+        .patch('/users/user-1')
+        .send({ status: 2 });
 
       expect(response.status).toBe(400);
     });

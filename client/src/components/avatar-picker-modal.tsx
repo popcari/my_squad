@@ -1,6 +1,7 @@
 'use client';
 
 import { usersService } from '@/services';
+import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface AvatarPickerModalProps {
@@ -172,9 +173,11 @@ export function AvatarPickerModal({
                     onClick={() => handleSelectExisting(img.url)}
                     className="w-full h-full rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-colors"
                   >
-                    <img
+                    <Image
                       src={img.url}
                       alt=""
+                      width={80}
+                      height={80}
                       className="w-full h-full object-cover"
                     />
                   </button>

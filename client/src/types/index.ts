@@ -7,8 +7,10 @@ export interface User {
   email: string;
   displayName: string;
   role: UserRole;
+  phone: string;
   jerseyNumber?: number;
   avatar?: string;
+  status: number; // 1 = active, 0 = inactive
   createdAt: string;
   updatedAt: string;
 }

@@ -1,6 +1,6 @@
-import * as admin from 'firebase-admin';
 import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
+import * as admin from 'firebase-admin';
 import * as path from 'path';
 
 // Load .env from server root
@@ -12,6 +12,7 @@ const SEED_PLAYERS = [
     displayName: 'Admin',
     password: 'Admin123',
     role: 'president',
+    phone: '0123456789',
   },
 ];
 
@@ -38,9 +39,7 @@ async function seed() {
 
   for (const player of SEED_PLAYERS) {
     // Check if user already exists
-    const existing = await collection
-      .where('email', '==', player.email)
-      .get();
+    const existing = await collection.where('email', '==', player.email).get();
 
     if (!existing.empty) {
       console.log(`⚠️  User "${player.email}" already exists — skipping.`);
@@ -60,7 +59,9 @@ async function seed() {
     };
 
     const docRef = await collection.add(data);
-    console.log(`✅ Created player: ${player.email} | role: ${player.role} | id: ${docRef.id}`);
+    console.log(
+      `✅ Created player: ${player.email} | role: ${player.role} | id: ${docRef.id}`,
+    );
   }
 
   console.log('\n🎉 Seed completed!');

@@ -221,6 +221,124 @@ describe('UsersService', () => {
     });
   });
 
+  describe('create with phone', () => {
+    it('should create user with phone field', async () => {
+      const dto = {
+        email: 'phone@test.com',
+        displayName: 'Phone User',
+        role: UserRole.PLAYER,
+        phone: '0901234567',
+      };
+
+      mockCollection.where.mockReturnValue({
+        get: jest.fn().mockResolvedValue({ empty: true }),
+      });
+
+      const mockDocRef = { id: 'phone-id' };
+      mockCollection.add.mockResolvedValue(mockDocRef);
+
+      const result = await service.create(dto);
+
+      expect(result.phone).toBe('0901234567');
+      const addedData = mockCollection.add.mock.calls[0][0];
+      expect(addedData.phone).toBe('0901234567');
+    });
+  });
+
+  describe('create with status', () => {
+    it('should default status to 1 (active) when not provided', async () => {
+      const dto = {
+        email: 'new@test.com',
+        displayName: 'New User',
+        role: UserRole.PLAYER,
+      };
+
+      mockCollection.where.mockReturnValue({
+        get: jest.fn().mockResolvedValue({ empty: true }),
+      });
+
+      const mockDocRef = { id: 'new-id' };
+      mockCollection.add.mockResolvedValue(mockDocRef);
+
+      const result = await service.create(dto);
+
+      expect(result.status).toBe(1);
+      const addedData = mockCollection.add.mock.calls[0][0];
+      expect(addedData.status).toBe(1);
+    });
+
+    it('should allow creating user with status 0 (inactive)', async () => {
+      const dto = {
+        email: 'inactive@test.com',
+        displayName: 'Inactive User',
+        role: UserRole.PLAYER,
+        status: 0,
+      };
+
+      mockCollection.where.mockReturnValue({
+        get: jest.fn().mockResolvedValue({ empty: true }),
+      });
+
+      const mockDocRef = { id: 'inactive-id' };
+      mockCollection.add.mockResolvedValue(mockDocRef);
+
+      const result = await service.create(dto);
+
+      expect(result.status).toBe(0);
+    });
+  });
+
+  describe('update status', () => {
+    it('should update user status to 0 (inactive)', async () => {
+      const mockDocRef = {
+        get: jest.fn().mockResolvedValue({
+          exists: true,
+          id: 'user-1',
+          data: () => ({
+            email: 'test@test.com',
+            displayName: 'Test',
+            role: UserRole.PLAYER,
+            status: 0,
+            createdAt: { toDate: () => new Date('2026-01-01') },
+            updatedAt: { toDate: () => new Date('2026-04-10') },
+          }),
+        }),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
+      mockCollection.doc.mockReturnValue(mockDocRef);
+
+      const result = await service.update('user-1', { status: 0 });
+
+      expect(result.status).toBe(0);
+      expect(mockDocRef.update).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 0 }),
+      );
+    });
+
+    it('should update user status to 1 (active)', async () => {
+      const mockDocRef = {
+        get: jest.fn().mockResolvedValue({
+          exists: true,
+          id: 'user-1',
+          data: () => ({
+            email: 'test@test.com',
+            displayName: 'Test',
+            role: UserRole.PLAYER,
+            status: 1,
+            createdAt: { toDate: () => new Date('2026-01-01') },
+            updatedAt: { toDate: () => new Date('2026-04-10') },
+          }),
+        }),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
+      mockCollection.doc.mockReturnValue(mockDocRef);
+
+      const result = await service.update('user-1', { status: 1 });
+
+      expect(result.status).toBe(1);
+    });
+  });
+
   describe('findByRole', () => {
     it('should return users filtered by role', async () => {
       const mockDocs = [

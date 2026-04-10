@@ -15,15 +15,15 @@ export function NavigationProgress() {
   useEffect(() => {
     // On pathname change → start loading animation
     if (pathname !== prevPathname.current) {
-      setState('loading');
       prevPathname.current = pathname;
 
-      // After a brief moment, mark as complete (page has rendered)
+      // Use microtask to avoid synchronous setState in effect body
+      queueMicrotask(() => setState('loading'));
+
       const timer = setTimeout(() => {
         setState('complete');
       }, 150);
 
-      // Reset to idle after the complete animation finishes
       const resetTimer = setTimeout(() => {
         setState('idle');
       }, 500);

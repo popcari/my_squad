@@ -32,11 +32,6 @@ export default function HomePage() {
     notes: '',
   });
 
-  const loadSettings = async () => {
-    const settings = await teamSettingsService.get();
-    setTeamName(settings.name || 'My Squad');
-  };
-
   const loadMatches = async (year: number, month: number) => {
     setLoading(true);
     const data = await matchesService.getByMonth(year, month + 1);
@@ -45,11 +40,21 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    loadSettings();
+    const load = async () => {
+      const settings = await teamSettingsService.get();
+      setTeamName(settings.name || 'My Squad');
+    };
+    load();
   }, []);
 
   useEffect(() => {
-    loadMatches(calYear, calMonth);
+    const load = async () => {
+      setLoading(true);
+      const data = await matchesService.getByMonth(calYear, calMonth + 1);
+      setMatches(data);
+      setLoading(false);
+    };
+    load();
   }, [calYear, calMonth]);
 
   // Matches for selected date

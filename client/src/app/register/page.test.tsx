@@ -20,7 +20,23 @@ describe('RegisterPage', () => {
     expect(screen.getByLabelText('Display Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('Phone')).toBeInTheDocument();
     expect(screen.getByLabelText('Jersey # (optional)')).toBeInTheDocument();
+  });
+
+  describe('phone validation', () => {
+    it('should show error when phone is empty and blurred', async () => {
+      const user = userEvent.setup();
+      render(<RegisterPage />);
+
+      const input = screen.getByLabelText('Phone');
+      await user.click(input);
+      await user.tab();
+
+      await waitFor(() => {
+        expect(screen.getByText('Phone number is required')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('password validation', () => {

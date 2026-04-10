@@ -5,8 +5,7 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
-  useState,
+  useSyncExternalStore,
 } from 'react';
 
 interface AuthContextType {
@@ -23,26 +22,41 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
 });
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+const AUTH_KEY = 'user';
+let authListeners: Array<() => void> = [];
 
-  useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      setUser(JSON.parse(stored) as User);
-    }
-    setLoading(false);
-  }, []);
+function notifyAuthListeners() {
+  authListeners.forEach((l) => l());
+}
+
+function subscribeAuth(listener: () => void) {
+  authListeners = [...authListeners, listener];
+  return () => {
+    authListeners = authListeners.filter((l) => l !== listener);
+  };
+}
+
+function getAuthSnapshot(): string | null {
+  return localStorage.getItem(AUTH_KEY);
+}
+
+function getAuthServerSnapshot(): string | null {
+  return null;
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const raw = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthServerSnapshot);
+  const user = raw ? (JSON.parse(raw) as User) : null;
+  const loading = false;
 
   const login = useCallback((u: User) => {
-    setUser(u);
-    localStorage.setItem('user', JSON.stringify(u));
+    localStorage.setItem(AUTH_KEY, JSON.stringify(u));
+    notifyAuthListeners();
   }, []);
 
   const logout = useCallback(() => {
-    setUser(null);
-    localStorage.removeItem('user');
+    localStorage.removeItem(AUTH_KEY);
+    notifyAuthListeners();
   }, []);
 
   return (

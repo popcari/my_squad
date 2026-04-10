@@ -19,4 +19,14 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   avatar?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(1)
+  @IsOptional()
+  status?: number;
 }

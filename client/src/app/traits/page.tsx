@@ -35,7 +35,16 @@ export default function TraitsPage() {
   };
 
   useEffect(() => {
-    reload();
+    const load = async () => {
+      const [t, p] = await Promise.all([
+        traitsService.getAll(),
+        usersService.getAll(),
+      ]);
+      setTraits(t);
+      setPlayers(p);
+      setLoading(false);
+    };
+    load();
   }, []);
 
   const loadPlayerTraits = async (userId: string) => {

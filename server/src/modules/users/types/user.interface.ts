@@ -6,8 +6,10 @@ export interface User {
   displayName: string;
   password: string;
   role: UserRole;
+  phone: string;
   jerseyNumber?: number;
   avatar?: string;
+  status: number; // 1 = active, 0 = inactive
   createdAt: Date;
   updatedAt: Date;
 }
