@@ -85,3 +85,42 @@ export interface MatchGoal {
   minute: number;
   createdAt: string;
 }
+
+// ─── FUNDING ──────────────────────────────────────────────
+
+export type ContributionType = 'recurring' | 'donation';
+
+export interface FundingRound {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Contribution {
+  id: string;
+  roundId: string;
+  userId: string;
+  amount: number;
+  type: ContributionType;
+  note?: string;
+  date: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+  matchId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FundingSummary {
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
+}
