@@ -1,7 +1,7 @@
 'use client';
 
-import { InputText } from '@/components/input-text';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { InputText } from '@/components/ui/input-text';
 import { useAuth } from '@/contexts/auth-context';
 import { authService } from '@/services/auth.service';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,13 +19,22 @@ const loginSchema = z.object({
       return;
     }
     if (val.length < 6) {
-      ctx.addIssue({ code: 'custom', message: 'Password must be at least 6 characters' });
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must be at least 6 characters',
+      });
     }
     if (!/[A-Z]/.test(val)) {
-      ctx.addIssue({ code: 'custom', message: 'Password must contain at least 1 uppercase letter' });
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must contain at least 1 uppercase letter',
+      });
     }
     if (!/\d/.test(val)) {
-      ctx.addIssue({ code: 'custom', message: 'Password must contain at least 1 number' });
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must contain at least 1 number',
+      });
     }
   }),
 });
@@ -60,18 +69,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-[370px] md:w-[600px] m-auto flex items-center justify-center bg-background">
+    <div className="min-h-screen w-full md:w-[600px] m-auto flex items-center justify-center bg-background">
       <ThemeToggle />
-      <div className="w-full max-w-lg">
-        <div className="bg-card rounded-2xl p-8 shadow-lg border border-border">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">&#9917;</span>
-            </div>
+      <div className="w-[90%] md:w-full md:max-w-lg">
+        <div className="bg-card rounded-2xl p-4 shadow-lg border border-border">
+          <div className="text-center mb-4">
             <h1 className="text-2xl font-bold">My Squad</h1>
-            <p className="text-sm text-muted mt-1">
-              Sign in to manage your team
-            </p>
+            <p className="text-sm text-muted mt-1">Sign in to your account</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -81,6 +85,7 @@ export default function LoginPage() {
               type="email"
               placeholder="your@email.com"
               error={errors.email}
+              required
               autoFocus
               {...register('email')}
             />
@@ -91,6 +96,7 @@ export default function LoginPage() {
               type="password"
               placeholder="Enter your password"
               error={errors.password}
+              required
               {...register('password')}
             />
 

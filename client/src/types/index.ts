@@ -1,6 +1,8 @@
-export type UserRole = 'president' | 'coach' | 'player';
-export type MatchStatus = 'scheduled' | 'completed' | 'cancelled';
-export type LineupType = 'starting' | 'substitute';
+import { CONTRIBUTION_TYPE, MATCH_STATUS, LINEUP_TYPE, USER_ROLE } from '@/constant/enum';
+
+export type UserRole = `${USER_ROLE}`;
+export type MatchStatus = `${MATCH_STATUS}`;
+export type LineupType = `${LINEUP_TYPE}`;
 
 export interface User {
   id: string;
@@ -88,7 +90,7 @@ export interface MatchGoal {
 
 // ─── FUNDING ──────────────────────────────────────────────
 
-export type ContributionType = 'recurring' | 'donation';
+export type ContributionType = `${CONTRIBUTION_TYPE}`;
 
 export interface FundingRound {
   id: string;

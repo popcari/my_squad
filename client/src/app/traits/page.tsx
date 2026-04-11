@@ -1,6 +1,8 @@
 'use client';
 
 import { TraitsPageSkeleton } from '@/components/skeleton';
+import { InputText } from '@/components/ui/input-text';
+import { Select } from '@/components/ui/select';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { traitsService, usersService, userTraitsService } from '@/services';
@@ -147,18 +149,16 @@ export default function TraitsPage() {
           onSubmit={handleCreate}
           className="bg-card p-4 rounded-lg mb-6 grid grid-cols-2 gap-4"
         >
-          <input
+          <InputText
             placeholder="Trait name (e.g. Speed, Stamina)"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="bg-background border border-border rounded px-3 py-2 text-sm"
             required
           />
-          <input
+          <InputText
             placeholder="Description (optional)"
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="bg-background border border-border rounded px-3 py-2 text-sm"
           />
           <button
             type="submit"
@@ -174,12 +174,12 @@ export default function TraitsPage() {
           onSubmit={handleAssign}
           className="bg-card p-4 rounded-lg mb-6 grid grid-cols-3 gap-4"
         >
-          <select
+          <Select
             value={assignForm.userId}
             onChange={(e) =>
               setAssignForm({ ...assignForm, userId: e.target.value })
             }
-            className="bg-background border border-border rounded px-3 py-2 text-sm"
+            className="text-sm"
             required
           >
             <option value="">Select Player</option>
@@ -188,13 +188,13 @@ export default function TraitsPage() {
                 {p.displayName}
               </option>
             ))}
-          </select>
-          <select
+          </Select>
+          <Select
             value={assignForm.traitId}
             onChange={(e) =>
               setAssignForm({ ...assignForm, traitId: e.target.value })
             }
-            className="bg-background border border-border rounded px-3 py-2 text-sm"
+            className="text-sm"
             required
           >
             <option value="">Select Trait</option>
@@ -203,7 +203,7 @@ export default function TraitsPage() {
                 {t.name}
               </option>
             ))}
-          </select>
+          </Select>
           <div className="flex items-center gap-2">
             <input
               type="range"
@@ -266,10 +266,10 @@ export default function TraitsPage() {
         {/* Player Traits View */}
         <div>
           <h2 className="text-lg font-semibold mb-3">Player Traits</h2>
-          <select
+          <Select
             value={selectedPlayer}
             onChange={(e) => loadPlayerTraits(e.target.value)}
-            className="bg-background border border-border rounded px-3 py-2 text-sm w-full mb-4"
+            className="text-sm w-full mb-4"
           >
             <option value="">Select a player...</option>
             {players.map((p) => (
@@ -277,7 +277,7 @@ export default function TraitsPage() {
                 {p.displayName} #{p.jerseyNumber}
               </option>
             ))}
-          </select>
+          </Select>
 
           {selectedPlayer && playerTraits.length === 0 && (
             <p className="text-muted text-sm">

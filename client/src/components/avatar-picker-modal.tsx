@@ -1,6 +1,7 @@
 'use client';
 
 import { usersService } from '@/services';
+import { CloseButton } from '@/components/ui/close-button';
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -104,12 +105,7 @@ export function AvatarPickerModal({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">Choose Avatar</h2>
-          <button
-            onClick={onClose}
-            className="text-muted hover:text-foreground text-xl leading-none"
-          >
-            &times;
-          </button>
+          <CloseButton onClick={onClose} />
         </div>
 
         {/* Upload zone */}

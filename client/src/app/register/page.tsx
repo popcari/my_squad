@@ -1,7 +1,8 @@
 'use client';
 
-import { InputText } from '@/components/input-text';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { InputText } from '@/components/ui/input-text';
+import { USER_ROLE } from '@/constant/enum';
 import { useAuth } from '@/contexts/auth-context';
 import { authService } from '@/services/auth.service';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,16 +21,28 @@ const registerSchema = z.object({
       return;
     }
     if (val.length < 6) {
-      ctx.addIssue({ code: 'custom', message: 'Password must be at least 6 characters' });
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must be at least 6 characters',
+      });
     }
     if (val.length > 32) {
-      ctx.addIssue({ code: 'custom', message: 'Password must be at most 32 characters' });
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must be at most 32 characters',
+      });
     }
     if (!/[A-Z]/.test(val)) {
-      ctx.addIssue({ code: 'custom', message: 'Password must contain at least 1 uppercase letter' });
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must contain at least 1 uppercase letter',
+      });
     }
     if (!/\d/.test(val)) {
-      ctx.addIssue({ code: 'custom', message: 'Password must contain at least 1 number' });
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must contain at least 1 number',
+      });
     }
   }),
   phone: z.string().min(1, 'Phone number is required'),
@@ -62,10 +75,8 @@ export default function RegisterPage() {
         email: data.email,
         password: data.password,
         phone: data.phone,
-        role: 'player',
-        jerseyNumber: data.jerseyNumber
-          ? Number(data.jerseyNumber)
-          : undefined,
+        role: USER_ROLE.PLAYER,
+        jerseyNumber: data.jerseyNumber ? Number(data.jerseyNumber) : undefined,
       });
       login(user);
       router.push('/');
@@ -77,14 +88,11 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen w-[370px] md:w-[600px] m-auto flex items-center justify-center bg-background">
+    <div className="min-h-screen w-full md:w-[600px] m-auto flex items-center justify-center bg-background">
       <ThemeToggle />
-      <div className="w-full max-w-lg">
-        <div className="bg-card rounded-2xl p-8 shadow-lg border border-border">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">&#9917;</span>
-            </div>
+      <div className="w-[90%] md:w-full md:max-w-lg">
+        <div className="bg-card rounded-2xl p-4 shadow-lg border border-border">
+          <div className="text-center mb-4">
             <h1 className="text-2xl font-bold">Join My Squad</h1>
             <p className="text-sm text-muted mt-1">Create your account</p>
           </div>
@@ -93,8 +101,9 @@ export default function RegisterPage() {
             <InputText
               id="displayName"
               label="Display Name"
-              placeholder="Nguyen Van A"
+              placeholder="Your name"
               error={errors.displayName}
+              required
               autoFocus
               {...register('displayName')}
             />
@@ -105,6 +114,7 @@ export default function RegisterPage() {
               type="email"
               placeholder="your@email.com"
               error={errors.email}
+              required
               {...register('email')}
             />
 
@@ -112,8 +122,9 @@ export default function RegisterPage() {
               id="password"
               label="Password"
               type="password"
-              placeholder="Min 1 uppercase + 1 number, max 32 chars"
+              placeholder="Your password"
               error={errors.password}
+              required
               maxLength={32}
               {...register('password')}
             />
@@ -124,12 +135,13 @@ export default function RegisterPage() {
               type="tel"
               placeholder="0901234567"
               error={errors.phone}
+              required
               {...register('phone')}
             />
 
             <InputText
               id="jerseyNumber"
-              label="Jersey # (optional)"
+              label="Jersey"
               type="number"
               min={1}
               max={99}

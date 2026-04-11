@@ -1,6 +1,7 @@
 'use client';
 
 import { SettingsPageSkeleton } from '@/components/skeleton';
+import { InputText } from '@/components/ui/input-text';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { teamSettingsService } from '@/services/team-settings.service';
@@ -90,15 +91,12 @@ export default function SettingsPage() {
           onSubmit={handleSave}
           className="bg-card rounded-lg p-6 space-y-4 max-w-2xl"
         >
-          <div>
-            <label className="block text-sm font-medium mb-1">Team Name</label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-            />
-          </div>
+          <InputText
+            label="Team Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
           <div>
             <label className="block text-sm font-medium mb-1">
               Description
@@ -113,42 +111,29 @@ export default function SettingsPage() {
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Founded Date
-              </label>
-              <input
-                type="date"
-                value={form.foundedDate}
-                onChange={(e) =>
-                  setForm({ ...form, foundedDate: e.target.value })
-                }
-                className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Home Stadium
-              </label>
-              <input
-                value={form.homeStadium}
-                onChange={(e) =>
-                  setForm({ ...form, homeStadium: e.target.value })
-                }
-                placeholder="Stadium name"
-                className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Logo URL</label>
-            <input
-              value={form.logo}
-              onChange={(e) => setForm({ ...form, logo: e.target.value })}
-              placeholder="https://..."
-              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            <InputText
+              label="Founded Date"
+              type="date"
+              value={form.foundedDate}
+              onChange={(e) =>
+                setForm({ ...form, foundedDate: e.target.value })
+              }
+            />
+            <InputText
+              label="Home Stadium"
+              value={form.homeStadium}
+              onChange={(e) =>
+                setForm({ ...form, homeStadium: e.target.value })
+              }
+              placeholder="Stadium name"
             />
           </div>
+          <InputText
+            label="Logo URL"
+            value={form.logo}
+            onChange={(e) => setForm({ ...form, logo: e.target.value })}
+            placeholder="https://..."
+          />
           <div className="flex gap-3">
             <button
               type="submit"

@@ -1,5 +1,6 @@
 'use client';
 
+import { MONTH_NAMES, WEEKDAYS } from '@/constant';
 import type { Match } from '@/types';
 import { useMemo } from 'react';
 
@@ -12,22 +13,6 @@ interface CalendarProps {
   onPrev: () => void;
   onNext: () => void;
 }
-
-const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
 
 export function Calendar({
   year,
@@ -91,7 +76,10 @@ export function Calendar({
       {/* Weekday headers */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {WEEKDAYS.map((wd) => (
-          <div key={wd} className="text-center text-xs text-muted py-1">
+          <div
+            key={wd}
+            className={`text-center text-xs py-1 ${wd === 'Su' ? 'text-danger font-semibold' : 'text-muted'}`}
+          >
             {wd}
           </div>
         ))}
@@ -106,6 +94,8 @@ export function Calendar({
           const hasMatch = matchDates.has(day);
           const isSelected = selectedDate === dateStr;
 
+          const isSunday = i % 7 === 6;
+
           return (
             <button
               key={day}
@@ -113,7 +103,8 @@ export function Calendar({
               className={`relative h-12 rounded-lg text-sm transition-colors flex items-center justify-center
                 ${isSelected ? 'bg-primary text-white' : ''}
                 ${!isSelected && isToday(day) ? 'bg-primary/20 text-primary font-bold' : ''}
-                ${!isSelected && !isToday(day) ? 'hover:bg-card-hover text-foreground' : ''}
+                ${!isSelected && !isToday(day) && isSunday ? 'hover:bg-card-hover text-danger' : ''}
+                ${!isSelected && !isToday(day) && !isSunday ? 'hover:bg-card-hover text-foreground' : ''}
               `}
             >
               {day}

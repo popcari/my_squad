@@ -1,7 +1,9 @@
 'use client';
 
+import { Select } from '@/components/ui/select';
 import type { Contribution, FundingRound, User } from '@/types';
 import { useMemo, useState } from 'react';
+import type { PieLabelRenderProps } from 'recharts';
 import {
   Cell,
   Legend,
@@ -10,7 +12,6 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts';
-import type { PieLabelRenderProps } from 'recharts';
 
 const COLORS = [
   '#6366f1', // indigo
@@ -28,7 +29,7 @@ const COLORS = [
 ];
 
 function formatVND(amount: number): string {
-  return amount.toLocaleString('vi-VN') + 'đ';
+  return amount.toLocaleString('en-US') + 'đ';
 }
 
 interface ContributionChartProps {
@@ -70,8 +71,7 @@ export function ContributionChart({
 
     const ranking: PlayerShare[] = [...byPlayer.entries()]
       .map(([userId, amount]) => ({
-        name:
-          players.find((p) => p.id === userId)?.displayName || userId,
+        name: players.find((p) => p.id === userId)?.displayName || userId,
         amount,
         percentage: total > 0 ? (amount / total) * 100 : 0,
       }))
@@ -91,25 +91,27 @@ export function ContributionChart({
 
   return (
     <div className="bg-card rounded-lg p-4 border border-border mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Thống kê đóng góp</h2>
-        <select
-          value={selectedRoundId}
-          onChange={(e) => setSelectedRoundId(e.target.value)}
-          className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm"
-        >
-          <option value="">Tất cả đợt</option>
-          {rounds.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.name}
-            </option>
-          ))}
-        </select>
+      <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-2">
+        <h2 className="text-lg font-semibold">Contribution Statistics</h2>
+        <div className="w-full md:w-[30%] ">
+          <Select
+            value={selectedRoundId}
+            onChange={(e) => setSelectedRoundId(e.target.value)}
+            className="text-sm"
+          >
+            <option value="">All Rounds</option>
+            {rounds.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
+          </Select>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
         <p className="text-sm text-muted text-center py-8">
-          Không có dữ liệu đóng góp cho đợt này.
+          No contribution data for this round.
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -146,14 +148,11 @@ export function ContributionChart({
                     fontSize: '12px',
                   }}
                 />
-                <Legend
-                  wrapperStyle={{ fontSize: '12px' }}
-                  iconType="circle"
-                />
+                <Legend wrapperStyle={{ fontSize: '12px' }} iconType="circle" />
               </PieChart>
             </ResponsiveContainer>
             <p className="text-xs text-muted mt-2">
-              Tổng:{' '}
+              Total:{' '}
               <span className="font-semibold text-accent">
                 {formatVND(total)}
               </span>
@@ -163,14 +162,11 @@ export function ContributionChart({
           {/* Ranking */}
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted uppercase tracking-wider">
-              Xếp hạng đóng góp
+              Contribution Ranking
             </h3>
             <div className="space-y-2">
               {ranking.map((player, idx) => (
-                <div
-                  key={player.name}
-                  className="flex items-center gap-3"
-                >
+                <div key={player.name} className="flex items-center gap-3">
                   {/* Rank badge */}
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
@@ -207,7 +203,7 @@ export function ContributionChart({
                       />
                     </div>
                     <span className="text-[10px] text-muted">
-                      {player.percentage.toFixed(1)}% tổng quỹ
+                      {player.percentage.toFixed(1)}% of total fund
                     </span>
                   </div>
                 </div>

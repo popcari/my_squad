@@ -3,11 +3,13 @@
 import { Calendar } from '@/components/calendar';
 import { ScoreModal } from '@/components/score-modal';
 import { HomePageSkeleton } from '@/components/skeleton';
+import { InputText } from '@/components/ui/input-text';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { matchesService } from '@/services';
 import { teamSettingsService } from '@/services/team-settings.service';
 import type { Match } from '@/types';
+import { MATCH_RESULT_TYPES, MATCH_STATUS } from '@/constant/enum';
 import { useEffect, useMemo, useState } from 'react';
 
 export default function HomePage() {
@@ -127,27 +129,33 @@ export default function HomePage() {
     loadMatches(calYear, calMonth);
   };
 
-  const matchResult = (m: Match): 'win' | 'lose' | 'draw' | null => {
-    if (m.status !== 'completed' || m.homeScore == null || m.awayScore == null)
+  const matchResult = (
+    m: Match,
+  ): `${MATCH_RESULT_TYPES}` | null => {
+    if (
+      m.status !== MATCH_STATUS.COMPLETED ||
+      m.homeScore == null ||
+      m.awayScore == null
+    )
       return null;
-    if (m.homeScore > m.awayScore) return 'win';
-    if (m.homeScore < m.awayScore) return 'lose';
-    return 'draw';
+    if (m.homeScore > m.awayScore) return MATCH_RESULT_TYPES.WIN;
+    if (m.homeScore < m.awayScore) return MATCH_RESULT_TYPES.LOSE;
+    return MATCH_RESULT_TYPES.DRAW;
   };
 
-  const resultColor = (r: 'win' | 'lose' | 'draw' | null) => {
-    if (r === 'win') return 'text-accent';
-    if (r === 'lose') return 'text-danger';
-    if (r === 'draw') return 'text-yellow-400';
+  const resultColor = (r: `${MATCH_RESULT_TYPES}` | null) => {
+    if (r === MATCH_RESULT_TYPES.WIN) return 'text-accent';
+    if (r === MATCH_RESULT_TYPES.LOSE) return 'text-danger';
+    if (r === MATCH_RESULT_TYPES.DRAW) return 'text-yellow-400';
     return 'text-muted';
   };
 
   const resultDot = (m: Match) => {
     const r = matchResult(m);
-    if (r === 'win') return 'bg-accent';
-    if (r === 'lose') return 'bg-danger';
-    if (r === 'draw') return 'bg-yellow-400';
-    if (m.status === 'cancelled') return 'bg-danger';
+    if (r === MATCH_RESULT_TYPES.WIN) return 'bg-accent';
+    if (r === MATCH_RESULT_TYPES.LOSE) return 'bg-danger';
+    if (r === MATCH_RESULT_TYPES.DRAW) return 'bg-yellow-400';
+    if (m.status === MATCH_STATUS.CANCELLED) return 'bg-danger';
     return 'bg-primary';
   };
 
@@ -180,7 +188,7 @@ export default function HomePage() {
             {teamName} <span className="text-muted font-normal">vs</span>{' '}
             {m.opponent}
           </span>
-          {m.status === 'completed' && (
+          {m.status === MATCH_STATUS.COMPLETED && (
             <span
               className={`text-sm font-bold ml-auto flex-shrink-0 ${resultColor(matchResult(m))}`}
             >
@@ -221,123 +229,119 @@ export default function HomePage() {
       {loading ? (
         <HomePageSkeleton />
       ) : (
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Left: Calendar + Form (60%) */}
-        <div className="lg:col-span-3 space-y-4">
-          <Calendar
-            year={calYear}
-            month={calMonth}
-            matches={matches}
-            selectedDate={selectedDate}
-            onSelectDate={handleSelectDate}
-            onPrev={handlePrev}
-            onNext={handleNext}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Left: Calendar + Form (60%) */}
+          <div className="lg:col-span-3 space-y-4">
+            <Calendar
+              year={calYear}
+              month={calMonth}
+              matches={matches}
+              selectedDate={selectedDate}
+              onSelectDate={handleSelectDate}
+              onPrev={handlePrev}
+              onNext={handleNext}
+            />
 
-          {selectedDate && selectedMatches && (
-            <div className="bg-card rounded-lg p-4">
-              <h3 className="text-sm font-semibold mb-2">
-                {new Date(selectedDate + 'T00:00').toLocaleDateString('en', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                })}
-              </h3>
-              {selectedMatches.length === 0 ? (
-                <p className="text-xs text-muted">No matches on this day.</p>
-              ) : (
-                <div className="space-y-2">
-                  {selectedMatches.map(renderMatchCard)}
-                </div>
-              )}
-            </div>
-          )}
-
-          {canManage && (
-            <div className="bg-card rounded-lg p-4">
-              <button
-                onClick={() => setShowForm(!showForm)}
-                className="w-full text-sm font-medium text-primary hover:text-primary-hover transition-colors text-left"
-              >
-                {showForm ? '- Cancel' : '+ Create new match'}
-              </button>
-              {showForm && (
-                <form onSubmit={handleCreate} className="mt-3 space-y-3">
-                  <input
-                    placeholder="Opponent"
-                    value={form.opponent}
-                    onChange={(e) =>
-                      setForm({ ...form, opponent: e.target.value })
-                    }
-                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
-                    required
-                  />
-                  <input
-                    type="datetime-local"
-                    value={form.matchDate}
-                    onChange={(e) =>
-                      setForm({ ...form, matchDate: e.target.value })
-                    }
-                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
-                    required
-                  />
-                  <input
-                    placeholder="Location"
-                    value={form.location}
-                    onChange={(e) =>
-                      setForm({ ...form, location: e.target.value })
-                    }
-                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
-                    required
-                  />
-                  <input
-                    placeholder="Notes (optional)"
-                    value={form.notes}
-                    onChange={(e) =>
-                      setForm({ ...form, notes: e.target.value })
-                    }
-                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-lg text-sm transition-colors"
-                  >
-                    Create Match
-                  </button>
-                </form>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Right: Match list for current month */}
-        <div className="lg:col-span-2">
-          {matches.length === 0 ? (
-            <div className="bg-card rounded-lg p-8 text-center">
-              <p className="text-muted">No matches in {monthLabel}.</p>
-              {canManage && (
-                <p className="text-xs text-muted mt-1">
-                  Click a date on the calendar to get started.
-                </p>
-              )}
-            </div>
-          ) : (
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
-                  {monthLabel}
-                </h2>
-                <div className="flex-1 h-px bg-border" />
-                <span className="text-xs text-muted">
-                  {matches.length} match
-                  {matches.length > 1 ? 'es' : ''}
-                </span>
+            {selectedDate && selectedMatches && (
+              <div className="bg-card rounded-lg p-4">
+                <h3 className="text-sm font-semibold mb-2">
+                  {new Date(selectedDate + 'T00:00').toLocaleDateString('en', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                  })}
+                </h3>
+                {selectedMatches.length === 0 ? (
+                  <p className="text-xs text-muted">No matches on this day.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedMatches.map(renderMatchCard)}
+                  </div>
+                )}
               </div>
-              <div className="space-y-2">{matches.map(renderMatchCard)}</div>
-            </div>
-          )}
+            )}
+
+            {canManage && (
+              <div className="bg-card rounded-lg p-4">
+                <button
+                  onClick={() => setShowForm(!showForm)}
+                  className="w-full text-sm font-medium text-primary hover:text-primary-hover transition-colors text-left"
+                >
+                  {showForm ? '- Cancel' : '+ Create new match'}
+                </button>
+                {showForm && (
+                  <form onSubmit={handleCreate} className="mt-3 space-y-3">
+                    <InputText
+                      placeholder="Opponent"
+                      value={form.opponent}
+                      onChange={(e) =>
+                        setForm({ ...form, opponent: e.target.value })
+                      }
+                      required
+                    />
+                    <InputText
+                      type="datetime-local"
+                      value={form.matchDate}
+                      onChange={(e) =>
+                        setForm({ ...form, matchDate: e.target.value })
+                      }
+                      required
+                    />
+                    <InputText
+                      placeholder="Location"
+                      value={form.location}
+                      onChange={(e) =>
+                        setForm({ ...form, location: e.target.value })
+                      }
+                      required
+                    />
+                    <InputText
+                      placeholder="Notes (optional)"
+                      value={form.notes}
+                      onChange={(e) =>
+                        setForm({ ...form, notes: e.target.value })
+                      }
+                    />
+                    <button
+                      type="submit"
+                      className="w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-lg text-sm transition-colors"
+                    >
+                      Create Match
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right: Match list for current month */}
+          <div className="lg:col-span-2">
+            {matches.length === 0 ? (
+              <div className="bg-card rounded-lg p-8 text-center">
+                <p className="text-muted">No matches in {monthLabel}.</p>
+                {canManage && (
+                  <p className="text-xs text-muted mt-1">
+                    Click a date on the calendar to get started.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
+                    {monthLabel}
+                  </h2>
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted">
+                    {matches.length} match
+                    {matches.length > 1 ? 'es' : ''}
+                  </span>
+                </div>
+                <div className="space-y-2">{matches.map(renderMatchCard)}</div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       )}
 
       {scoreMatch && (

@@ -2,6 +2,9 @@
 
 import { AvatarPickerModal } from '@/components/avatar-picker-modal';
 import { PlayerProfilePageSkeleton } from '@/components/skeleton';
+import { InputText } from '@/components/ui/input-text';
+import { Select } from '@/components/ui/select';
+import { USER_ROLE } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -229,37 +232,43 @@ export default function PlayerProfilePage() {
 
           <div className="flex-1">
             {editing ? (
-              <div className="space-y-2">
-                <input
+              <div className="space-y-2 alo">
+                <InputText
                   value={editForm.displayName}
                   onChange={(e) =>
                     setEditForm({ ...editForm, displayName: e.target.value })
                   }
-                  className="bg-background border border-border rounded px-3 py-1 text-lg font-bold w-full"
+                  className="text-lg font-bold"
                 />
                 <div className="flex gap-2">
-                  <input
-                    type="number"
-                    min={1}
-                    max={99}
-                    placeholder="Jersey #"
-                    value={editForm.jerseyNumber}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, jerseyNumber: e.target.value })
-                    }
-                    className="bg-background border border-border rounded px-3 py-1 text-sm w-24"
-                  />
-                  <select
-                    value={editForm.role}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, role: e.target.value })
-                    }
-                    className="bg-background border border-border rounded px-3 py-1 text-sm"
-                  >
-                    <option value="player">Player</option>
-                    <option value="coach">Coach</option>
-                    <option value="president">President</option>
-                  </select>
+                  <div className="w-[50%] md:w-[25%]">
+                    <InputText
+                      type="number"
+                      min={1}
+                      max={99}
+                      placeholder="Jersey #"
+                      value={editForm.jerseyNumber}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          jerseyNumber: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="w-[50%] md:w-[75%]">
+                    <Select
+                      value={editForm.role}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, role: e.target.value })
+                      }
+                      className="text-sm"
+                    >
+                      <option value={USER_ROLE.PLAYER}>Player</option>
+                      <option value={USER_ROLE.COACH}>Coach</option>
+                      <option value={USER_ROLE.PRESIDENT}>President</option>
+                    </Select>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -299,7 +308,9 @@ export default function PlayerProfilePage() {
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-muted">{profile.phone} &middot; {profile.email}</p>
+                <p className="text-sm text-muted">
+                  {profile.phone} &middot; {profile.email}
+                </p>
                 <div className="flex gap-2 mt-2 flex-wrap">
                   {profile.positions
                     .slice()
@@ -438,7 +449,7 @@ export default function PlayerProfilePage() {
               onSubmit={handleAssignTrait}
               className="bg-background p-3 rounded-lg mb-4 space-y-2"
             >
-              <select
+              <Select
                 value={assignTraitForm.traitId}
                 onChange={(e) =>
                   setAssignTraitForm({
@@ -446,7 +457,7 @@ export default function PlayerProfilePage() {
                     traitId: e.target.value,
                   })
                 }
-                className="bg-card border border-border rounded px-3 py-1.5 text-sm w-full"
+                className="text-sm w-full"
                 required
               >
                 <option value="">Select trait...</option>
@@ -455,7 +466,7 @@ export default function PlayerProfilePage() {
                     {t.name}
                   </option>
                 ))}
-              </select>
+              </Select>
               <div className="flex items-center gap-2">
                 <input
                   type="range"

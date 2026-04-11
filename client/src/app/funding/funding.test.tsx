@@ -91,7 +91,7 @@ describe('FundingPage', () => {
 
   it('should render the page title', async () => {
     render(<FundingPage />);
-    expect(screen.getByText('Quỹ đội')).toBeInTheDocument();
+    expect(screen.getByText('Team Funding')).toBeInTheDocument();
   });
 
   it('should render summary cards with formatted VND amounts', async () => {
@@ -132,7 +132,7 @@ describe('FundingPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: /tạo đợt/i }),
+        screen.getByRole('button', { name: /create round/i }),
       ).toBeInTheDocument();
     });
   });

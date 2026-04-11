@@ -1,9 +1,13 @@
 'use client';
 
+import { InputText } from '@/components/ui/input-text';
+import { Select } from '@/components/ui/select';
+import { VN_CURRENCY } from '@/constant';
+import { CONTRIBUTION_TYPE } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
-import { fundingService } from '@/services/funding.service';
 import { matchesService, usersService } from '@/services';
+import { fundingService } from '@/services/funding.service';
 import type {
   Contribution,
   Expense,
@@ -42,15 +46,18 @@ export default function FundingPage() {
   const [editingRound, setEditingRound] = useState<string | null>(null);
   const [editRoundName, setEditRoundName] = useState('');
 
-  // Contribution form
+  // Contribution batch form
   const [showContribForm, setShowContribForm] = useState(false);
-  const [contribForm, setContribForm] = useState({
-    userId: '',
-    amount: '',
-    type: 'recurring' as 'recurring' | 'donation',
-    note: '',
-    date: new Date().toISOString().slice(0, 10),
-  });
+  const [contribAmounts, setContribAmounts] = useState<Record<string, string>>(
+    {},
+  );
+  const [contribTypes, setContribTypes] = useState<
+    Record<string, `${CONTRIBUTION_TYPE}`>
+  >({});
+  const [contribDate, setContribDate] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
+  const [contribNote, setContribNote] = useState('');
 
   // Expense form
   const [showExpenseForm, setShowExpenseForm] = useState(false);
@@ -134,7 +141,9 @@ export default function FundingPage() {
   const monthTotal = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
 
   // Get unique months from expenses for the picker
-  const expenseMonths = [...new Set(expenses.map((e) => e.date.slice(0, 7)))].sort().reverse();
+  const expenseMonths = [...new Set(expenses.map((e) => e.date.slice(0, 7)))]
+    .sort()
+    .reverse();
 
   // ─── HANDLERS ───────────────────────────────────────────
 
@@ -156,10 +165,10 @@ export default function FundingPage() {
 
   const handleDeleteRound = async (id: string) => {
     const ok = await confirm({
-      title: 'Xóa đợt đóng góp',
+      title: 'Delete Funding Round',
       message:
-        'Xóa đợt này sẽ xóa toàn bộ khoản đóng góp liên quan. Bạn có chắc?',
-      confirmText: 'Xóa',
+        'Deleting this round will remove all related contributions. Are you sure?',
+      confirmText: 'Delete',
       danger: true,
     });
     if (!ok) return;
@@ -168,33 +177,40 @@ export default function FundingPage() {
     loadData();
   };
 
-  const handleAddContribution = async (e: React.FormEvent) => {
+  const handleAddContributions = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRound || !contribForm.userId || !contribForm.amount) return;
-    await fundingService.addContribution({
-      roundId: selectedRound,
-      userId: contribForm.userId,
-      amount: Number(contribForm.amount),
-      type: contribForm.type,
-      note: contribForm.note || undefined,
-      date: contribForm.date,
-    });
-    setContribForm({
-      userId: '',
-      amount: '',
-      type: 'recurring',
-      note: '',
-      date: new Date().toISOString().slice(0, 10),
-    });
+    if (!selectedRound) return;
+
+    // Only submit for players with non-zero amounts
+    const entries = Object.entries(contribAmounts).filter(
+      ([, amt]) => amt && Number(amt) > 0,
+    );
+    if (entries.length === 0) return;
+
+    await Promise.all(
+      entries.map(([userId, amount]) =>
+        fundingService.addContribution({
+          roundId: selectedRound,
+          userId,
+          amount: Number(amount),
+          type: contribTypes[userId] || CONTRIBUTION_TYPE.RECURRING,
+          note: contribNote || undefined,
+          date: contribDate,
+        }),
+      ),
+    );
+    setContribAmounts({});
+    setContribTypes({});
+    setContribNote('');
     setShowContribForm(false);
     loadData();
   };
 
   const handleDeleteContribution = async (id: string) => {
     const ok = await confirm({
-      title: 'Xóa khoản đóng góp',
-      message: 'Bạn có chắc muốn xóa khoản đóng góp này?',
-      confirmText: 'Xóa',
+      title: 'Delete Contribution',
+      message: 'Are you sure you want to delete this contribution?',
+      confirmText: 'Delete',
       danger: true,
     });
     if (!ok) return;
@@ -224,7 +240,7 @@ export default function FundingPage() {
     if (!matchExpenseForm.matchId || !matchExpenseForm.amount) return;
     const match = matches.find((m) => m.id === matchExpenseForm.matchId);
     await fundingService.addExpense({
-      description: `Trận đấu vs ${match?.opponent || 'N/A'}`,
+      description: `Match vs ${match?.opponent || 'N/A'}`,
       amount: Number(matchExpenseForm.amount),
       date: matchExpenseForm.date,
       matchId: matchExpenseForm.matchId,
@@ -259,9 +275,9 @@ export default function FundingPage() {
 
   const handleDeleteExpense = async (id: string) => {
     const ok = await confirm({
-      title: 'Xóa khoản chi',
-      message: 'Bạn có chắc muốn xóa khoản chi này?',
-      confirmText: 'Xóa',
+      title: 'Delete Expense',
+      message: 'Are you sure you want to delete this expense?',
+      confirmText: 'Delete',
       danger: true,
     });
     if (!ok) return;
@@ -277,7 +293,7 @@ export default function FundingPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold mb-6">Quỹ đội</h1>
+        <h1 className="text-2xl font-bold mb-6">Team Funding</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="skeleton h-24 rounded-lg" />
@@ -294,43 +310,45 @@ export default function FundingPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Quỹ đội</h1>
+      <h1 className="text-2xl font-bold mb-6">Team Funding</h1>
 
       {/* ─── SUMMARY CARDS ──────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-card rounded-lg p-5 border border-border">
-          <p className="text-xs text-muted uppercase tracking-wider mb-1">
-            Tổng thu
-          </p>
-          <p
-            data-testid="summary-income"
-            className="text-2xl font-bold text-accent"
+      <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
+        {[
+          {
+            label: 'Total Funding',
+            testId: 'summary-income',
+            value: summary.totalIncome,
+            color: 'text-accent',
+          },
+          {
+            label: 'Total Expense',
+            testId: 'summary-expense',
+            value: summary.totalExpense,
+            color: 'text-danger',
+          },
+          {
+            label: 'Balance',
+            testId: 'summary-balance',
+            value: summary.balance,
+            color: summary.balance >= 0 ? 'text-primary' : 'text-danger',
+          },
+        ].map((card) => (
+          <div
+            key={card.testId}
+            className="bg-card rounded-lg p-2 md:p-5 border border-border"
           >
-            {formatVND(summary.totalIncome)}
-          </p>
-        </div>
-        <div className="bg-card rounded-lg p-5 border border-border">
-          <p className="text-xs text-muted uppercase tracking-wider mb-1">
-            Tổng chi
-          </p>
-          <p
-            data-testid="summary-expense"
-            className="text-2xl font-bold text-danger"
-          >
-            {formatVND(summary.totalExpense)}
-          </p>
-        </div>
-        <div className="bg-card rounded-lg p-5 border border-border">
-          <p className="text-xs text-muted uppercase tracking-wider mb-1">
-            Số dư
-          </p>
-          <p
-            data-testid="summary-balance"
-            className={`text-2xl font-bold ${summary.balance >= 0 ? 'text-primary' : 'text-danger'}`}
-          >
-            {formatVND(summary.balance)}
-          </p>
-        </div>
+            <p className="text-[10px] md:text-lg text-muted uppercase tracking-wider font-bold mb-1">
+              {card.label}
+            </p>
+            <p
+              data-testid={card.testId}
+              className={`text-md md:text-2xl font-bold ${card.color}`}
+            >
+              {formatVND(card.value)}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* ─── CONTRIBUTION CHART ─────────────────────────────── */}
@@ -346,43 +364,38 @@ export default function FundingPage() {
           {/* Rounds Section */}
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold">Đợt đóng góp</h2>
+              <h2 className="text-lg font-semibold">Funding Rounds</h2>
               {canManage && (
                 <button
                   onClick={() => setShowRoundForm(!showRoundForm)}
                   className="text-sm text-primary hover:text-primary-hover transition-colors"
-                  aria-label="Tạo đợt"
+                  aria-label="Create Round"
                 >
-                  {showRoundForm ? '✕ Hủy' : '+ Tạo đợt'}
+                  {showRoundForm ? '✕ Cancel' : '+ Create Round'}
                 </button>
               )}
             </div>
 
             {showRoundForm && (
-              <form
-                onSubmit={handleCreateRound}
-                className="flex gap-2 mb-3"
-              >
-                <input
+              <form onSubmit={handleCreateRound} className="flex gap-2 mb-3">
+                <InputText
                   value={roundName}
                   onChange={(e) => setRoundName(e.target.value)}
-                  placeholder="Tên đợt (VD: Đợt 1 - Tháng 4)"
-                  className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm"
+                  placeholder="Round Name (e.g., Round 1 - April)"
+                  className="flex-1"
                   required
                 />
                 <button
                   type="submit"
                   className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm transition-colors"
                 >
-                  Tạo
+                  Create
                 </button>
               </form>
             )}
 
             {rounds.length === 0 ? (
-              <p className="text-sm text-muted">
-                Chưa có đợt đóng góp nào.
-              </p>
+              <p className="text-sm text-muted">No funding rounds yet.</p>
             ) : (
               <div className="space-y-2">
                 {rounds.map((r) => (
@@ -402,34 +415,34 @@ export default function FundingPage() {
                         className="flex gap-2"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <input
+                        <InputText
                           value={editRoundName}
                           onChange={(e) => setEditRoundName(e.target.value)}
-                          className="flex-1 bg-background border border-border rounded px-2 py-1 text-sm"
+                          className="flex-1 min-w-[200px]"
                         />
                         <button
                           onClick={() => handleUpdateRound(r.id)}
                           className="text-xs text-accent hover:text-accent/80"
                         >
-                          Lưu
+                          Save
                         </button>
                         <button
                           onClick={() => setEditingRound(null)}
                           className="text-xs text-muted hover:text-foreground"
                         >
-                          Hủy
+                          Cancel
                         </button>
                       </div>
                     ) : (
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="font-medium text-sm">
-                            {r.name}
-                          </span>
+                          <span className="font-medium text-sm">{r.name}</span>
                           <span className="text-xs text-muted ml-2">
-                            {contributions.filter((c) => c.roundId === r.id)
-                              .length}{' '}
-                            khoản
+                            {
+                              contributions.filter((c) => c.roundId === r.id)
+                                .length
+                            }{' '}
+                            contributions
                           </span>
                         </div>
                         {canManage && (
@@ -444,13 +457,13 @@ export default function FundingPage() {
                               }}
                               className="px-2 py-1 text-xs text-primary hover:bg-primary/20 rounded"
                             >
-                              Sửa
+                              Edit
                             </button>
                             <button
                               onClick={() => handleDeleteRound(r.id)}
                               className="px-2 py-1 text-xs text-danger hover:bg-danger/20 rounded"
                             >
-                              Xóa
+                              Delete
                             </button>
                           </div>
                         )}
@@ -467,7 +480,7 @@ export default function FundingPage() {
             <div className="bg-card rounded-lg p-4 border border-border">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold">
-                  Đóng góp —{' '}
+                  Contributions —{' '}
                   {rounds.find((r) => r.id === selectedRound)?.name}
                 </h3>
                 {canManage && (
@@ -475,110 +488,133 @@ export default function FundingPage() {
                     onClick={() => setShowContribForm(!showContribForm)}
                     className="text-sm text-primary hover:text-primary-hover transition-colors"
                   >
-                    {showContribForm ? '✕ Hủy' : '+ Thêm'}
+                    {showContribForm ? '✕ Cancel' : '+ Add'}
                   </button>
                 )}
               </div>
 
               {showContribForm && (
                 <form
-                  onSubmit={handleAddContribution}
-                  className="space-y-2 mb-4 p-3 bg-background rounded-lg border border-border"
+                  onSubmit={handleAddContributions}
+                  className="space-y-3 mb-4 p-3 bg-background rounded-lg border border-border"
                 >
-                  <select
-                    value={contribForm.userId}
-                    onChange={(e) =>
-                      setContribForm({ ...contribForm, userId: e.target.value })
-                    }
-                    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
-                    required
-                  >
-                    <option value="">Chọn thành viên</option>
-                    {players.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.displayName}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="Số tiền (VND)"
-                    value={contribForm.amount}
-                    onChange={(e) =>
-                      setContribForm({ ...contribForm, amount: e.target.value })
-                    }
-                    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
-                    required
-                    min="0"
-                  />
-                  <div className="flex gap-2">
-                    <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                      <input
-                        type="radio"
-                        name="contribType"
-                        value="recurring"
-                        checked={contribForm.type === 'recurring'}
-                        onChange={() =>
-                          setContribForm({ ...contribForm, type: 'recurring' })
-                        }
-                        className="accent-primary"
-                      />
-                      Định kỳ
-                    </label>
-                    <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                      <input
-                        type="radio"
-                        name="contribType"
-                        value="donation"
-                        checked={contribForm.type === 'donation'}
-                        onChange={() =>
-                          setContribForm({ ...contribForm, type: 'donation' })
-                        }
-                        className="accent-primary"
-                      />
-                      Quyên góp
-                    </label>
+                  {/* Shared settings row */}
+                  <div className="flex flex-wrap gap-2 items-center mb-2">
+                    <InputText
+                      type="date"
+                      value={contribDate}
+                      onChange={(e) => setContribDate(e.target.value)}
+                      className="w-48"
+                      required
+                    />
                   </div>
-                  <input
-                    type="date"
-                    value={contribForm.date}
-                    onChange={(e) =>
-                      setContribForm({ ...contribForm, date: e.target.value })
-                    }
-                    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
-                    required
+
+                  {/* Player grid */}
+                  <div className="space-y-1.5">
+                    {players.map((p) => {
+                      const existing = filteredContributions.find(
+                        (c) => c.userId === p.id,
+                      );
+                      return (
+                        <div
+                          key={p.id}
+                          className={`flex items-center gap-2 p-2 rounded-lg ${
+                            existing
+                              ? 'bg-accent/10 border border-accent/20'
+                              : 'bg-card border border-border'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-medium truncate block">
+                              {p.displayName}
+                            </span>
+                            {existing && (
+                              <span className="text-[10px] text-accent">
+                                Contributed {formatVND(existing.amount)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <Select
+                              value={
+                                contribTypes[p.id] ||
+                                CONTRIBUTION_TYPE.RECURRING
+                              }
+                              onChange={(e) =>
+                                setContribTypes({
+                                  ...contribTypes,
+                                  [p.id]: e.target
+                                    .value as `${CONTRIBUTION_TYPE}`,
+                                })
+                              }
+                              className="w-[115px] text-sm"
+                            >
+                              <option value={CONTRIBUTION_TYPE.RECURRING}>
+                                Recurring
+                              </option>
+                              <option value={CONTRIBUTION_TYPE.DONATION}>
+                                Donation
+                              </option>
+                            </Select>
+                            <InputText
+                              type="number"
+                              placeholder="0"
+                              value={contribAmounts[p.id] || ''}
+                              onChange={(e) =>
+                                setContribAmounts({
+                                  ...contribAmounts,
+                                  [p.id]: e.target.value,
+                                })
+                              }
+                              className="w-28 text-right"
+                              min="0"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <InputText
+                    placeholder="General Note (optional)"
+                    value={contribNote}
+                    onChange={(e) => setContribNote(e.target.value)}
                   />
-                  <input
-                    placeholder="Ghi chú (tùy chọn)"
-                    value={contribForm.note}
-                    onChange={(e) =>
-                      setContribForm({ ...contribForm, note: e.target.value })
-                    }
-                    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
-                  />
+
                   <button
                     type="submit"
-                    className="w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-lg text-sm transition-colors"
+                    disabled={
+                      !Object.values(contribAmounts).some(
+                        (v) => v && Number(v) > 0,
+                      )
+                    }
+                    className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
                   >
-                    Thêm đóng góp
+                    Save Contributions (
+                    {
+                      Object.values(contribAmounts).filter(
+                        (v) => v && Number(v) > 0,
+                      ).length
+                    }{' '}
+                    people)
                   </button>
                 </form>
               )}
 
               {filteredContributions.length === 0 ? (
                 <p className="text-sm text-muted">
-                  Chưa có khoản đóng góp nào trong đợt này.
+                  No contributions for this round yet.
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-muted text-xs border-b border-border">
-                        <th className="pb-2 pr-3">Thành viên</th>
-                        <th className="pb-2 pr-3">Số tiền</th>
-                        <th className="pb-2 pr-3">Loại</th>
-                        <th className="pb-2 pr-3">Ngày</th>
-                        <th className="pb-2 pr-3">Ghi chú</th>
+                        <th className="pb-2 pr-3">Member</th>
+                        <th className="pb-2 pr-3">Amount</th>
+                        <th className="pb-2 pr-3">Type</th>
+                        <th className="pb-2 pr-3">Date</th>
+                        <th className="pb-2 pr-3">Note</th>
                         {canManage && <th className="pb-2"></th>}
                       </tr>
                     </thead>
@@ -597,18 +633,18 @@ export default function FundingPage() {
                           <td className="py-2 pr-3">
                             <span
                               className={`text-xs px-2 py-0.5 rounded-full ${
-                                c.type === 'recurring'
+                                c.type === CONTRIBUTION_TYPE.RECURRING
                                   ? 'bg-primary/20 text-primary'
                                   : 'bg-accent/20 text-accent'
                               }`}
                             >
-                              {c.type === 'recurring'
-                                ? 'Định kỳ'
-                                : 'Quyên góp'}
+                              {c.type === CONTRIBUTION_TYPE.RECURRING
+                                ? 'Recurring'
+                                : 'Donation'}
                             </span>
                           </td>
                           <td className="py-2 pr-3 text-muted">
-                            {new Date(c.date).toLocaleDateString('vi-VN')}
+                            {new Date(c.date).toLocaleDateString('en-US')}
                           </td>
                           <td className="py-2 pr-3 text-muted text-xs">
                             {c.note || '—'}
@@ -619,7 +655,7 @@ export default function FundingPage() {
                                 onClick={() => handleDeleteContribution(c.id)}
                                 className="text-xs text-danger hover:text-danger/80"
                               >
-                                Xóa
+                                Delete
                               </button>
                             </td>
                           )}
@@ -628,7 +664,7 @@ export default function FundingPage() {
                     </tbody>
                     <tfoot>
                       <tr className="border-t border-border font-semibold">
-                        <td className="pt-2 pr-3">Tổng</td>
+                        <td className="pt-2 pr-3">Total</td>
                         <td className="pt-2 pr-3 text-accent">
                           {formatVND(
                             filteredContributions.reduce(
@@ -652,34 +688,37 @@ export default function FundingPage() {
           {/* General Expenses */}
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold">Khoản chi</h2>
+              <h2 className="text-lg font-semibold">Expenses</h2>
               {canManage && (
                 <button
                   onClick={() => setShowExpenseForm(!showExpenseForm)}
                   className="text-sm text-primary hover:text-primary-hover transition-colors"
                 >
-                  {showExpenseForm ? '✕ Hủy' : '+ Thêm khoản chi'}
+                  {showExpenseForm ? '✕ Cancel' : '+ Add Expense'}
                 </button>
               )}
             </div>
 
             {/* Month filter */}
             <div className="flex items-center gap-2 mb-3">
-              <select
+              <Select
                 value={expenseMonth}
                 onChange={(e) => setExpenseMonth(e.target.value)}
-                className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm"
+                className="text-sm"
               >
-                <option value="">Tất cả</option>
+                <option value="">All</option>
                 {expenseMonths.map((m) => (
                   <option key={m} value={m}>
-                    Tháng {m.split('-')[1]}/{m.split('-')[0]}
+                    {`${m.split('-')[1]}/${m.split('-')[0]}`}
                   </option>
                 ))}
-              </select>
+              </Select>
               {expenseMonth && (
                 <span className="text-xs text-muted">
-                  Tổng: <span className="font-semibold text-danger">{formatVND(monthTotal)}</span>
+                  Total:{' '}
+                  <span className="font-semibold text-danger">
+                    {formatVND(monthTotal)}
+                  </span>
                 </span>
               )}
             </div>
@@ -689,8 +728,8 @@ export default function FundingPage() {
                 onSubmit={handleAddExpense}
                 className="space-y-2 mb-4 p-3 bg-background rounded-lg border border-border"
               >
-                <input
-                  placeholder="Mô tả"
+                <InputText
+                  placeholder="Description"
                   value={expenseForm.description}
                   onChange={(e) =>
                     setExpenseForm({
@@ -698,34 +737,31 @@ export default function FundingPage() {
                       description: e.target.value,
                     })
                   }
-                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
                   required
                 />
-                <input
+                <InputText
                   type="number"
-                  placeholder="Số tiền (VND)"
+                  placeholder={`Amount (${VN_CURRENCY})`}
                   value={expenseForm.amount}
                   onChange={(e) =>
                     setExpenseForm({ ...expenseForm, amount: e.target.value })
                   }
-                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
                   required
                   min="0"
                 />
-                <input
+                <InputText
                   type="date"
                   value={expenseForm.date}
                   onChange={(e) =>
                     setExpenseForm({ ...expenseForm, date: e.target.value })
                   }
-                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
                   required
                 />
                 <button
                   type="submit"
                   className="w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-lg text-sm transition-colors"
                 >
-                  Thêm khoản chi
+                  Add Expense
                 </button>
               </form>
             )}
@@ -733,8 +769,8 @@ export default function FundingPage() {
             {filteredExpenses.length === 0 ? (
               <p className="text-sm text-muted">
                 {expenseMonth
-                  ? `Không có khoản chi nào trong tháng ${expenseMonth.split('-')[1]}/${expenseMonth.split('-')[0]}.`
-                  : 'Chưa có khoản chi nào.'}
+                  ? `No expenses for ${expenseMonth.split('-')[1]}/${expenseMonth.split('-')[0]}.`
+                  : 'No expenses yet.'}
               </p>
             ) : (
               <div className="space-y-2">
@@ -745,7 +781,7 @@ export default function FundingPage() {
                   >
                     {editingExpense === exp.id ? (
                       <div className="space-y-2">
-                        <input
+                        <InputText
                           value={editExpenseForm.description}
                           onChange={(e) =>
                             setEditExpenseForm({
@@ -753,9 +789,8 @@ export default function FundingPage() {
                               description: e.target.value,
                             })
                           }
-                          className="w-full bg-background border border-border rounded px-2 py-1 text-sm"
                         />
-                        <input
+                        <InputText
                           type="number"
                           value={editExpenseForm.amount}
                           onChange={(e) =>
@@ -764,10 +799,9 @@ export default function FundingPage() {
                               amount: e.target.value,
                             })
                           }
-                          className="w-full bg-background border border-border rounded px-2 py-1 text-sm"
                           min="0"
                         />
-                        <input
+                        <InputText
                           type="date"
                           value={editExpenseForm.date}
                           onChange={(e) =>
@@ -776,41 +810,40 @@ export default function FundingPage() {
                               date: e.target.value,
                             })
                           }
-                          className="w-full bg-background border border-border rounded px-2 py-1 text-sm"
                         />
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleSaveEditExpense(exp.id)}
                             className="text-xs text-accent hover:text-accent/80"
                           >
-                            Lưu
+                            Save
                           </button>
                           <button
                             onClick={() => setEditingExpense(null)}
                             className="text-xs text-muted hover:text-foreground"
                           >
-                            Hủy
+                            Cancel
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
+                      <div className="flex flex-col md:flex-row items-center justify-between">
+                        <div className="w-full md:flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-sm truncate">
                               {exp.description}
                             </span>
                             {exp.matchId && (
                               <span className="text-[10px] px-1.5 py-0.5 bg-primary/20 text-primary rounded">
-                                Trận đấu
+                                Match
                               </span>
                             )}
                           </div>
                           <div className="text-xs text-muted mt-0.5">
-                            {new Date(exp.date).toLocaleDateString('vi-VN')}
+                            {new Date(exp.date).toLocaleDateString('en-US')}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="w-full md:w-auto  flex justify-between md:justify-center items-center gap-2">
                           <span className="font-bold text-danger text-sm">
                             -{formatVND(exp.amount)}
                           </span>
@@ -820,13 +853,13 @@ export default function FundingPage() {
                                 onClick={() => handleStartEditExpense(exp)}
                                 className="px-2 py-1 text-xs text-primary hover:bg-primary/20 rounded"
                               >
-                                Sửa
+                                Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteExpense(exp.id)}
                                 className="px-2 py-1 text-xs text-danger hover:bg-danger/20 rounded"
                               >
-                                Xóa
+                                Delete
                               </button>
                             </div>
                           )}
@@ -843,16 +876,12 @@ export default function FundingPage() {
           {canManage && (
             <div className="bg-card rounded-lg p-4 border border-border">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold">
-                  Chi phí trận đấu
-                </h2>
+                <h2 className="text-lg font-semibold">Match Expenses</h2>
                 <button
-                  onClick={() =>
-                    setShowMatchExpenseForm(!showMatchExpenseForm)
-                  }
+                  onClick={() => setShowMatchExpenseForm(!showMatchExpenseForm)}
                   className="text-sm text-primary hover:text-primary-hover transition-colors"
                 >
-                  {showMatchExpenseForm ? '✕ Hủy' : '+ Nhập chi phí'}
+                  {showMatchExpenseForm ? '✕ Cancel' : '+ Add Match Expense'}
                 </button>
               </div>
 
@@ -861,7 +890,7 @@ export default function FundingPage() {
                   onSubmit={handleAddMatchExpense}
                   className="space-y-2 mb-4 p-3 bg-background rounded-lg border border-border"
                 >
-                  <select
+                  <Select
                     value={matchExpenseForm.matchId}
                     onChange={(e) =>
                       setMatchExpenseForm({
@@ -869,20 +898,20 @@ export default function FundingPage() {
                         matchId: e.target.value,
                       })
                     }
-                    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
+                    className="w-full text-sm"
                     required
                   >
-                    <option value="">Chọn trận đấu</option>
+                    <option value="">Select Match</option>
                     {availableMatches.map((m) => (
                       <option key={m.id} value={m.id}>
                         vs {m.opponent} —{' '}
-                        {new Date(m.matchDate).toLocaleDateString('vi-VN')}
+                        {new Date(m.matchDate).toLocaleDateString('en-US')}
                       </option>
                     ))}
-                  </select>
-                  <input
+                  </Select>
+                  <InputText
                     type="number"
-                    placeholder="Số tiền (VND)"
+                    placeholder={`Amount (${VN_CURRENCY})`}
                     value={matchExpenseForm.amount}
                     onChange={(e) =>
                       setMatchExpenseForm({
@@ -890,11 +919,10 @@ export default function FundingPage() {
                         amount: e.target.value,
                       })
                     }
-                    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
                     required
                     min="0"
                   />
-                  <input
+                  <InputText
                     type="date"
                     value={matchExpenseForm.date}
                     onChange={(e) =>
@@ -903,21 +931,20 @@ export default function FundingPage() {
                         date: e.target.value,
                       })
                     }
-                    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
                     required
                   />
                   <button
                     type="submit"
                     className="w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-lg text-sm transition-colors"
                   >
-                    Thêm chi phí trận đấu
+                    Add Match Expense
                   </button>
                 </form>
               )}
 
               {/* List of all matches with expense status */}
               {matches.length === 0 ? (
-                <p className="text-sm text-muted">Chưa có trận đấu nào.</p>
+                <p className="text-sm text-muted">No matches yet.</p>
               ) : (
                 <div className="space-y-2">
                   {/* Matches without expense */}
@@ -931,11 +958,11 @@ export default function FundingPage() {
                           vs {m.opponent}
                         </div>
                         <div className="text-xs text-muted">
-                          {new Date(m.matchDate).toLocaleDateString('vi-VN')}
+                          {new Date(m.matchDate).toLocaleDateString('en-US')}
                         </div>
                       </div>
                       <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400">
-                        Chưa nhập
+                        Not entered
                       </span>
                     </div>
                   ))}
@@ -955,11 +982,11 @@ export default function FundingPage() {
                               vs {m.opponent}
                             </span>
                             <span className="text-[10px] px-1.5 py-0.5 bg-accent/20 text-accent rounded">
-                              Đã nhập
+                              Entered
                             </span>
                           </div>
                           <div className="text-xs text-muted">
-                            {new Date(m.matchDate).toLocaleDateString('vi-VN')}
+                            {new Date(m.matchDate).toLocaleDateString('en-US')}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -970,7 +997,7 @@ export default function FundingPage() {
                             onClick={() => handleStartEditExpense(exp)}
                             className="px-2 py-1 text-xs text-primary hover:bg-primary/20 rounded"
                           >
-                            Sửa
+                            Edit
                           </button>
                         </div>
                       </div>

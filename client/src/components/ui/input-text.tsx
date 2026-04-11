@@ -4,12 +4,12 @@ import { forwardRef, useState } from 'react';
 import type { FieldError, FieldErrorsImpl, Merge } from 'react-hook-form';
 
 interface InputTextProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string;
+  label?: string;
   error?: FieldError | Merge<FieldError, FieldErrorsImpl>;
 }
 
 export const InputText = forwardRef<HTMLInputElement, InputTextProps>(
-  ({ label, error, id, type, className, ...props }, ref) => {
+  ({ label, error, id, type, className, required, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === 'password';
 
@@ -30,18 +30,22 @@ export const InputText = forwardRef<HTMLInputElement, InputTextProps>(
     }
 
     return (
-      <div>
-        <label htmlFor={id} className="block text-sm font-medium mb-1">
-          {label}
-        </label>
+      <div className={className?.includes('w-') || className?.includes('flex') ? className.split(' ').filter(c => c.startsWith('w-') || c.startsWith('flex') || c === 'inline-block' || c.startsWith('mb-')).join(' ') : 'w-full'}>
+        {label && (
+          <label htmlFor={id} className="block text-sm font-medium mb-1">
+            {label}
+            {required && <span className="text-danger ml-0.5">*</span>}
+          </label>
+        )}
         <div className="relative">
           <input
             id={id}
             ref={ref}
             type={isPassword && showPassword ? 'text' : type}
-            className={`w-full bg-background border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
+            required={required}
+            className={`w-full bg-background border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               isPassword ? 'pr-10' : ''
-            } ${messages.length > 0 ? 'border-danger' : 'border-border'} ${className ?? ''}`}
+            } ${messages.length > 0 ? 'border-danger' : 'border-border'} ${className ? className.split(' ').filter(c => !c.startsWith('w-') && !c.startsWith('flex') && c !== 'inline-block' && !c.startsWith('mb-')).join(' ') : ''}`}
             {...props}
           />
           {isPassword && (
