@@ -44,7 +44,7 @@ vi.mock('recharts', async (importOriginal) => {
   };
 });
 
-describe('Matches Dashboard', () => {
+describe('Stats Dashboard', () => {
   const mockMatches = [
     {
       id: 'm1',
@@ -148,7 +148,7 @@ describe('Matches Dashboard', () => {
       render(<MatchesPage />);
 
       // Assert
-      expect(screen.getByText('Matches Dashboard')).toBeInTheDocument();
+      expect(screen.getByText('Stats Dashboard')).toBeInTheDocument();
 
       await waitFor(() => {
         expect(matchesService.getAll).toHaveBeenCalled();
@@ -187,13 +187,13 @@ describe('Matches Dashboard', () => {
 
       const fromSelect = screen.getByLabelText('From Month');
       const toSelect = screen.getByLabelText('To Month');
-      
+
       // Filter out FC Vercel (2026-04) by setting range to 2026-05 to 2026-05
       // Wait we need to mock data that spans multiple months otherwise the selects might not have it.
       // We will just select whatever is available first.
       await user.selectOptions(fromSelect, '');
       await user.selectOptions(toSelect, '');
-      
+
       // Without filter, both matches should be visible
       expect(screen.getByText('FC Vercel')).toBeInTheDocument();
       expect(screen.getByText('React Utd')).toBeInTheDocument();
@@ -202,9 +202,13 @@ describe('Matches Dashboard', () => {
     it('should open create match form and submit a new match', async () => {
       const user = userEvent.setup();
       (matchesService.create as Mock).mockResolvedValue({
-        id: 'm3', matchDate: '2026-04-20T15:00', opponent: 'Arsenal', location: 'Emirates', status: MATCH_STATUS.PENDING
+        id: 'm3',
+        matchDate: '2026-04-20T15:00',
+        opponent: 'Arsenal',
+        location: 'Emirates',
+        status: MATCH_STATUS.PENDING,
       });
-      
+
       render(<MatchesPage />);
 
       await waitFor(() => {
@@ -227,10 +231,12 @@ describe('Matches Dashboard', () => {
       await user.click(createBtn);
 
       await waitFor(() => {
-        expect(matchesService.create).toHaveBeenCalledWith(expect.objectContaining({
-          opponent: 'Arsenal',
-          location: 'Emirates'
-        }));
+        expect(matchesService.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            opponent: 'Arsenal',
+            location: 'Emirates',
+          }),
+        );
       });
     });
   });
@@ -387,8 +393,14 @@ describe('Matches Dashboard', () => {
     });
     it('should view expenses and add an expense when accessing Expense tab', async () => {
       const user = userEvent.setup();
-      (fundingService.addExpense as Mock).mockResolvedValue({ id: 'e2', matchId: 'm1', amount: 300000, description: 'Water', date: '2026-04-10' });
-      
+      (fundingService.addExpense as Mock).mockResolvedValue({
+        id: 'e2',
+        matchId: 'm1',
+        amount: 300000,
+        description: 'Water',
+        date: '2026-04-10',
+      });
+
       render(<MatchesPage />);
 
       await waitFor(() => {
@@ -419,11 +431,13 @@ describe('Matches Dashboard', () => {
       await user.click(saveBtn);
 
       await waitFor(() => {
-        expect(fundingService.addExpense).toHaveBeenCalledWith(expect.objectContaining({
-          matchId: 'm1',
-          amount: 300000,
-          description: 'Water'
-        }));
+        expect(fundingService.addExpense).toHaveBeenCalledWith(
+          expect.objectContaining({
+            matchId: 'm1',
+            amount: 300000,
+            description: 'Water',
+          }),
+        );
       });
     });
   });

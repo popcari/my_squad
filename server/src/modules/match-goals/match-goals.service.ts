@@ -26,7 +26,7 @@ export class MatchGoalsService {
       .get();
     return snapshot.docs
       .map((doc) => mapFirestoreDoc<MatchGoal>(doc))
-      .sort((a, b) => a.minute - b.minute);
+      .sort((a, b) => (a.minute ?? Infinity) - (b.minute ?? Infinity));
   }
 
   async findByScorer(userId: string): Promise<MatchGoal[]> {

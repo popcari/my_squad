@@ -84,7 +84,7 @@ export interface MatchGoal {
   matchId: string;
   scorerId: string;
   assistId?: string;
-  minute: number;
+  minute: number | null;
   createdAt: string;
 }
 

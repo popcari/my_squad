@@ -74,7 +74,7 @@ export function ScoreModal({
           existingGoals.map((g) => ({
             scorerId: g.scorerId,
             assistId: g.assistId || '',
-            minute: String(g.minute),
+            minute: g.minute != null ? String(g.minute) : '',
           })),
         );
       }
@@ -236,13 +236,13 @@ export function ScoreModal({
     // Save goals
     await Promise.all(
       goals
-        .filter((g) => g.scorerId && g.minute)
+        .filter((g) => g.scorerId)
         .map((g) =>
           matchesService.addGoal({
             matchId: match.id,
             scorerId: g.scorerId,
             assistId: g.assistId || undefined,
-            minute: Number(g.minute),
+            minute: g.minute ? Number(g.minute) : null,
           }),
         ),
     );
@@ -524,7 +524,7 @@ export function ScoreModal({
                       className="bg-background rounded-lg p-2 flex items-center gap-3 text-sm"
                     >
                       <span className="text-muted text-xs w-10">
-                        {goal.minute}&apos;
+                        {goal.minute ? `${goal.minute}'` : '-'}
                       </span>
                       <span className="font-medium">
                         {getPlayerName(goal.scorerId)}

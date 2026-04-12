@@ -6,11 +6,11 @@ import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/', label: 'Home', icon: '⚽' },
-  { href: '/matches', label: 'Matches', icon: '🏆' },
+  { href: '/matches', label: 'Stats', icon: '📊' },
   { href: '/funding', label: 'Funding', icon: '💰' },
   { href: '/players', label: 'Players', icon: '👥' },
+  { href: '/traits', label: 'Traits', icon: '🎯' },
   { href: '/settings', label: 'Settings', icon: '⚙️' },
-  { href: '/traits', label: 'Traits', icon: '📊' },
 ];
 
 export function Sidebar() {

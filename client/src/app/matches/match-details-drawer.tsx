@@ -144,11 +144,11 @@ export function MatchDetailsDrawer({
       }));
     });
     // The "un-added" goal inputs
-    if (newGoalScorerId && newGoalMinute) promises.push(matchesService.addGoal({
+    if (newGoalScorerId) promises.push(matchesService.addGoal({
         matchId: match.id,
         scorerId: newGoalScorerId,
         assistId: newGoalAssistId || undefined,
-        minute: Number(newGoalMinute),
+        minute: newGoalMinute ? Number(newGoalMinute) : null,
     }));
 
     // Process deleted Expenses
@@ -217,13 +217,13 @@ export function MatchDetailsDrawer({
   };
 
   const handleAddGoal = () => {
-    if (!match || !newGoalScorerId || !newGoalMinute) return;
+    if (!match || !newGoalScorerId) return;
     const pendingGoal: MatchGoal = {
       id: `temp-${Date.now()}`,
       matchId: match.id,
       scorerId: newGoalScorerId,
       assistId: newGoalAssistId || undefined,
-      minute: Number(newGoalMinute),
+      minute: newGoalMinute ? Number(newGoalMinute) : null,
       createdAt: new Date().toISOString(),
     };
     setGoals([...goals, pendingGoal]);
@@ -521,7 +521,7 @@ export function MatchDetailsDrawer({
               <div className="text-center py-4 text-muted">No goals recorded yet.</div>
             ) : (
               <div className="space-y-2">
-                {goals.sort((a, b) => a.minute - b.minute).map(g => {
+                {goals.sort((a, b) => (a.minute ?? Infinity) - (b.minute ?? Infinity)).map(g => {
                   const scorer = players.find(p => p.id === g.scorerId);
                   const assist = players.find(p => p.id === g.assistId);
                   return (
@@ -532,7 +532,7 @@ export function MatchDetailsDrawer({
                         {g.id.startsWith('temp-') && <span className="ml-2 text-xs text-amber-500 font-medium italic">(Pending)</span>}
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-mono text-muted">{g.minute}&apos;</span>
+                        <span className="text-sm font-mono text-muted">{g.minute != null ? `${g.minute}'` : '-'}</span>
                         {canManage && (
                           <button
                             onClick={() => handleRemoveGoal(g.id)}
