@@ -2,14 +2,14 @@
 
 import { Calendar } from '@/components/calendar';
 import { ScoreModal } from '@/components/score-modal';
-import { HomePageSkeleton } from '@/components/skeleton';
+import { HomePageSkeleton } from '@/components/shared/skeleton';
 import { InputText } from '@/components/ui/input-text';
+import { MATCH_RESULT_TYPES, MATCH_STATUS } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { matchesService } from '@/services';
 import { teamSettingsService } from '@/services/team-settings.service';
 import type { Match } from '@/types';
-import { MATCH_RESULT_TYPES, MATCH_STATUS } from '@/constant/enum';
 import { useEffect, useMemo, useState } from 'react';
 
 export default function HomePage() {
@@ -129,9 +129,7 @@ export default function HomePage() {
     loadMatches(calYear, calMonth);
   };
 
-  const matchResult = (
-    m: Match,
-  ): `${MATCH_RESULT_TYPES}` | null => {
+  const matchResult = (m: Match): `${MATCH_RESULT_TYPES}` | null => {
     if (
       m.status !== MATCH_STATUS.COMPLETED ||
       m.homeScore == null ||

@@ -1,6 +1,6 @@
 'use client';
 
-import { TraitsPageSkeleton } from '@/components/skeleton';
+import { TraitsPageSkeleton } from '@/components/shared/skeleton';
 import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
 import { useConfirm } from '@/contexts/confirm-context';

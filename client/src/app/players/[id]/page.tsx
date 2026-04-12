@@ -1,7 +1,7 @@
 'use client';
 
 import { AvatarPickerModal } from '@/components/avatar-picker-modal';
-import { PlayerProfilePageSkeleton } from '@/components/skeleton';
+import { PlayerProfilePageSkeleton } from '@/components/shared/skeleton';
 import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
 import { USER_ROLE } from '@/constant/enum';

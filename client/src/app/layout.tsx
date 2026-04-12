@@ -1,5 +1,5 @@
 import { AuthGuard } from '@/components/auth-guard';
-import { NavigationProgress } from '@/components/navigation-progress';
+import { NavigationProgress } from '@/components/shared/navigation-progress';
 import { AuthProvider } from '@/contexts/auth-context';
 import { ConfirmProvider } from '@/contexts/confirm-context';
 import { ThemeProvider } from '@/contexts/theme-context';

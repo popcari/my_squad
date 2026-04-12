@@ -16,8 +16,8 @@ vi.mock('@/services/auth.service', () => ({
 describe('LoginPage', () => {
   it('should render email and password fields', () => {
     render(<LoginPage />);
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
-    expect(screen.getByLabelText('Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email', { exact: false })).toBeInTheDocument();
+    expect(screen.getByLabelText('Password', { exact: false })).toBeInTheDocument();
   });
 
   describe('password validation', () => {
@@ -25,7 +25,7 @@ describe('LoginPage', () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      const input = screen.getByLabelText('Password');
+      const input = screen.getByLabelText('Password', { exact: false });
       await user.click(input);
       await user.tab();
 
@@ -38,7 +38,7 @@ describe('LoginPage', () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      const input = screen.getByLabelText('Password');
+      const input = screen.getByLabelText('Password', { exact: false });
       await user.type(input, 'Ab1');
       await user.tab();
 
@@ -53,7 +53,7 @@ describe('LoginPage', () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      const input = screen.getByLabelText('Password');
+      const input = screen.getByLabelText('Password', { exact: false });
       await user.type(input, 'abcdef1');
       await user.tab();
 
@@ -68,7 +68,7 @@ describe('LoginPage', () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      const input = screen.getByLabelText('Password');
+      const input = screen.getByLabelText('Password', { exact: false });
       await user.type(input, 'Abcdefg');
       await user.tab();
 
@@ -83,7 +83,7 @@ describe('LoginPage', () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      const input = screen.getByLabelText('Password');
+      const input = screen.getByLabelText('Password', { exact: false });
       await user.type(input, 'abc');
       await user.tab();
 
@@ -104,7 +104,7 @@ describe('LoginPage', () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      const input = screen.getByLabelText('Password');
+      const input = screen.getByLabelText('Password', { exact: false });
       await user.type(input, 'Hello123');
       await user.tab();
 

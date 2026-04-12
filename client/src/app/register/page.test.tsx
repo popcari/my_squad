@@ -17,11 +17,11 @@ vi.mock('@/services/auth.service', () => ({
 describe('RegisterPage', () => {
   it('should render all form fields', () => {
     render(<RegisterPage />);
-    expect(screen.getByLabelText('Display Name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
-    expect(screen.getByLabelText('Password')).toBeInTheDocument();
-    expect(screen.getByLabelText('Phone')).toBeInTheDocument();
-    expect(screen.getByLabelText('Jersey # (optional)')).toBeInTheDocument();
+    expect(screen.getByLabelText('Display Name', { exact: false })).toBeInTheDocument();
+    expect(screen.getByLabelText('Email', { exact: false })).toBeInTheDocument();
+    expect(screen.getByLabelText('Password', { exact: false })).toBeInTheDocument();
+    expect(screen.getByLabelText('Phone', { exact: false })).toBeInTheDocument();
+    expect(screen.getByLabelText('Jersey')).toBeInTheDocument();
   });
 
   describe('phone validation', () => {
@@ -29,7 +29,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const input = screen.getByLabelText('Phone');
+      const input = screen.getByLabelText('Phone', { exact: false });
       await user.click(input);
       await user.tab();
 
@@ -44,7 +44,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.click(passwordInput);
       await user.tab(); // blur
 
@@ -57,7 +57,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.type(passwordInput, 'abcdef1');
       await user.tab();
 
@@ -72,7 +72,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.type(passwordInput, 'Abcdefg');
       await user.tab();
 
@@ -87,7 +87,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.type(passwordInput, 'Ab1');
       await user.tab();
 
@@ -102,7 +102,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.type(passwordInput, 'abc');
       await user.tab();
 
@@ -123,7 +123,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.type(passwordInput, 'Hello123');
       await user.tab();
 

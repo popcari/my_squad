@@ -1,6 +1,6 @@
 'use client';
 
-import { PlayersPageSkeleton } from '@/components/skeleton';
+import { PlayersPageSkeleton } from '@/components/shared/skeleton';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import {
@@ -167,7 +167,8 @@ export default function PlayersPage() {
                         </span>
                       </div>
                       <p className="text-xs text-muted">
-                        {p.jerseyNumber ?? '-'} &middot; {p.phone} &middot; {p.email}
+                        {p.jerseyNumber ?? '-'} &middot; {p.phone} &middot;{' '}
+                        {p.email}
                       </p>
                     </div>
                     {canManage && (

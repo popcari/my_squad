@@ -1,6 +1,6 @@
 'use client';
 
-import { SettingsPageSkeleton } from '@/components/skeleton';
+import { SettingsPageSkeleton } from '@/components/shared/skeleton';
 import { InputText } from '@/components/ui/input-text';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';

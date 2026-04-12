@@ -1,6 +1,6 @@
 'use client';
 
-import { ThemeToggle } from '@/components/theme-toggle';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { InputText } from '@/components/ui/input-text';
 import { useAuth } from '@/contexts/auth-context';
 import { authService } from '@/services/auth.service';
