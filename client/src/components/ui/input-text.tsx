@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useState } from 'react';
+import { forwardRef, useId, useState } from 'react';
 import type { FieldError, FieldErrorsImpl, Merge } from 'react-hook-form';
 
 interface InputTextProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -10,6 +10,8 @@ interface InputTextProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const InputText = forwardRef<HTMLInputElement, InputTextProps>(
   ({ label, error, id, type, className, required, ...props }, ref) => {
+    const generatedId = useId();
+    const finalId = id || generatedId;
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === 'password';
 
@@ -30,22 +32,50 @@ export const InputText = forwardRef<HTMLInputElement, InputTextProps>(
     }
 
     return (
-      <div className={className?.includes('w-') || className?.includes('flex') ? className.split(' ').filter(c => c.startsWith('w-') || c.startsWith('flex') || c === 'inline-block' || c.startsWith('mb-')).join(' ') : 'w-full'}>
+      <div
+        className={
+          className?.includes('w-') || className?.includes('flex')
+            ? className
+                .split(' ')
+                .filter(
+                  (c) =>
+                    c.startsWith('w-') ||
+                    c.startsWith('flex') ||
+                    c === 'inline-block' ||
+                    c.startsWith('mb-'),
+                )
+                .join(' ')
+            : 'w-full'
+        }
+      >
         {label && (
-          <label htmlFor={id} className="block text-sm font-medium mb-1">
+          <label htmlFor={finalId} className="block text-sm font-medium mb-1">
             {label}
             {required && <span className="text-danger ml-0.5">*</span>}
           </label>
         )}
         <div className="relative">
           <input
-            id={id}
+            id={finalId}
             ref={ref}
             type={isPassword && showPassword ? 'text' : type}
             required={required}
             className={`w-full bg-background border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               isPassword ? 'pr-10' : ''
-            } ${messages.length > 0 ? 'border-danger' : 'border-border'} ${className ? className.split(' ').filter(c => !c.startsWith('w-') && !c.startsWith('flex') && c !== 'inline-block' && !c.startsWith('mb-')).join(' ') : ''}`}
+            } ${messages.length > 0 ? 'border-danger' : 'border-border'} ${
+              className
+                ? className
+                    .split(' ')
+                    .filter(
+                      (c) =>
+                        !c.startsWith('w-') &&
+                        !c.startsWith('flex') &&
+                        c !== 'inline-block' &&
+                        !c.startsWith('mb-'),
+                    )
+                    .join(' ')
+                : ''
+            }`}
             {...props}
           />
           {isPassword && (

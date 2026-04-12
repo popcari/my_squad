@@ -20,6 +20,7 @@ export const matchesService = {
 
   getGoals: (matchId: string) =>
     api.get<MatchGoal[]>(`/match-goals/match/${matchId}`),
+  getAllGoals: () => api.get<MatchGoal[]>('/match-goals'),
   addGoal: (data: Partial<MatchGoal>) =>
     api.post<MatchGoal>('/match-goals', data),
   removeGoal: (id: string) => api.delete(`/match-goals/${id}`),

@@ -1,4 +1,8 @@
-import { HAS_NUMBER_REGEX, HAS_UPPERCASE_REGEX, PHONE_VN_REGEX } from '@/constant/regex';
+import {
+  HAS_NUMBER_REGEX,
+  HAS_UPPERCASE_REGEX,
+  PHONE_VN_REGEX,
+} from '@/constant/regex';
 import { z } from 'zod';
 
 // ─── Shared field validators ────────────────────────────
@@ -16,7 +20,9 @@ export const requiredSelect = (fieldName: string) =>
 
 /** Required positive number (accepts string input, coerces to number) */
 export const requiredNumber = (fieldName: string) =>
-  z.coerce.number({ message: `${fieldName} is required` }).positive(`${fieldName} must be greater than 0`);
+  z.coerce
+    .number({ message: `${fieldName} is required` })
+    .positive(`${fieldName} must be greater than 0`);
 
 /** Date field (required, ISO date string) */
 export const dateField = (fieldName = 'Date') =>
