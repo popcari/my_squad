@@ -11,6 +11,7 @@ import {
 import { teamSettingsService } from '@/services/team-settings.service';
 import type { TeamSettings } from '@/types/team-settings';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Lightbox } from '@/components/ui/lightbox';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -139,6 +140,7 @@ export default function SettingsPage() {
           <div className="bg-card rounded-lg p-6">
             <div className="flex items-center gap-4 mb-4">
               {settings?.logo ? (
+              <Lightbox src={settings.logo} alt="Team logo">
                 <Image
                   src={settings.logo}
                   alt="Team logo"
@@ -146,6 +148,7 @@ export default function SettingsPage() {
                   height={64}
                   className="w-16 h-16 rounded-full object-cover"
                 />
+              </Lightbox>
               ) : (
                 <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-2xl">
                   ⚽

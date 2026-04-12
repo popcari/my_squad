@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/auth-context';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useTheme } from '@/contexts/theme-context';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -68,8 +69,18 @@ export function Header() {
             onClick={() => setShowMenu(!showMenu)}
             className="flex items-center gap-2 rounded-lg transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
-              {initials}
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold overflow-hidden">
+              {user?.avatar ? (
+                <Image
+                  src={user.avatar}
+                  alt={user.displayName || ''}
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                initials
+              )}
             </div>
             <div className="text-left hidden sm:block">
               <p className="text-sm font-medium leading-tight">

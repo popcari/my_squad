@@ -3,6 +3,7 @@
 import { AvatarPickerModal } from '@/components/avatar-picker-modal';
 import { PlayerProfilePageSkeleton } from '@/components/shared/skeleton';
 import { InputText } from '@/components/ui/input-text';
+import { Lightbox } from '@/components/ui/lightbox';
 import { Select } from '@/components/ui/select';
 import { USER_ROLE } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
@@ -275,23 +276,35 @@ export default function PlayerProfilePage() {
           <div className="relative group">
             <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-2xl font-bold overflow-hidden">
               {profile.avatar ? (
-                <Image
-                  src={profile.avatar}
-                  alt={profile.displayName}
-                  width={64}
-                  height={64}
-                  className="w-full h-full object-cover"
-                />
+                editing ? (
+                  <Image
+                    src={profile.avatar}
+                    alt={profile.displayName}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Lightbox src={profile.avatar} alt={profile.displayName}>
+                    <Image
+                      src={profile.avatar}
+                      alt={profile.displayName}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover"
+                    />
+                  </Lightbox>
+                )
               ) : (
                 profile.jerseyNumber || '#'
               )}
             </div>
-            {currentUser?.id === playerId && (
+            {editing && currentUser?.id === playerId && (
               <button
                 onClick={() => setShowAvatarPicker(true)}
                 className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition-opacity"
               >
-                Edit
+                Change
               </button>
             )}
           </div>
