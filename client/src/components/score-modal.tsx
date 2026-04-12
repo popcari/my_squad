@@ -141,6 +141,24 @@ export function ScoreModal({
   };
 
   // Goal helpers
+  const handleHomeScoreChange = (val: string) => {
+    setHomeScore(val);
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num >= 0) {
+      setGoals((prev) => {
+        if (num === prev.length) return prev;
+        if (num > prev.length) {
+          const toAdd = num - prev.length;
+          return [...prev, ...Array.from({ length: toAdd }, () => ({ scorerId: '', assistId: '', minute: '' }))];
+        } else {
+          return prev.slice(0, num);
+        }
+      });
+    } else {
+      setGoals([]);
+    }
+  };
+
   const addGoal = () => {
     setGoals([...goals, { scorerId: '', assistId: '', minute: '' }]);
   };
@@ -272,7 +290,7 @@ export function ScoreModal({
                       type="number"
                       min={0}
                       value={homeScore}
-                      onChange={(e) => setHomeScore(e.target.value)}
+                      onChange={(e) => handleHomeScoreChange(e.target.value)}
                       className="text-2xl font-bold text-center"
                     />
                   ) : (

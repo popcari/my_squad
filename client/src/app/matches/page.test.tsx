@@ -155,8 +155,8 @@ describe('Matches Dashboard', () => {
       });
 
       // Shows match opponent
-      expect(screen.getByText('vs FC Vercel')).toBeInTheDocument();
-      expect(screen.getByText('vs React Utd')).toBeInTheDocument();
+      expect(screen.getByText('FC Vercel')).toBeInTheDocument();
+      expect(screen.getByText('React Utd')).toBeInTheDocument();
 
       // Shows score
       expect(screen.getByText('3 - 1')).toBeInTheDocument();
@@ -182,7 +182,7 @@ describe('Matches Dashboard', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('vs FC Vercel')).toBeInTheDocument();
+        expect(screen.getByText('FC Vercel')).toBeInTheDocument();
       });
 
       const fromSelect = screen.getByLabelText('From Month');
@@ -195,8 +195,8 @@ describe('Matches Dashboard', () => {
       await user.selectOptions(toSelect, '');
       
       // Without filter, both matches should be visible
-      expect(screen.getByText('vs FC Vercel')).toBeInTheDocument();
-      expect(screen.getByText('vs React Utd')).toBeInTheDocument();
+      expect(screen.getByText('FC Vercel')).toBeInTheDocument();
+      expect(screen.getByText('React Utd')).toBeInTheDocument();
     });
 
     it('should open create match form and submit a new match', async () => {
@@ -208,7 +208,7 @@ describe('Matches Dashboard', () => {
       render(<MatchesPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('vs FC Vercel')).toBeInTheDocument();
+        expect(screen.getByText('FC Vercel')).toBeInTheDocument();
       });
 
       // Click + New Match
@@ -243,11 +243,11 @@ describe('Matches Dashboard', () => {
       render(<MatchesPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('vs FC Vercel')).toBeInTheDocument();
+        expect(screen.getByText('FC Vercel')).toBeInTheDocument();
       });
 
       // Act
-      const matchRow = screen.getByText('vs FC Vercel');
+      const matchRow = screen.getByText('FC Vercel');
       await user.click(matchRow);
 
       // Assert Drawer open
@@ -290,11 +290,11 @@ describe('Matches Dashboard', () => {
       render(<MatchesPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('vs FC Vercel')).toBeInTheDocument();
+        expect(screen.getByText('FC Vercel')).toBeInTheDocument();
       });
 
       // Open drawer
-      await user.click(screen.getByText('vs FC Vercel'));
+      await user.click(screen.getByText('FC Vercel'));
 
       await waitFor(() => {
         expect(screen.getByText('Match vs FC Vercel')).toBeInTheDocument();
@@ -344,9 +344,9 @@ describe('Matches Dashboard', () => {
       render(<MatchesPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('vs FC Vercel')).toBeInTheDocument();
+        expect(screen.getByText('FC Vercel')).toBeInTheDocument();
       });
-      await user.click(screen.getByText('vs FC Vercel'));
+      await user.click(screen.getByText('FC Vercel'));
 
       const goalsTab = screen.getByRole('button', { name: 'Goals' });
       await user.click(goalsTab);
@@ -392,9 +392,9 @@ describe('Matches Dashboard', () => {
       render(<MatchesPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('vs FC Vercel')).toBeInTheDocument();
+        expect(screen.getByText('FC Vercel')).toBeInTheDocument();
       });
-      await user.click(screen.getByText('vs FC Vercel'));
+      await user.click(screen.getByText('FC Vercel'));
 
       const expenseTab = screen.getByRole('button', { name: 'Expense' });
       await user.click(expenseTab);

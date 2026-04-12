@@ -9,17 +9,28 @@ import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import {
+  matchesService,
   positionsService,
   traitsService,
   userPositionsService,
   userTraitsService,
   usersService,
 } from '@/services';
-import type { PlayerProfile, Position, Trait } from '@/types';
+import type { Match, MatchGoal, PlayerProfile, Position, Trait } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 export default function PlayerProfilePage() {
   const params = useParams();
@@ -50,35 +61,42 @@ export default function PlayerProfilePage() {
     rating: '50',
   });
 
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [goals, setGoals] = useState<MatchGoal[]>([]);
+  const [filterMonth, setFilterMonth] = useState<string>('');
+
   const reload = async () => {
-    const [p, pos, traits] = await Promise.all([
+    const [p, pos, traits, m, g] = await Promise.all([
       usersService.getProfile(playerId),
       positionsService.getAll(),
       traitsService.getAll(),
+      matchesService.getAll(),
+      matchesService.getAllGoals(),
     ]);
     setProfile(p);
     setAllPositions(pos);
     setAllTraits(traits);
+    setMatches(m || []);
+    setGoals(
+      (g || []).filter(
+        (goal) => goal.scorerId === playerId || goal.assistId === playerId,
+      ),
+    );
     setLoading(false);
   };
 
   useEffect(() => {
-    const load = async () => {
-      const [p, pos, traits] = await Promise.all([
-        usersService.getProfile(playerId),
-        positionsService.getAll(),
-        traitsService.getAll(),
-      ]);
-      setProfile(p);
-      setAllPositions(pos);
-      setAllTraits(traits);
-      setLoading(false);
-    };
-    load();
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerId]);
 
   const startEdit = () => {
-    if (!profile) return;
+    if (
+      !profile ||
+      (currentUser?.id !== playerId &&
+        currentUser?.email !== 'admin@example.com')
+    )
+      return;
     setEditForm({
       displayName: profile.displayName,
       jerseyNumber: profile.jerseyNumber?.toString() || '',
@@ -184,6 +202,54 @@ export default function PlayerProfilePage() {
     await reload();
   };
 
+  const monthlyStats = useMemo(() => {
+    const stats: Record<
+      string,
+      { month: string; goals: number; assists: number }
+    > = {};
+    matches.forEach((m) => {
+      const monthStr = m.matchDate.substring(0, 7);
+      if (!stats[monthStr]) {
+        stats[monthStr] = { month: monthStr, goals: 0, assists: 0 };
+      }
+    });
+
+    goals.forEach((g) => {
+      const match = matches.find((m) => m.id === g.matchId);
+      if (match) {
+        const monthStr = match.matchDate.substring(0, 7);
+        if (g.scorerId === playerId) stats[monthStr].goals += 1;
+        if (g.assistId === playerId) stats[monthStr].assists += 1;
+      }
+    });
+
+    let data = Object.values(stats).sort((a, b) =>
+      a.month.localeCompare(b.month),
+    );
+    if (filterMonth) {
+      data = data.filter((d) => d.month === filterMonth);
+    }
+    return data;
+  }, [goals, matches, filterMonth, playerId]);
+
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    matches.forEach((m) => months.add(m.matchDate.substring(0, 7)));
+    return Array.from(months).sort((a, b) => b.localeCompare(a));
+  }, [matches]);
+
+  const displayStats = useMemo(() => {
+    if (!filterMonth) return profile?.stats || { goals: 0, assists: 0 };
+    return monthlyStats.reduce(
+      (acc, curr) => {
+        acc.goals += curr.goals;
+        acc.assists += curr.assists;
+        return acc;
+      },
+      { goals: 0, assists: 0 },
+    );
+  }, [monthlyStats, filterMonth, profile?.stats]);
+
   if (loading) return <PlayerProfilePageSkeleton />;
   if (!profile) return <p className="text-danger">Player not found.</p>;
 
@@ -263,6 +329,7 @@ export default function PlayerProfilePage() {
                         setEditForm({ ...editForm, role: e.target.value })
                       }
                       className="text-sm"
+                      disabled={!canManage}
                     >
                       <option value={USER_ROLE.PLAYER}>Player</option>
                       <option value={USER_ROLE.COACH}>Coach</option>
@@ -299,7 +366,8 @@ export default function PlayerProfilePage() {
                   >
                     {profile.status === 1 ? 'Active' : 'Inactive'}
                   </span>
-                  {canManage && (
+                  {(currentUser?.id === playerId ||
+                    currentUser?.email === 'admin@example.com') && (
                     <button
                       onClick={startEdit}
                       className="text-muted hover:text-primary text-sm transition-colors"
@@ -345,90 +413,71 @@ export default function PlayerProfilePage() {
         </div>
       </div>
 
-      {/* Positions Edit */}
-      {canManage && (
-        <div className="bg-card rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">Positions</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Positions */}
+        {profile && (
+          <div className="bg-card rounded-lg p-6">
+            <h2 className="text-lg font-semibold mb-4">Positions</h2>
 
-          <div className="mb-4">
-            <p className="text-xs text-muted mb-2 uppercase tracking-wide">
-              Primary Position (click to set)
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {allPositions.map((pos) => {
-                const up = profile.positions.find(
-                  (p) => p.positionId === pos.id,
-                );
-                const isPrimary = up?.type === 'primary';
-                return (
-                  <button
-                    key={pos.id}
-                    onClick={() => handleSetPrimary(pos.id)}
-                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                      isPrimary
-                        ? 'bg-primary text-white'
-                        : 'bg-card-hover text-muted hover:text-foreground'
-                    }`}
-                  >
-                    {pos.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted mb-2 uppercase tracking-wide">
-              Sub Positions (click to toggle)
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {allPositions.map((pos) => {
-                const up = profile.positions.find(
-                  (p) => p.positionId === pos.id,
-                );
-                const isPrimary = up?.type === 'primary';
-                const isSub = up?.type === 'sub';
-                return (
-                  <button
-                    key={pos.id}
-                    onClick={() => handleToggleSub(pos.id)}
-                    disabled={isPrimary}
-                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                      isPrimary
-                        ? 'bg-primary/30 text-primary/50 cursor-not-allowed'
-                        : isSub
-                          ? 'bg-accent text-white'
+            <div className="mb-4">
+              <p className="text-xs text-muted mb-2 uppercase tracking-wide">
+                Primary Position (click to set)
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {allPositions.map((pos) => {
+                  const up = profile.positions.find(
+                    (p) => p.positionId === pos.id,
+                  );
+                  const isPrimary = up?.type === 'primary';
+                  return (
+                    <button
+                      key={pos.id}
+                      onClick={() => handleSetPrimary(pos.id)}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                        isPrimary
+                          ? 'bg-primary text-white'
                           : 'bg-card-hover text-muted hover:text-foreground'
-                    }`}
-                  >
-                    {pos.name}
-                  </button>
-                );
-              })}
+                      }`}
+                    >
+                      {pos.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Stats */}
-        <div className="bg-card rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-4">Stats</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-background rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-primary">
-                {profile.stats.goals}
+            <div>
+              <p className="text-xs text-muted mb-2 uppercase tracking-wide">
+                Sub Positions (click to toggle)
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {allPositions.map((pos) => {
+                  const up = profile.positions.find(
+                    (p) => p.positionId === pos.id,
+                  );
+                  const isPrimary = up?.type === 'primary';
+                  const isSub = up?.type === 'sub';
+                  return (
+                    <button
+                      key={pos.id}
+                      onClick={() => handleToggleSub(pos.id)}
+                      disabled={isPrimary}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                        isPrimary
+                          ? 'bg-primary/30 text-primary/50 cursor-not-allowed'
+                          : isSub
+                            ? 'bg-accent text-white'
+                            : 'bg-card-hover text-muted hover:text-foreground'
+                      }`}
+                    >
+                      {pos.name}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="text-sm text-muted">Goals</div>
-            </div>
-            <div className="bg-background rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-accent">
-                {profile.stats.assists}
-              </div>
-              <div className="text-sm text-muted">Assists</div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Traits */}
         <div className="bg-card rounded-lg p-6">
@@ -546,6 +595,99 @@ export default function PlayerProfilePage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Stats Below */}
+      <div className="bg-card rounded-lg p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Stats</h2>
+          <div className="w-[150px]">
+            <Select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+            >
+              <option value="">All Time</option>
+              {availableMonths.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-background rounded-lg p-4 text-center">
+            <div className="text-3xl font-bold text-primary">
+              {displayStats.goals}
+            </div>
+            <div className="text-sm text-muted">Goals</div>
+          </div>
+          <div className="bg-background rounded-lg p-4 text-center">
+            <div className="text-3xl font-bold text-accent">
+              {displayStats.assists}
+            </div>
+            <div className="text-sm text-muted">Assists</div>
+          </div>
+        </div>
+
+        {monthlyStats.length > 0 ? (
+          <div className="h-[300px] w-full bg-background p-4 rounded-lg">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={monthlyStats}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  opacity={0.2}
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  cursor={{ fill: 'currentColor', opacity: 0.1 }}
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    borderColor: 'hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Legend
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
+                />
+                <Bar
+                  dataKey="goals"
+                  fill="#2563eb"
+                  name="Goals"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={40}
+                />
+                <Bar
+                  dataKey="assists"
+                  fill="#d97706"
+                  name="Assists"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={40}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-[200px] w-full bg-background flex items-center justify-center rounded-lg">
+            <span className="text-muted text-sm">No match data available.</span>
+          </div>
+        )}
       </div>
 
       {showAvatarPicker && (

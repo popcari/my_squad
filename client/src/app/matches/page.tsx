@@ -3,6 +3,7 @@
 import { CloseButton } from '@/components/ui/close-button';
 import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
+import { MATCH_STATUS } from '@/constant/enum';
 import { useCanManage } from '@/hooks/use-can-manage';
 import {
   createMatchSchema,
@@ -133,7 +134,7 @@ export default function MatchesPage() {
         <h1 className="text-2xl font-bold">Matches Dashboard</h1>
 
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-          <div className="flex items-center gap-2 w-full">
+          <div className="flex items-center w-full">
             <div className="w-[45%] md:w-[160px] ">
               <Select
                 aria-label="From Month"
@@ -148,7 +149,9 @@ export default function MatchesPage() {
                 ))}
               </Select>
             </div>
-            <span className="text-muted text-sm">to</span>
+            <span className="text-muted text-sm w-[10%] text-center font-bold">
+              -
+            </span>
             <div className="w-[45%] md:w-[160px] ">
               <Select
                 aria-label="To Month"
@@ -168,7 +171,7 @@ export default function MatchesPage() {
           {canManage && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm transition-colors"
+              className="bg-primary w-full hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm transition-colors"
             >
               + New Match
             </button>
@@ -182,10 +185,10 @@ export default function MatchesPage() {
           <div className="h-[350px] bg-card rounded-lg" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3 space-y-6">
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
                 {/* The Performance chart shows filtered matches trend */}
                 <PerformanceChart matches={filteredMatches} />
               </div>
@@ -207,10 +210,10 @@ export default function MatchesPage() {
                 {(monthStart || monthEnd) &&
                   ` (${monthStart || 'Start'} to ${monthEnd || 'End'})`}
               </h2>
-              <div className="bg-card rounded-lg border border-border overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-card-hover border-b border-border">
+              <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col max-h-[700px]">
+                <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
+                  <table className="w-full text-sm text-left relative">
+                    <thead className="bg-card-hover text-muted sticky top-0 z-10 shadow-sm">
                       <tr>
                         <th className="px-4 py-3 font-medium">Date</th>
                         <th className="px-4 py-3 font-medium">Opponent</th>
@@ -246,25 +249,50 @@ export default function MatchesPage() {
                                 )}
                               </td>
                               <td className="px-4 py-3 font-medium text-primary">
-                                vs {match.opponent}
+                                {match.opponent}
                               </td>
                               <td className="px-4 py-3 text-center whitespace-nowrap">
-                                {match.status === 'completed'
-                                  ? `${match.homeScore ?? 0} - ${match.awayScore ?? 0}`
-                                  : '-'}
+                                <div
+                                  className={`inline-block px-3 py-1 rounded-md font-bold ${
+                                    match.status === MATCH_STATUS.COMPLETED
+                                      ? match.homeScore! > match.awayScore!
+                                        ? 'bg-accent/20 text-accent'
+                                        : match.homeScore! < match.awayScore!
+                                          ? 'bg-danger/20 text-danger'
+                                          : 'bg-yellow-500/20 text-yellow-500'
+                                      : 'text-muted'
+                                  }`}
+                                >
+                                  {match.status === MATCH_STATUS.COMPLETED
+                                    ? `${match.homeScore ?? 0} - ${match.awayScore ?? 0}`
+                                    : '-'}
+                                </div>
                               </td>
                               <td className="px-4 py-3 text-center">
-                                <span
-                                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    match.status === 'completed'
+                                <div
+                                  className={`w-7 h-7 mx-auto inline-flex items-center justify-center rounded-full ${
+                                    match.status === MATCH_STATUS.COMPLETED
                                       ? 'bg-emerald-500/20 text-emerald-500'
-                                      : match.status === 'cancelled'
+                                      : match.status === MATCH_STATUS.CANCELLED
                                         ? 'bg-red-500/20 text-red-500'
                                         : 'bg-yellow-500/20 text-yellow-500'
                                   }`}
+                                  title={match.status.replace('_', ' ')}
                                 >
-                                  {match.status.replace('_', ' ')}
-                                </span>
+                                  {match.status === MATCH_STATUS.COMPLETED ? (
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  ) : match.status === MATCH_STATUS.CANCELLED ? (
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           );

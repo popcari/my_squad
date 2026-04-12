@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 vi.mock('next/link', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,9 +38,25 @@ vi.mock('@/services', () => ({
   traitsService: { getAll: (...args: unknown[]) => mockGetAllTraits(...args) },
   userPositionsService: { assign: vi.fn(), remove: vi.fn() },
   userTraitsService: { assign: vi.fn(), updateRating: vi.fn(), remove: vi.fn() },
+  matchesService: { 
+    getAll: vi.fn().mockResolvedValue([]),
+    getAllGoals: vi.fn().mockResolvedValue([])
+  },
 }));
 
+// Suppress Recharts ResponsiveContainer warnings in JSDOM
+vi.mock('recharts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('recharts')>();
+  return {
+    ...actual,
+    ResponsiveContainer: ({ children }: any) => (
+      <div style={{ width: '800px', height: '600px' }}>{children}</div>
+    ),
+  };
+});
+
 import PlayerProfilePage from './page';
+import { matchesService } from '@/services';
 
 describe('PlayerProfilePage - Status Display', () => {
   beforeEach(() => {
@@ -49,6 +65,8 @@ describe('PlayerProfilePage - Status Display', () => {
       { id: 'pos-1', name: 'GK', createdAt: '', updatedAt: '' },
     ]);
     mockGetAllTraits.mockResolvedValue([]);
+    (matchesService.getAll as any).mockResolvedValue([]);
+    (matchesService.getAllGoals as any).mockResolvedValue([]);
   });
 
   it('should display phone number in profile', async () => {

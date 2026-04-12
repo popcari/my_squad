@@ -67,18 +67,32 @@ export default function PlayersPage() {
     });
   }, [players, allUserPositions, positions]);
 
-  // Group players by PRIMARY position, sorted by jersey number within each group
+  // Group players by MACRO position, sorted by jersey number
   const groupedByPosition = useMemo(() => {
     const groups: Record<string, PlayerWithPositions[]> = {};
+
+    const getMacroGroup = (posName: string) => {
+      const n = (posName || '').toUpperCase();
+      if (['GK', 'GOALKEEPER'].includes(n)) return '1_Goalkeepers (GK)';
+      if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'SW', 'DEFENDER'].includes(n))
+        return '2_Defenders';
+      if (['CDM', 'CM', 'CAM', 'LM', 'RM', 'MIDFIELDER'].includes(n))
+        return '3_Midfielders';
+      if (['ST', 'CF', 'LW', 'RW', 'SS', 'FORWARD', 'ATTACKER'].includes(n))
+        return '4_Forwards';
+      return '5_Unassigned';
+    };
 
     for (const player of playersWithPositions) {
       const primaryUp = allUserPositions.find(
         (up) => up.userId === player.id && up.type === 'primary',
       );
-      const groupName = primaryUp
+      const posName = primaryUp
         ? positions.find((p) => p.id === primaryUp.positionId)?.name ||
           'Unassigned'
         : 'Unassigned';
+
+      const groupName = getMacroGroup(posName);
       if (!groups[groupName]) groups[groupName] = [];
       groups[groupName].push(player);
     }
@@ -90,12 +104,13 @@ export default function PlayersPage() {
       );
     }
 
-    // Sort groups: position names alphabetically, "Unassigned" last
-    const sortedEntries = Object.entries(groups).sort(([a], [b]) => {
-      if (a === 'Unassigned') return 1;
-      if (b === 'Unassigned') return -1;
-      return a.localeCompare(b);
-    });
+    // Sort groups by the order prefix, then strip the prefix for display
+    const sortedEntries = Object.entries(groups)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(
+        ([key, players]) =>
+          [key.substring(2), players] as [string, PlayerWithPositions[]],
+      );
 
     return sortedEntries;
   }, [playersWithPositions, allUserPositions, positions]);
@@ -126,9 +141,21 @@ export default function PlayersPage() {
         <p className="text-muted">No players yet.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {groupedByPosition.map(([positionName, posPlayers]) => (
-            <div key={positionName}>
-              <h2 className="text-lg font-bold mb-3">{positionName}</h2>
+          {groupedByPosition.map(([positionName, posPlayers]) => {
+            const getBorderColorClass = (name: string) => {
+              if (name.includes('Goalkeeper')) return 'border-yellow-500';
+              if (name.includes('Defender')) return 'border-blue-500';
+              if (name.includes('Midfielder')) return 'border-green-500';
+              if (name.includes('Forward')) return 'border-red-500';
+              return 'border-gray-500';
+            };
+            return (
+              <div key={positionName}>
+                <h2
+                  className={`text-lg font-bold mb-3 border-l-4 pl-2 ${getBorderColorClass(positionName)}`}
+                >
+                  {positionName}
+                </h2>
               <div className="space-y-1">
                 {posPlayers.map((p) => (
                   <Link
@@ -165,10 +192,12 @@ export default function PlayersPage() {
                         >
                           {p.status === 1 ? 'Active' : 'Inactive'}
                         </span>
+                        <span className="text-md font-bold">
+                          #{p.jerseyNumber ?? '-'}
+                        </span>
                       </div>
                       <p className="text-xs text-muted">
-                        {p.jerseyNumber ?? '-'} &middot; {p.phone} &middot;{' '}
-                        {p.email}
+                        {p.phone} &middot; {p.email}
                       </p>
                     </div>
                     {canManage && (
@@ -185,8 +214,9 @@ export default function PlayersPage() {
                   </Link>
                 ))}
               </div>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
