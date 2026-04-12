@@ -3,6 +3,7 @@
 import { PlayersPageSkeleton } from '@/components/shared/skeleton';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+
 import {
   positionsService,
   userPositionsService,
@@ -12,12 +13,14 @@ import type { Position, User, UserPosition } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface PlayerWithPositions extends User {
   positionNames: string[];
 }
 
 export default function PlayersPage() {
+  const { t } = useTranslation();
   const canManage = useCanManage();
   const confirm = useConfirm();
   const [players, setPlayers] = useState<User[]>([]);
@@ -73,7 +76,7 @@ export default function PlayersPage() {
 
     const getMacroGroup = (posName: string) => {
       const n = (posName || '').toUpperCase();
-      if (['GK', 'GOALKEEPER'].includes(n)) return '1_Goalkeepers (GK)';
+      if (['GK', 'GOALKEEPER'].includes(n)) return '1_Goalkeepers';
       if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'SW', 'DEFENDER'].includes(n))
         return '2_Defenders';
       if (['CDM', 'CM', 'CAM', 'LM', 'RM', 'MIDFIELDER'].includes(n))
@@ -107,20 +110,26 @@ export default function PlayersPage() {
     // Sort groups by the order prefix, then strip the prefix for display
     const sortedEntries = Object.entries(groups)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(
-        ([key, players]) =>
-          [key.substring(2), players] as [string, PlayerWithPositions[]],
-      );
+      .map(([key, groupPlayers]) => {
+        const name = key.substring(2);
+        let label = name;
+        if (name === 'Goalkeepers') label = t('players.goalkeepers');
+        if (name === 'Defenders') label = t('players.defenders');
+        if (name === 'Midfielders') label = t('players.midfielders');
+        if (name === 'Forwards') label = t('players.forwards');
+        if (name === 'Unassigned') label = t('players.unassigned');
+        
+        return [label, groupPlayers] as [string, PlayerWithPositions[]];
+      });
 
     return sortedEntries;
-  }, [playersWithPositions, allUserPositions, positions]);
+  }, [playersWithPositions, allUserPositions, positions, t]);
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
-      title: 'Delete Player',
-      message:
-        'Are you sure you want to delete this player? This action cannot be undone.',
-      confirmText: 'Delete',
+      title: t('common.delete'),
+      message: t('common.deleteConfirm'),
+      confirmText: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
@@ -132,21 +141,28 @@ export default function PlayersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Players</h1>
+        <h1 className="text-2xl font-bold">{t('players.title')}</h1>
       </div>
 
       {loading ? (
         <PlayersPageSkeleton />
       ) : groupedByPosition.length === 0 ? (
-        <p className="text-muted">No players yet.</p>
+        <p className="text-muted">{t('common.noData')}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {groupedByPosition.map(([positionName, posPlayers]) => {
             const getBorderColorClass = (name: string) => {
-              if (name.includes('Goalkeeper')) return 'border-yellow-500';
-              if (name.includes('Defender')) return 'border-blue-500';
-              if (name.includes('Midfielder')) return 'border-green-500';
-              if (name.includes('Forward')) return 'border-red-500';
+              const enName = Object.entries({
+                [t('players.goalkeepers')]: 'Goalkeeper',
+                [t('players.defenders')]: 'Defender',
+                [t('players.midfielders')]: 'Midfielder',
+                [t('players.forwards')]: 'Forward',
+              }).find(([k]) => k === name)?.[1] || name;
+
+              if (enName.includes('Goalkeeper')) return 'border-yellow-500';
+              if (enName.includes('Defender')) return 'border-blue-500';
+              if (enName.includes('Midfielder')) return 'border-green-500';
+              if (enName.includes('Forward')) return 'border-red-500';
               return 'border-gray-500';
             };
             return (
@@ -190,7 +206,7 @@ export default function PlayersPage() {
                               : 'bg-red-500/20 text-red-400'
                           }`}
                         >
-                          {p.status === 1 ? 'Active' : 'Inactive'}
+                          {p.status === 1 ? t('common.active') : t('common.inactive')}
                         </span>
                         <span className="text-md font-bold">
                           #{p.jerseyNumber ?? '-'}
@@ -208,7 +224,7 @@ export default function PlayersPage() {
                         }}
                         className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
                       >
-                        Delete
+                        {t('common.delete')}
                       </button>
                     )}
                   </Link>

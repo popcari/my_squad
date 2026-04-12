@@ -17,8 +17,10 @@ import type { Match } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 export default function HomePage() {
+  const { t } = useTranslation();
   const canManage = useCanManage();
   const confirm = useConfirm();
   const [matches, setMatches] = useState<Match[]>([]);
@@ -110,9 +112,9 @@ export default function HomePage() {
 
   const onCreateMatch = async (data: CreateMatchForm) => {
     const ok = await confirm({
-      title: 'Create Match',
-      message: `Create match vs ${data.opponent}?`,
-      confirmText: 'Create',
+      title: t('home.createMatch'),
+      message: t('home.createMatchConfirm', { opponent: data.opponent }),
+      confirmText: t('common.create'),
     });
     if (!ok) return;
     await matchesService.create({
@@ -135,10 +137,9 @@ export default function HomePage() {
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
-      title: 'Delete Match',
-      message:
-        'Are you sure you want to delete this match? This action cannot be undone.',
-      confirmText: 'Delete',
+      title: t('home.deleteMatch'),
+      message: t('home.deleteMatchConfirm'),
+      confirmText: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
@@ -230,7 +231,7 @@ export default function HomePage() {
             }}
             className="px-2 py-1 bg-danger/20 text-danger rounded text-xs hover:bg-danger/30"
           >
-            Del
+            {t('home.del')}
           </button>
         </div>
       )}
@@ -239,7 +240,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Match Schedule</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('home.matchSchedule')}</h1>
 
       {loading ? (
         <HomePageSkeleton />
@@ -267,7 +268,9 @@ export default function HomePage() {
                   })}
                 </h3>
                 {selectedMatches.length === 0 ? (
-                  <p className="text-xs text-muted">No matches on this day.</p>
+                  <p className="text-xs text-muted">
+                    {t('home.noMatchesOnDay')}
+                  </p>
                 ) : (
                   <div className="space-y-2">
                     {selectedMatches.map(renderMatchCard)}
@@ -282,12 +285,15 @@ export default function HomePage() {
                   onClick={() => setShowForm(!showForm)}
                   className="w-full text-sm font-medium text-primary hover:text-primary-hover transition-colors text-left"
                 >
-                  {showForm ? '- Cancel' : '+ Create new match'}
+                  {showForm ? t('home.cancelCreate') : t('home.createNewMatch')}
                 </button>
                 {showForm && (
-                  <form onSubmit={handleSubmit(onCreateMatch)} className="mt-3 space-y-3">
+                  <form
+                    onSubmit={handleSubmit(onCreateMatch)}
+                    className="mt-3 space-y-3"
+                  >
                     <InputText
-                      placeholder="Opponent"
+                      placeholder={t('home.opponent')}
                       error={errors.opponent}
                       required
                       {...register('opponent')}
@@ -299,13 +305,13 @@ export default function HomePage() {
                       {...register('matchDate')}
                     />
                     <InputText
-                      placeholder="Location"
+                      placeholder={t('home.location')}
                       error={errors.location}
                       required
                       {...register('location')}
                     />
                     <InputText
-                      placeholder="Notes (optional)"
+                      placeholder={t('home.notesOptional')}
                       {...register('notes')}
                     />
                     <button
@@ -313,7 +319,9 @@ export default function HomePage() {
                       disabled={isSubmitting}
                       className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
                     >
-                      {isSubmitting ? 'Creating...' : 'Create Match'}
+                      {isSubmitting
+                        ? t('common.creating')
+                        : t('home.createMatch')}
                     </button>
                   </form>
                 )}
@@ -325,10 +333,12 @@ export default function HomePage() {
           <div className="lg:col-span-2">
             {matches.length === 0 ? (
               <div className="bg-card rounded-lg p-8 text-center">
-                <p className="text-muted">No matches in {monthLabel}.</p>
+                <p className="text-muted">
+                  {t('home.noMatchesInMonth', { month: monthLabel })}
+                </p>
                 {canManage && (
                   <p className="text-xs text-muted mt-1">
-                    Click a date on the calendar to get started.
+                    {t('home.clickDateToStart')}
                   </p>
                 )}
               </div>
@@ -340,8 +350,8 @@ export default function HomePage() {
                   </h2>
                   <div className="flex-1 h-px bg-border" />
                   <span className="text-xs text-muted">
-                    {matches.length} match
-                    {matches.length > 1 ? 'es' : ''}
+                    {matches.length}{' '}
+                    {matches.length > 1 ? t('home.matches') : t('home.match')}
                   </span>
                 </div>
                 <div className="space-y-2">{matches.map(renderMatchCard)}</div>

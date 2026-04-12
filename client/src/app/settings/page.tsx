@@ -15,8 +15,10 @@ import { Lightbox } from '@/components/ui/lightbox';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const canManage = useCanManage();
   const confirm = useConfirm();
   const [settings, setSettings] = useState<TeamSettings | null>(null);
@@ -53,9 +55,9 @@ export default function SettingsPage() {
 
   const onSubmit = async (data: TeamSettingsForm) => {
     const ok = await confirm({
-      title: 'Save Settings',
-      message: 'Save changes to team settings?',
-      confirmText: 'Save',
+      title: t('common.save'),
+      message: t('settings.teamSettings') + '?',
+      confirmText: t('common.save'),
     });
     if (!ok) return;
     await teamSettingsService.update(data);
@@ -68,13 +70,13 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Team Settings</h1>
+        <h1 className="text-2xl font-bold">{t('settings.teamSettings')}</h1>
         {canManage && !editing && (
           <button
             onClick={() => setEditing(true)}
             className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm transition-colors"
           >
-            Edit
+            {t('common.edit')}
           </button>
         )}
       </div>
@@ -85,14 +87,14 @@ export default function SettingsPage() {
           className="bg-card rounded-lg p-6 space-y-4 max-w-2xl"
         >
           <InputText
-            label="Team Name"
+            label={t('settings.teamName')}
             error={errors.name}
             required
             {...register('name')}
           />
           <div>
             <label className="block text-sm font-medium mb-1">
-              Description
+              {t('settings.description')}
             </label>
             <textarea
               {...register('description')}
@@ -102,18 +104,18 @@ export default function SettingsPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <InputText
-              label="Founded Date"
+              label={t('settings.foundedDate')}
               type="date"
               {...register('foundedDate')}
             />
             <InputText
-              label="Home Stadium"
-              placeholder="Stadium name"
+              label={t('settings.homeStadium')}
+              placeholder={t('settings.stadium')}
               {...register('homeStadium')}
             />
           </div>
           <InputText
-            label="Logo URL"
+            label={t('settings.logoUrl')}
             placeholder="https://..."
             {...register('logo')}
           />
@@ -123,14 +125,14 @@ export default function SettingsPage() {
               disabled={isSubmitting}
               className="px-6 py-2 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-lg text-sm transition-colors"
             >
-              {isSubmitting ? 'Saving...' : 'Save'}
+              {isSubmitting ? t('common.saving') : t('common.save')}
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
               className="px-6 py-2 bg-card-hover hover:bg-border text-foreground rounded-lg text-sm transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
           </div>
         </form>
@@ -171,7 +173,7 @@ export default function SettingsPage() {
                 <div className="text-2xl font-bold text-primary">
                   {settings?.playerCount ?? 0}
                 </div>
-                <div className="text-xs text-muted mt-1">Players</div>
+                <div className="text-xs text-muted mt-1">{t('common.players')}</div>
               </div>
               <div className="bg-background rounded-lg p-4 text-center">
                 <div className="text-sm font-medium">
@@ -179,13 +181,13 @@ export default function SettingsPage() {
                     ? new Date(settings.foundedDate).toLocaleDateString('vi-VN')
                     : '-'}
                 </div>
-                <div className="text-xs text-muted mt-1">Founded</div>
+                <div className="text-xs text-muted mt-1">{t('settings.founded')}</div>
               </div>
               <div className="bg-background rounded-lg p-4 text-center">
                 <div className="text-sm font-medium truncate">
                   {settings?.homeStadium || '-'}
                 </div>
-                <div className="text-xs text-muted mt-1">Home Stadium</div>
+                <div className="text-xs text-muted mt-1">{t('settings.stadium')}</div>
               </div>
             </div>
           </div>

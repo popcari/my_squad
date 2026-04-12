@@ -16,8 +16,10 @@ import type { Trait, User, UserTrait } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 export default function TraitsPage() {
+  const { t } = useTranslation();
   const canManage = useCanManage();
   const confirm = useConfirm();
   const [traits, setTraits] = useState<Trait[]>([]);
@@ -68,9 +70,9 @@ export default function TraitsPage() {
 
   const handleCreate = async (data: CreateTraitForm) => {
     const ok = await confirm({
-      title: 'Create Trait',
-      message: `Create trait "${data.name}"?`,
-      confirmText: 'Create',
+      title: t('traits.createTrait'),
+      message: t('traits.createTraitConfirm', { name: data.name }),
+      confirmText: t('common.create'),
     });
     if (!ok) return;
     await traitsService.create(data);
@@ -82,10 +84,9 @@ export default function TraitsPage() {
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
-      title: 'Delete Trait',
-      message:
-        'Are you sure you want to delete this trait? This action cannot be undone.',
-      confirmText: 'Delete',
+      title: t('traits.deleteTrait'),
+      message: t('traits.deleteTraitConfirm'),
+      confirmText: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
@@ -96,9 +97,9 @@ export default function TraitsPage() {
 
   const handleAssign: SubmitHandler<AssignTraitForm> = async (data) => {
     const ok = await confirm({
-      title: 'Assign Trait',
-      message: `Assign trait with rating ${data.rating}?`,
-      confirmText: 'Assign',
+      title: t('traits.assignTrait'),
+      message: t('traits.assignTraitConfirm', { rating: data.rating }),
+      confirmText: t('common.assign'),
     });
     if (!ok) return;
     await userTraitsService.assign({
@@ -124,7 +125,7 @@ export default function TraitsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Traits Management</h1>
+        <h1 className="text-2xl font-bold">{t('traits.title')}</h1>
         {canManage && (
           <div className="flex gap-2">
             <button
@@ -134,7 +135,7 @@ export default function TraitsPage() {
               }}
               className="px-4 py-2 bg-accent hover:bg-accent/80 text-white rounded-lg text-sm transition-colors"
             >
-              {showAssign ? 'Cancel' : 'Assign Trait'}
+              {showAssign ? t('common.cancel') : t('traits.assignTrait')}
             </button>
             <button
               onClick={() => {
@@ -143,7 +144,7 @@ export default function TraitsPage() {
               }}
               className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm transition-colors"
             >
-              {showForm ? 'Cancel' : '+ New Trait'}
+              {showForm ? t('common.cancel') : t('traits.newTrait')}
             </button>
           </div>
         )}
@@ -155,13 +156,13 @@ export default function TraitsPage() {
           className="bg-card p-4 rounded-lg mb-6 grid grid-cols-2 gap-4"
         >
           <InputText
-            placeholder="Trait name (e.g. Speed, Stamina)"
+            placeholder={t('traits.traitName')}
             error={createForm.formState.errors.name}
             required
             {...createForm.register('name')}
           />
           <InputText
-            placeholder="Description (optional)"
+            placeholder={t('traits.descriptionOptional')}
             {...createForm.register('description')}
           />
           <button
@@ -169,7 +170,7 @@ export default function TraitsPage() {
             disabled={createForm.formState.isSubmitting}
             className="col-span-2 bg-accent hover:bg-accent/80 disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
           >
-            {createForm.formState.isSubmitting ? 'Creating...' : 'Create Trait'}
+            {createForm.formState.isSubmitting ? t('common.creating') : t('traits.createTrait')}
           </button>
         </form>
       )}
@@ -189,7 +190,7 @@ export default function TraitsPage() {
                 className="text-sm"
                 required
               >
-                <option value="">Select Player</option>
+                <option value="">{t('traits.selectPlayer')}</option>
                 {players.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.displayName}
@@ -208,7 +209,7 @@ export default function TraitsPage() {
                 className="text-sm"
                 required
               >
-                <option value="">Select Trait</option>
+                <option value="">{t('traits.selectTrait')}</option>
                 {traits.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
@@ -232,7 +233,7 @@ export default function TraitsPage() {
             disabled={assignFormHook.formState.isSubmitting}
             className="col-span-3 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
           >
-            {assignFormHook.formState.isSubmitting ? 'Assigning...' : 'Assign Trait'}
+            {assignFormHook.formState.isSubmitting ? t('common.creating') : t('traits.assignTrait')}
           </button>
         </form>
       )}
@@ -240,32 +241,32 @@ export default function TraitsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Traits List */}
         <div>
-          <h2 className="text-lg font-semibold mb-3">All Traits</h2>
+          <h2 className="text-lg font-semibold mb-3">{t('traits.allTraits')}</h2>
           {loading ? (
             <TraitsPageSkeleton />
           ) : traits.length === 0 ? (
-            <p className="text-muted">No traits yet.</p>
+            <p className="text-muted">{t('traits.noTraits')}</p>
           ) : (
             <div className="space-y-2">
-              {traits.map((t) => (
+              {traits.map((trait) => (
                 <div
-                  key={t.id}
+                  key={trait.id}
                   className="bg-card hover:bg-card-hover p-3 rounded-lg flex items-center justify-between transition-colors group"
                 >
                   <div>
-                    <span className="font-medium">{t.name}</span>
-                    {t.description && (
+                    <span className="font-medium">{trait.name}</span>
+                    {trait.description && (
                       <span className="text-sm text-muted ml-2">
-                        - {t.description}
+                        - {trait.description}
                       </span>
                     )}
                   </div>
                   {canManage && (
                     <button
-                      onClick={() => handleDelete(t.id)}
+                      onClick={() => handleDelete(trait.id)}
                       className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
                     >
-                      Delete
+                      {t('common.delete')}
                     </button>
                   )}
                 </div>
@@ -276,13 +277,13 @@ export default function TraitsPage() {
 
         {/* Player Traits View */}
         <div>
-          <h2 className="text-lg font-semibold mb-3">Player Traits</h2>
+          <h2 className="text-lg font-semibold mb-3">{t('traits.playerTraits')}</h2>
           <Select
             value={selectedPlayer}
             onChange={(e) => loadPlayerTraits(e.target.value)}
             className="text-sm w-full mb-4"
           >
-            <option value="">Select a player...</option>
+            <option value="">{t('traits.selectPlayer')}</option>
             {players.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.displayName} #{p.jerseyNumber}
@@ -292,7 +293,7 @@ export default function TraitsPage() {
 
           {selectedPlayer && playerTraits.length === 0 && (
             <p className="text-muted text-sm">
-              No traits assigned to this player.
+              {t('traits.noPlayerTraits')}
             </p>
           )}
 

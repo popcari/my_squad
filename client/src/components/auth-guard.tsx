@@ -1,5 +1,7 @@
 'use client';
 
+import '@/i18n';
+
 import { useAuth } from '@/contexts/auth-context';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';

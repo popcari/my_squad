@@ -91,7 +91,8 @@ describe('FundingPage', () => {
 
   it('should render the page title', async () => {
     render(<FundingPage />);
-    expect(screen.getByText('Team Funding')).toBeInTheDocument();
+    const titles = await screen.findAllByText('Funding');
+    expect(titles[0]).toBeInTheDocument();
   });
 
   it('should render summary cards with formatted VND amounts', async () => {
@@ -132,7 +133,7 @@ describe('FundingPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: /create round/i }),
+        screen.getByRole('button', { name: 'Create Round' }),
       ).toBeInTheDocument();
     });
   });

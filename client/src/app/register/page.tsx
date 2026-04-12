@@ -11,8 +11,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const [serverError, setServerError] = useState('');
   const { login } = useAuth();
   const router = useRouter();
@@ -43,26 +45,31 @@ export default function RegisterPage() {
       router.push('/');
     } catch (err) {
       setServerError(
-        err instanceof Error ? err.message : 'Registration failed',
+        err instanceof Error ? err.message : t('auth.registrationFailed'),
       );
     }
   };
 
   return (
-    <div className="min-h-screen w-full md:w-[600px] m-auto flex items-center justify-center bg-background">
-      <ThemeToggle />
+    <div className="min-h-screen w-full md:w-[600px] m-auto flex items-center justify-center bg-background py-8">
+      <div className="fixed top-4 right-4 z-10 flex items-center gap-2">
+        {/* <LanguageSelector /> */}
+        <ThemeToggle />
+      </div>
       <div className="w-[90%] md:w-full md:max-w-lg">
         <div className="bg-card rounded-2xl p-4 shadow-lg border border-border">
           <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold">Join My Squad</h1>
-            <p className="text-sm text-muted mt-1">Create your account</p>
+            <h1 className="text-2xl font-bold">{t('auth.joinMySquad')}</h1>
+            <p className="text-sm text-muted mt-1">
+              {t('auth.createYourAccount')}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <InputText
               id="displayName"
-              label="Display Name"
-              placeholder="Your name"
+              label={t('auth.displayName')}
+              placeholder={t('auth.displayName')}
               error={errors.displayName}
               required
               autoFocus
@@ -71,7 +78,7 @@ export default function RegisterPage() {
 
             <InputText
               id="email"
-              label="Email"
+              label={t('auth.email')}
               type="email"
               placeholder="your@email.com"
               error={errors.email}
@@ -81,9 +88,9 @@ export default function RegisterPage() {
 
             <InputText
               id="password"
-              label="Password"
+              label={t('auth.password')}
               type="password"
-              placeholder="Your password"
+              placeholder={t('auth.password')}
               error={errors.password}
               required
               maxLength={32}
@@ -92,7 +99,7 @@ export default function RegisterPage() {
 
             <InputText
               id="phone"
-              label="Phone"
+              label={t('auth.phone')}
               type="tel"
               placeholder="0901234567"
               error={errors.phone}
@@ -102,7 +109,7 @@ export default function RegisterPage() {
 
             <InputText
               id="jerseyNumber"
-              label="Jersey"
+              label={t('auth.jersey')}
               type="number"
               min={1}
               max={99}
@@ -122,13 +129,13 @@ export default function RegisterPage() {
               disabled={isSubmitting || !isValid}
               className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-3 rounded-lg text-sm font-medium transition-colors"
             >
-              {isSubmitting ? 'Creating account...' : 'Register'}
+              {isSubmitting ? t('auth.creatingAccount') : t('auth.register')}
             </button>
 
             <p className="text-center text-sm text-muted">
-              Already have an account?{' '}
+              {t('auth.alreadyHaveAccount')}{' '}
               <Link href="/login" className="text-primary hover:underline">
-                Sign in
+                {t('auth.signIn')}
               </Link>
             </p>
           </form>

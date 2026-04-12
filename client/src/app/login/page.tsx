@@ -10,8 +10,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [serverError, setServerError] = useState('');
   const { login } = useAuth();
   const router = useRouter();
@@ -34,24 +36,31 @@ export default function LoginPage() {
       login(user);
       router.push('/');
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'Login failed');
+      setServerError(
+        err instanceof Error ? err.message : t('auth.loginFailed'),
+      );
     }
   };
 
   return (
     <div className="min-h-screen w-full md:w-[600px] m-auto flex items-center justify-center bg-background">
-      <ThemeToggle />
+      <div className="fixed top-4 right-4 z-10 flex items-center gap-2">
+        {/* <LanguageSelector /> */}
+        <ThemeToggle />
+      </div>
       <div className="w-[90%] md:w-full md:max-w-lg">
         <div className="bg-card rounded-2xl p-4 shadow-lg border border-border">
           <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold">My Squad</h1>
-            <p className="text-sm text-muted mt-1">Sign in to your account</p>
+            <h1 className="text-2xl font-bold">{t('common.appName')}</h1>
+            <p className="text-sm text-muted mt-1">
+              {t('auth.signInToAccount')}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <InputText
               id="email"
-              label="Email"
+              label={t('auth.email')}
               type="email"
               placeholder="your@email.com"
               error={errors.email}
@@ -62,9 +71,9 @@ export default function LoginPage() {
 
             <InputText
               id="password"
-              label="Password"
+              label={t('auth.password')}
               type="password"
-              placeholder="Enter your password"
+              placeholder={t('auth.password')}
               error={errors.password}
               required
               {...register('password')}
@@ -81,13 +90,13 @@ export default function LoginPage() {
               disabled={isSubmitting || !isValid}
               className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-3 rounded-lg text-sm font-medium transition-colors"
             >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+              {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </button>
 
             <p className="text-center text-sm text-muted">
-              Don&apos;t have an account?{' '}
+              {t('auth.dontHaveAccount')}{' '}
               <Link href="/register" className="text-primary hover:underline">
-                Register
+                {t('auth.register')}
               </Link>
             </p>
           </form>

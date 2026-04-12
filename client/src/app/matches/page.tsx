@@ -14,6 +14,7 @@ import type { Expense, Match, MatchGoal, User } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { MatchDetailsDrawer } from './match-details-drawer';
 import { PerformanceChart } from './performance-chart';
 import { PlayerStatsChart } from './player-stats-chart';
@@ -21,6 +22,7 @@ import { WinRatePieChart } from './win-rate-pie-chart';
 
 export default function MatchesPage() {
   const canManage = useCanManage();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -131,7 +133,7 @@ export default function MatchesPage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Stats Dashboard</h1>
+        <h1 className="text-2xl font-bold">{t('matches.statsDashboard')}</h1>
 
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
           <div className="flex items-center w-full">

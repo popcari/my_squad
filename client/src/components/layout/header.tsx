@@ -1,17 +1,20 @@
 'use client';
 
+import { LanguageSelector } from '@/components/ui/language-selector';
 import { useAuth } from '@/contexts/auth-context';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useTheme } from '@/contexts/theme-context';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
+  const { t } = useTranslation();
   const confirm = useConfirm();
   const [showMenu, setShowMenu] = useState(false);
 
@@ -20,9 +23,9 @@ export function Header() {
   const handleLogout = async () => {
     setShowMenu(false);
     const ok = await confirm({
-      title: 'Logout',
-      message: 'Are you sure you want to logout?',
-      confirmText: 'Logout',
+      title: t('auth.logoutConfirmTitle'),
+      message: t('auth.logoutConfirmMessage'),
+      confirmText: t('auth.logout'),
       danger: true,
     });
     if (!ok) return;
@@ -50,7 +53,7 @@ export function Header() {
         <button
           onClick={toggle}
           className="relative w-12 h-6 rounded-full bg-background border border-border transition-colors cursor-pointer"
-          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          title={theme === 'dark' ? t('header.lightMode') : t('header.darkMode')}
         >
           <span
             className={`absolute top-[50%] translate-y-[-50%] w-4 h-4 rounded-full flex items-center justify-center text-xs transition-all ${
@@ -62,6 +65,9 @@ export function Header() {
             {theme === 'dark' ? '🌙' : '☀️'}
           </span>
         </button>
+
+        {/* Language selector */}
+        <LanguageSelector />
 
         {/* User avatar + dropdown */}
         <div className="relative">
@@ -118,7 +124,7 @@ export function Header() {
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-danger/10 transition-colors"
                 >
-                  Logout
+                  {t('auth.logout')}
                 </button>
               </div>
             </>

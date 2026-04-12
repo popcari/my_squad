@@ -25,6 +25,7 @@ import type {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { ContributionChart } from './contribution-chart';
 
 function formatVND(amount: number): string {
@@ -32,6 +33,7 @@ function formatVND(amount: number): string {
 }
 
 export default function FundingPage() {
+  const { t } = useTranslation();
   const canManage = useCanManage();
   const confirm = useConfirm();
 
@@ -181,10 +183,9 @@ export default function FundingPage() {
 
   const handleDeleteRound = async (id: string) => {
     const ok = await confirm({
-      title: 'Delete Funding Round',
-      message:
-        'Deleting this round will remove all related contributions. Are you sure?',
-      confirmText: 'Delete',
+      title: t('funding.deleteRound'),
+      message: t('funding.deleteRoundConfirm'),
+      confirmText: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
@@ -224,9 +225,9 @@ export default function FundingPage() {
 
   const handleDeleteContribution = async (id: string) => {
     const ok = await confirm({
-      title: 'Delete Contribution',
-      message: 'Are you sure you want to delete this contribution?',
-      confirmText: 'Delete',
+      title: t('common.delete'),
+      message: t('funding.deleteExpenseConfirm'),
+      confirmText: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
@@ -279,9 +280,9 @@ export default function FundingPage() {
 
   const handleDeleteExpense = async (id: string) => {
     const ok = await confirm({
-      title: 'Delete Expense',
-      message: 'Are you sure you want to delete this expense?',
-      confirmText: 'Delete',
+      title: t('funding.deleteExpense'),
+      message: t('funding.deleteExpenseConfirm'),
+      confirmText: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
@@ -297,7 +298,7 @@ export default function FundingPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold mb-6">Team Funding</h1>
+        <h1 className="text-2xl font-bold mb-6">{t('funding.title')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="skeleton h-24 rounded-lg" />
@@ -314,25 +315,25 @@ export default function FundingPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Team Funding</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('funding.title')}</h1>
 
       {/* ─── SUMMARY CARDS ──────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
         {[
           {
-            label: 'Total Funding',
+            label: t('funding.totalIncome'),
             testId: 'summary-income',
             value: summary.totalIncome,
             color: 'text-accent',
           },
           {
-            label: 'Total Expense',
+            label: t('funding.totalExpense'),
             testId: 'summary-expense',
             value: summary.totalExpense,
             color: 'text-danger',
           },
           {
-            label: 'Balance',
+            label: t('funding.balance'),
             testId: 'summary-balance',
             value: summary.balance,
             color: summary.balance >= 0 ? 'text-primary' : 'text-danger',
@@ -368,14 +369,14 @@ export default function FundingPage() {
           {/* Rounds Section */}
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold">Funding Rounds</h2>
+              <h2 className="text-lg font-semibold">{t('funding.rounds')}</h2>
               {canManage && (
                 <button
                   onClick={() => setShowRoundForm(!showRoundForm)}
                   className="text-sm text-primary hover:text-primary-hover transition-colors"
                   aria-label="Create Round"
                 >
-                  {showRoundForm ? '✕ Cancel' : '+ Create Round'}
+                  {showRoundForm ? `- ${t('common.cancel')}` : t('funding.newRound')}
                 </button>
               )}
             </div>
@@ -385,7 +386,7 @@ export default function FundingPage() {
                 <InputText
                   value={roundName}
                   onChange={(e) => setRoundName(e.target.value)}
-                  placeholder="Round Name (e.g., Round 1 - April)"
+                  placeholder={t('funding.roundName')}
                   className="flex-1"
                   required
                 />
@@ -393,13 +394,13 @@ export default function FundingPage() {
                   type="submit"
                   className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm transition-colors"
                 >
-                  Create
+                  {t('common.create')}
                 </button>
               </form>
             )}
 
             {rounds.length === 0 ? (
-              <p className="text-sm text-muted">No funding rounds yet.</p>
+              <p className="text-sm text-muted">{t('funding.noRounds')}</p>
             ) : (
               <div className="space-y-2">
                 {rounds.map((r) => (
@@ -461,13 +462,13 @@ export default function FundingPage() {
                               }}
                               className="px-2 py-1 text-xs text-primary hover:bg-primary/20 rounded"
                             >
-                              Edit
+                              {t('common.edit')}
                             </button>
                             <button
                               onClick={() => handleDeleteRound(r.id)}
                               className="px-2 py-1 text-xs text-danger hover:bg-danger/20 rounded"
                             >
-                              Delete
+                              {t('common.delete')}
                             </button>
                           </div>
                         )}
@@ -484,15 +485,15 @@ export default function FundingPage() {
             <div className="bg-card rounded-lg p-4 border border-border">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold">
-                  Contributions —{' '}
+                  {t('funding.contributions')} —{' '}
                   {rounds.find((r) => r.id === selectedRound)?.name}
                 </h3>
                 {canManage && (
                   <button
                     onClick={() => setShowContribForm(!showContribForm)}
-                    className="text-sm text-primary hover:text-primary-hover transition-colors"
+                    className="text-sm text-primary hover:bg-primary/10 px-2 py-1 rounded transition-colors"
                   >
-                    {showContribForm ? '✕ Cancel' : '+ Add'}
+                    {showContribForm ? `- ${t('common.cancel')}` : `+ ${t('funding.addContribution')}`}
                   </button>
                 )}
               </div>
@@ -502,18 +503,16 @@ export default function FundingPage() {
                   onSubmit={handleAddContributions}
                   className="space-y-3 mb-4 p-3 bg-background rounded-lg border border-border"
                 >
-                  {/* Shared settings row */}
-                  <div className="flex flex-wrap gap-2 items-center mb-2">
+                  <div className="flex items-center gap-4">
                     <InputText
                       type="date"
                       value={contribDate}
                       onChange={(e) => setContribDate(e.target.value)}
-                      className="w-48"
+                      className="w-40"
                       required
                     />
                   </div>
 
-                  {/* Player grid */}
                   <div className="space-y-1.5">
                     {players.map((p) => {
                       const existing = filteredContributions.find(
@@ -553,12 +552,8 @@ export default function FundingPage() {
                               }
                               className="w-[115px] text-sm"
                             >
-                              <option value={CONTRIBUTION_TYPE.RECURRING}>
-                                Recurring
-                              </option>
-                              <option value={CONTRIBUTION_TYPE.DONATION}>
-                                Donation
-                              </option>
+                              <option value={CONTRIBUTION_TYPE.RECURRING}>{t('funding.cash')}</option>
+                              <option value={CONTRIBUTION_TYPE.DONATION}>{t('funding.transfer')}</option>
                             </Select>
                             <InputText
                               type="number"
@@ -580,7 +575,7 @@ export default function FundingPage() {
                   </div>
 
                   <InputText
-                    placeholder="General Note (optional)"
+                    placeholder={t('funding.note')}
                     value={contribNote}
                     onChange={(e) => setContribNote(e.target.value)}
                   />
@@ -592,33 +587,31 @@ export default function FundingPage() {
                         (v) => v && Number(v) > 0,
                       )
                     }
-                    className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
+                    className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors font-medium"
                   >
-                    Save Contributions (
+                    {t('common.save')} (
                     {
                       Object.values(contribAmounts).filter(
                         (v) => v && Number(v) > 0,
                       ).length
                     }{' '}
-                    people)
+                    {t('common.players')})
                   </button>
                 </form>
               )}
 
               {filteredContributions.length === 0 ? (
-                <p className="text-sm text-muted">
-                  No contributions for this round yet.
-                </p>
+                <p className="text-sm text-muted">{t('funding.noContributions')}</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-muted text-xs border-b border-border">
-                        <th className="pb-2 pr-3">Member</th>
-                        <th className="pb-2 pr-3">Amount</th>
-                        <th className="pb-2 pr-3">Type</th>
-                        <th className="pb-2 pr-3">Date</th>
-                        <th className="pb-2 pr-3">Note</th>
+                        <th className="pb-2 pr-3">{t('common.players')}</th>
+                        <th className="pb-2 pr-3">{t('funding.amount')}</th>
+                        <th className="pb-2 pr-3">{t('funding.type')}</th>
+                        <th className="pb-2 pr-3">{t('funding.date')}</th>
+                        <th className="pb-2 pr-3">{t('funding.note')}</th>
                         {canManage && <th className="pb-2"></th>}
                       </tr>
                     </thead>
@@ -643,8 +636,8 @@ export default function FundingPage() {
                               }`}
                             >
                               {c.type === CONTRIBUTION_TYPE.RECURRING
-                                ? 'Recurring'
-                                : 'Donation'}
+                                ? t('funding.cash')
+                                : t('funding.transfer')}
                             </span>
                           </td>
                           <td className="py-2 pr-3 text-muted">
@@ -659,7 +652,7 @@ export default function FundingPage() {
                                 onClick={() => handleDeleteContribution(c.id)}
                                 className="text-xs text-danger hover:text-danger/80"
                               >
-                                Delete
+                                {t('common.delete')}
                               </button>
                             </td>
                           )}
@@ -668,7 +661,7 @@ export default function FundingPage() {
                     </tbody>
                     <tfoot>
                       <tr className="border-t border-border font-semibold">
-                        <td className="pt-2 pr-3">Total</td>
+                        <td className="pt-2 pr-3">{t('funding.total')}</td>
                         <td className="pt-2 pr-3 text-accent">
                           {formatVND(
                             filteredContributions.reduce(
@@ -692,13 +685,13 @@ export default function FundingPage() {
           {/* General Expenses */}
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold">Expenses</h2>
+              <h2 className="text-lg font-semibold">{t('funding.expenses')}</h2>
               {canManage && (
                 <button
                   onClick={() => setShowExpenseForm(!showExpenseForm)}
                   className="text-sm text-primary hover:text-primary-hover transition-colors"
                 >
-                  {showExpenseForm ? '✕ Cancel' : '+ Add Expense'}
+                  {showExpenseForm ? `- ${t('common.cancel')}` : t('funding.addExpense')}
                 </button>
               )}
             </div>
@@ -710,7 +703,7 @@ export default function FundingPage() {
                 onChange={(e) => setExpenseMonth(e.target.value)}
                 className="text-sm"
               >
-                <option value="">All</option>
+                <option value="">{t('funding.all')}</option>
                 {expenseMonths.map((m) => (
                   <option key={m} value={m}>
                     {`${m.split('-')[1]}/${m.split('-')[0]}`}
@@ -719,7 +712,7 @@ export default function FundingPage() {
               </Select>
               {expenseMonth && (
                 <span className="text-xs text-muted">
-                  Total:{' '}
+                  {t('funding.total')}:{' '}
                   <span className="font-semibold text-danger">
                     {formatVND(monthTotal)}
                   </span>
@@ -733,14 +726,14 @@ export default function FundingPage() {
                 className="space-y-2 mb-4 p-3 bg-background rounded-lg border border-border"
               >
                 <InputText
-                  placeholder="Description"
+                  placeholder={t('funding.description')}
                   error={expenseFormHook.formState.errors.description}
                   required
                   {...expenseFormHook.register('description')}
                 />
                 <InputText
                   type="number"
-                  placeholder={`Amount (${VN_CURRENCY})`}
+                  placeholder={`${t('funding.amount')} (${VN_CURRENCY})`}
                   error={expenseFormHook.formState.errors.amount}
                   required
                   min="0"
@@ -756,7 +749,7 @@ export default function FundingPage() {
                   disabled={expenseFormHook.formState.isSubmitting}
                   className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
                 >
-                  {expenseFormHook.formState.isSubmitting ? 'Adding...' : 'Add Expense'}
+                  {expenseFormHook.formState.isSubmitting ? t('common.saving') : t('funding.addExpense')}
                 </button>
               </form>
             )}
@@ -765,7 +758,7 @@ export default function FundingPage() {
               <p className="text-sm text-muted">
                 {expenseMonth
                   ? `No expenses for ${expenseMonth.split('-')[1]}/${expenseMonth.split('-')[0]}.`
-                  : 'No expenses yet.'}
+                  : t('funding.noExpenses')}
               </p>
             ) : (
               <div className="space-y-2">
@@ -811,13 +804,13 @@ export default function FundingPage() {
                             onClick={() => handleSaveEditExpense(exp.id)}
                             className="text-xs text-accent hover:text-accent/80"
                           >
-                            Save
+                            {t('common.save')}
                           </button>
                           <button
                             onClick={() => setEditingExpense(null)}
                             className="text-xs text-muted hover:text-foreground"
                           >
-                            Cancel
+                            {t('common.cancel')}
                           </button>
                         </div>
                       </div>
@@ -848,13 +841,13 @@ export default function FundingPage() {
                                 onClick={() => handleStartEditExpense(exp)}
                                 className="px-2 py-1 text-xs text-primary hover:bg-primary/20 rounded"
                               >
-                                Edit
+                                {t('common.edit')}
                               </button>
                               <button
                                 onClick={() => handleDeleteExpense(exp.id)}
                                 className="px-2 py-1 text-xs text-danger hover:bg-danger/20 rounded"
                               >
-                                Delete
+                                {t('common.delete')}
                               </button>
                             </div>
                           )}
@@ -871,12 +864,12 @@ export default function FundingPage() {
           {canManage && (
             <div className="bg-card rounded-lg p-4 border border-border">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold">Match Expenses</h2>
+                <h2 className="text-lg font-semibold">{t('funding.matchExpenses')}</h2>
                 <button
                   onClick={() => setShowMatchExpenseForm(!showMatchExpenseForm)}
                   className="text-sm text-primary hover:text-primary-hover transition-colors"
                 >
-                  {showMatchExpenseForm ? '✕ Cancel' : '+ Add Match Expense'}
+                  {showMatchExpenseForm ? `- ${t('common.cancel')}` : t('funding.addMatchExpense')}
                 </button>
               </div>
 
@@ -895,7 +888,7 @@ export default function FundingPage() {
                         className="w-full text-sm"
                         required
                       >
-                        <option value="">Select Match</option>
+                        <option value="">{t('funding.selectMatch')}</option>
                         {availableMatches.map((m) => (
                           <option key={m.id} value={m.id}>
                             vs {m.opponent} —{' '}
@@ -907,7 +900,7 @@ export default function FundingPage() {
                   />
                   <InputText
                     type="number"
-                    placeholder={`Amount (${VN_CURRENCY})`}
+                    placeholder={`${t('funding.amount')} (${VN_CURRENCY})`}
                     error={matchExpenseFormHook.formState.errors.amount}
                     required
                     min="0"
@@ -923,14 +916,14 @@ export default function FundingPage() {
                     disabled={matchExpenseFormHook.formState.isSubmitting}
                     className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
                   >
-                    {matchExpenseFormHook.formState.isSubmitting ? 'Adding...' : 'Add Match Expense'}
+                    {matchExpenseFormHook.formState.isSubmitting ? t('common.saving') : t('funding.addMatchExpense')}
                   </button>
                 </form>
               )}
 
               {/* List of all matches with expense status */}
               {matches.length === 0 ? (
-                <p className="text-sm text-muted">No matches yet.</p>
+                <p className="text-sm text-muted">{t('funding.noMatches')}</p>
               ) : (
                 <div className="space-y-2">
                   {/* Matches without expense */}
@@ -983,7 +976,7 @@ export default function FundingPage() {
                             onClick={() => handleStartEditExpense(exp)}
                             className="px-2 py-1 text-xs text-primary hover:bg-primary/20 rounded"
                           >
-                            Edit
+                            {t('common.edit')}
                           </button>
                         </div>
                       </div>

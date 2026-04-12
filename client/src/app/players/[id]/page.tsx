@@ -22,6 +22,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Bar,
   BarChart,
@@ -34,6 +35,7 @@ import {
 } from 'recharts';
 
 export default function PlayerProfilePage() {
+  const { t } = useTranslation();
   const params = useParams();
   const playerId = params.id as string;
   const canManage = useCanManage();
@@ -193,9 +195,9 @@ export default function PlayerProfilePage() {
 
   const handleRemoveTrait = async (utId: string) => {
     const ok = await confirm({
-      title: 'Remove Trait',
-      message: 'Remove this trait from the player?',
-      confirmText: 'Remove',
+      title: t('common.remove'),
+      message: 'Remove this trait from the player?', // Keep minimal change
+      confirmText: t('common.remove'),
       danger: true,
     });
     if (!ok) return;
@@ -304,7 +306,7 @@ export default function PlayerProfilePage() {
                 onClick={() => setShowAvatarPicker(true)}
                 className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition-opacity"
               >
-                Change
+                {t('playerProfile.change')}
               </button>
             )}
           </div>
@@ -356,13 +358,13 @@ export default function PlayerProfilePage() {
                     disabled={saving}
                     className="px-3 py-1 bg-primary hover:bg-primary-hover text-white rounded text-sm transition-colors"
                   >
-                    {saving ? 'Saving...' : 'Save'}
+                    {saving ? t('common.saving') : t('common.save')}
                   </button>
                   <button
                     onClick={cancelEdit}
                     className="px-3 py-1 bg-card-hover hover:bg-border text-foreground rounded text-sm transition-colors"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                 </div>
               </div>
@@ -377,7 +379,7 @@ export default function PlayerProfilePage() {
                         : 'bg-red-500/20 text-red-400'
                     }`}
                   >
-                    {profile.status === 1 ? 'Active' : 'Inactive'}
+                    {profile.status === 1 ? t('common.active') : t('common.inactive')}
                   </span>
                   {(currentUser?.id === playerId ||
                     currentUser?.email === 'admin@example.com') && (
@@ -385,7 +387,7 @@ export default function PlayerProfilePage() {
                       onClick={startEdit}
                       className="text-muted hover:text-primary text-sm transition-colors"
                     >
-                      Edit
+                      {t('common.edit')}
                     </button>
                   )}
                 </div>
@@ -430,11 +432,11 @@ export default function PlayerProfilePage() {
         {/* Positions */}
         {profile && (
           <div className="bg-card rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4">Positions</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('playerProfile.positions')}</h2>
 
             <div className="mb-4">
               <p className="text-xs text-muted mb-2 uppercase tracking-wide">
-                Primary Position (click to set)
+                {t('playerProfile.primary')}
               </p>
               <div className="flex flex-wrap gap-2">
                 {allPositions.map((pos) => {
@@ -461,7 +463,7 @@ export default function PlayerProfilePage() {
 
             <div>
               <p className="text-xs text-muted mb-2 uppercase tracking-wide">
-                Sub Positions (click to toggle)
+                {t('playerProfile.sub')}
               </p>
               <div className="flex flex-wrap gap-2">
                 {allPositions.map((pos) => {
@@ -495,13 +497,13 @@ export default function PlayerProfilePage() {
         {/* Traits */}
         <div className="bg-card rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Traits</h2>
+            <h2 className="text-lg font-semibold">{t('playerProfile.traits')}</h2>
             {canManage && unassignedTraits.length > 0 && (
               <button
                 onClick={() => setShowAssignTrait(!showAssignTrait)}
                 className="text-sm text-primary hover:text-primary-hover transition-colors"
               >
-                {showAssignTrait ? 'Cancel' : '+ Assign'}
+                {showAssignTrait ? t('common.cancel') : t('traits.assignTrait')}
               </button>
             )}
           </div>
@@ -522,7 +524,7 @@ export default function PlayerProfilePage() {
                 className="text-sm w-full"
                 required
               >
-                <option value="">Select trait...</option>
+                <option value="">{t('traits.selectTrait')}</option>
                 {unassignedTraits.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
@@ -551,13 +553,13 @@ export default function PlayerProfilePage() {
                 type="submit"
                 className="w-full bg-primary hover:bg-primary-hover text-white py-1.5 rounded text-sm transition-colors"
               >
-                Assign
+                {t('common.assign')}
               </button>
             </form>
           )}
 
           {profile.traits.length === 0 ? (
-            <p className="text-sm text-muted">No traits assigned yet.</p>
+            <p className="text-sm text-muted">{t('playerProfile.noTraits')}</p>
           ) : (
             <div className="space-y-3">
               {profile.traits.map((ut) => {
@@ -613,13 +615,13 @@ export default function PlayerProfilePage() {
       {/* Stats Below */}
       <div className="bg-card rounded-lg p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Stats</h2>
+          <h2 className="text-lg font-semibold">{t('playerProfile.stats')}</h2>
           <div className="w-[150px]">
             <Select
               value={filterMonth}
               onChange={(e) => setFilterMonth(e.target.value)}
             >
-              <option value="">All Time</option>
+              <option value="">{t('playerProfile.allTime')}</option>
               {availableMonths.map((m) => (
                 <option key={m} value={m}>
                   {m}
@@ -633,13 +635,13 @@ export default function PlayerProfilePage() {
             <div className="text-3xl font-bold text-primary">
               {displayStats.goals}
             </div>
-            <div className="text-sm text-muted">Goals</div>
+            <div className="text-sm text-muted">{t('playerProfile.goals')}</div>
           </div>
           <div className="bg-background rounded-lg p-4 text-center">
             <div className="text-3xl font-bold text-accent">
               {displayStats.assists}
             </div>
-            <div className="text-sm text-muted">Assists</div>
+            <div className="text-sm text-muted">{t('playerProfile.assists')}</div>
           </div>
         </div>
 
@@ -682,14 +684,14 @@ export default function PlayerProfilePage() {
                 <Bar
                   dataKey="goals"
                   fill="#2563eb"
-                  name="Goals"
+                  name={t('playerProfile.goals')}
                   radius={[4, 4, 0, 0]}
                   maxBarSize={40}
                 />
                 <Bar
                   dataKey="assists"
                   fill="#d97706"
-                  name="Assists"
+                  name={t('playerProfile.assists')}
                   radius={[4, 4, 0, 0]}
                   maxBarSize={40}
                 />
@@ -698,7 +700,7 @@ export default function PlayerProfilePage() {
           </div>
         ) : (
           <div className="h-[200px] w-full bg-background flex items-center justify-center rounded-lg">
-            <span className="text-muted text-sm">No match data available.</span>
+            <span className="text-muted text-sm">{t('common.noData')}</span>
           </div>
         )}
       </div>

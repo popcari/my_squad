@@ -3,17 +3,19 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const navItems = [
-  { href: '/', label: 'Home', icon: '⚽' },
-  { href: '/matches', label: 'Stats', icon: '📊' },
-  { href: '/funding', label: 'Funding', icon: '💰' },
-  { href: '/players', label: 'Players', icon: '👥' },
-  { href: '/traits', label: 'Traits', icon: '🎯' },
-  { href: '/settings', label: 'Settings', icon: '⚙️' },
+  { href: '/', labelKey: 'nav.home', icon: '⚽' },
+  { href: '/matches', labelKey: 'nav.stats', icon: '📊' },
+  { href: '/funding', labelKey: 'nav.funding', icon: '💰' },
+  { href: '/players', labelKey: 'nav.players', icon: '👥' },
+  { href: '/traits', labelKey: 'nav.traits', icon: '🎯' },
+  { href: '/settings', labelKey: 'nav.settings', icon: '⚙️' },
 ];
 
 export function Sidebar() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -84,8 +86,8 @@ export function Sidebar() {
         <div className="p-4 flex items-center justify-between">
           {(!collapsed || mobileOpen) && (
             <div>
-              <h1 className="text-xl font-bold text-primary">My Squad</h1>
-              <p className="text-xs text-muted">Team Management</p>
+              <h1 className="text-xl font-bold text-primary">{t('common.appName')}</h1>
+              <p className="text-xs text-muted">{t('common.teamManagement')}</p>
             </div>
           )}
 
@@ -120,7 +122,7 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                title={collapsed && !mobileOpen ? item.label : undefined}
+                title={collapsed && !mobileOpen ? t(item.labelKey) : undefined}
                 className={`flex items-center gap-3 px-3 py-3 md:py-2 rounded-lg text-sm transition-colors ${
                   isActive
                     ? 'bg-primary text-white'
@@ -129,7 +131,7 @@ export function Sidebar() {
               >
                 <span className="text-lg md:text-base">{item.icon}</span>
                 {(!collapsed || mobileOpen) && (
-                  <span className="text-base md:text-sm">{item.label}</span>
+                  <span className="text-base md:text-sm">{t(item.labelKey)}</span>
                 )}
               </Link>
             );
