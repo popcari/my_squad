@@ -175,7 +175,7 @@ export default function HomePage() {
     return 'bg-primary';
   };
 
-  const monthLabel = new Date(calYear, calMonth).toLocaleDateString('en', {
+  const monthLabel = new Date(calYear, calMonth).toLocaleDateString('vi-VN', {
     month: 'long',
     year: 'numeric',
   });
@@ -191,7 +191,7 @@ export default function HomePage() {
           {new Date(m.matchDate).getDate()}
         </span>
         <span className="text-[10px] text-muted uppercase">
-          {new Date(m.matchDate).toLocaleDateString('en', { weekday: 'short' })}
+          {new Date(m.matchDate).toLocaleDateString('vi-VN', { weekday: 'short' })}
         </span>
       </div>
 
@@ -261,7 +261,7 @@ export default function HomePage() {
             {selectedDate && selectedMatches && (
               <div className="bg-card rounded-lg p-4">
                 <h3 className="text-sm font-semibold mb-2">
-                  {new Date(selectedDate + 'T00:00').toLocaleDateString('en', {
+                  {new Date(selectedDate + 'T00:00').toLocaleDateString('vi-VN', {
                     weekday: 'long',
                     day: 'numeric',
                     month: 'long',

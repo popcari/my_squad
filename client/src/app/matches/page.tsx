@@ -247,7 +247,7 @@ export default function MatchesPage() {
                             >
                               <td className="px-4 py-3 whitespace-nowrap">
                                 {new Date(match.matchDate).toLocaleDateString(
-                                  'en-US',
+                                  'vi-VN',
                                 )}
                               </td>
                               <td className="px-4 py-3 font-medium text-primary">

@@ -27,6 +27,7 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { ContributionChart } from './contribution-chart';
+import { ExpenseChart } from './expense-chart';
 
 function formatVND(amount: number): string {
   return amount.toLocaleString('vi-VN') + 'đ';
@@ -55,6 +56,14 @@ export default function FundingPage() {
   const [roundName, setRoundName] = useState('');
   const [editingRound, setEditingRound] = useState<string | null>(null);
   const [editRoundName, setEditRoundName] = useState('');
+
+  // Inline Match Expense
+  const [inlineMatchExpenses, setInlineMatchExpenses] = useState<
+    Record<string, string>
+  >({});
+  const [savingMatchExpense, setSavingMatchExpense] = useState<string | null>(
+    null,
+  );
 
   // Contribution batch form
   const [showContribForm, setShowContribForm] = useState(false);
@@ -259,6 +268,35 @@ export default function FundingPage() {
     loadData();
   };
 
+  const handleSaveInlineMatchExpense = async (
+    matchId: string,
+    opponent: string,
+    matchDate: string,
+  ) => {
+    const amountStr = inlineMatchExpenses[matchId];
+    if (!amountStr) return;
+    const amount = Number(amountStr);
+    if (isNaN(amount) || amount <= 0) return;
+
+    setSavingMatchExpense(matchId);
+    try {
+      await fundingService.addExpense({
+        description: `Match vs ${opponent || 'N/A'}`,
+        amount,
+        date: matchDate.slice(0, 10),
+        matchId: matchId,
+      });
+      setInlineMatchExpenses((prev) => {
+        const next = { ...prev };
+        delete next[matchId];
+        return next;
+      });
+      loadData();
+    } finally {
+      setSavingMatchExpense(null);
+    }
+  };
+
   const handleStartEditExpense = (exp: Expense) => {
     setEditingExpense(exp.id);
     setEditExpenseForm({
@@ -376,7 +414,9 @@ export default function FundingPage() {
                   className="text-sm text-primary hover:text-primary-hover transition-colors"
                   aria-label="Create Round"
                 >
-                  {showRoundForm ? `- ${t('common.cancel')}` : t('funding.newRound')}
+                  {showRoundForm
+                    ? `- ${t('common.cancel')}`
+                    : t('funding.newRound')}
                 </button>
               )}
             </div>
@@ -493,7 +533,9 @@ export default function FundingPage() {
                     onClick={() => setShowContribForm(!showContribForm)}
                     className="text-sm text-primary hover:bg-primary/10 px-2 py-1 rounded transition-colors"
                   >
-                    {showContribForm ? `- ${t('common.cancel')}` : `+ ${t('funding.addContribution')}`}
+                    {showContribForm
+                      ? `- ${t('common.cancel')}`
+                      : `+ ${t('funding.addContribution')}`}
                   </button>
                 )}
               </div>
@@ -552,8 +594,12 @@ export default function FundingPage() {
                               }
                               className="w-[115px] text-sm"
                             >
-                              <option value={CONTRIBUTION_TYPE.RECURRING}>{t('funding.cash')}</option>
-                              <option value={CONTRIBUTION_TYPE.DONATION}>{t('funding.transfer')}</option>
+                              <option value={CONTRIBUTION_TYPE.RECURRING}>
+                                {t('funding.cash')}
+                              </option>
+                              <option value={CONTRIBUTION_TYPE.DONATION}>
+                                {t('funding.transfer')}
+                              </option>
                             </Select>
                             <InputText
                               type="number"
@@ -601,7 +647,9 @@ export default function FundingPage() {
               )}
 
               {filteredContributions.length === 0 ? (
-                <p className="text-sm text-muted">{t('funding.noContributions')}</p>
+                <p className="text-sm text-muted">
+                  {t('funding.noContributions')}
+                </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -641,7 +689,7 @@ export default function FundingPage() {
                             </span>
                           </td>
                           <td className="py-2 pr-3 text-muted">
-                            {new Date(c.date).toLocaleDateString('en-US')}
+                            {new Date(c.date).toLocaleDateString('vi-VN')}
                           </td>
                           <td className="py-2 pr-3 text-muted text-xs">
                             {c.note || '—'}
@@ -691,27 +739,33 @@ export default function FundingPage() {
                   onClick={() => setShowExpenseForm(!showExpenseForm)}
                   className="text-sm text-primary hover:text-primary-hover transition-colors"
                 >
-                  {showExpenseForm ? `- ${t('common.cancel')}` : t('funding.addExpense')}
+                  {showExpenseForm
+                    ? `- ${t('common.cancel')}`
+                    : t('funding.addExpense')}
                 </button>
               )}
             </div>
 
+            <ExpenseChart expenses={expenses} />
+
             {/* Month filter */}
-            <div className="flex items-center gap-2 mb-3">
-              <Select
-                value={expenseMonth}
-                onChange={(e) => setExpenseMonth(e.target.value)}
-                className="text-sm"
-              >
-                <option value="">{t('funding.all')}</option>
-                {expenseMonths.map((m) => (
-                  <option key={m} value={m}>
-                    {`${m.split('-')[1]}/${m.split('-')[0]}`}
-                  </option>
-                ))}
-              </Select>
+            <div className="flex items-center justify-between gap-2 mb-3 ">
+              <div className="w-auto">
+                <Select
+                  value={expenseMonth}
+                  onChange={(e) => setExpenseMonth(e.target.value)}
+                  className="text-sm"
+                >
+                  <option value="">{t('funding.all')}</option>
+                  {expenseMonths.map((m) => (
+                    <option key={m} value={m}>
+                      {`${m.split('-')[1]}/${m.split('-')[0]}`}
+                    </option>
+                  ))}
+                </Select>
+              </div>
               {expenseMonth && (
-                <span className="text-xs text-muted">
+                <span className="text-lg text-muted font-bold">
                   {t('funding.total')}:{' '}
                   <span className="font-semibold text-danger">
                     {formatVND(monthTotal)}
@@ -737,7 +791,9 @@ export default function FundingPage() {
                   error={expenseFormHook.formState.errors.amount}
                   required
                   min="0"
-                  {...expenseFormHook.register('amount', { valueAsNumber: true })}
+                  {...expenseFormHook.register('amount', {
+                    valueAsNumber: true,
+                  })}
                 />
                 <InputText
                   type="date"
@@ -749,7 +805,9 @@ export default function FundingPage() {
                   disabled={expenseFormHook.formState.isSubmitting}
                   className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
                 >
-                  {expenseFormHook.formState.isSubmitting ? t('common.saving') : t('funding.addExpense')}
+                  {expenseFormHook.formState.isSubmitting
+                    ? t('common.saving')
+                    : t('funding.addExpense')}
                 </button>
               </form>
             )}
@@ -815,26 +873,28 @@ export default function FundingPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex flex-col md:flex-row items-center justify-between">
+                      <div className="flex flex-col justify-between">
                         <div className="w-full md:flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm truncate">
-                              {exp.description}
-                            </span>
-                            {exp.matchId && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-primary/20 text-primary rounded">
-                                Match
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm truncate">
+                                {exp.description}
                               </span>
-                            )}
+                              {exp.matchId && (
+                                <span className="text-[10px] px-1.5 py-0.5 bg-primary/20 text-primary rounded">
+                                  Match
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-bold text-danger text-sm">
+                              -{formatVND(exp.amount)}
+                            </span>
                           </div>
                           <div className="text-xs text-muted mt-0.5">
-                            {new Date(exp.date).toLocaleDateString('en-US')}
+                            {new Date(exp.date).toLocaleDateString('vi-VN')}
                           </div>
                         </div>
-                        <div className="w-full md:w-auto  flex justify-between md:justify-center items-center gap-2">
-                          <span className="font-bold text-danger text-sm">
-                            -{formatVND(exp.amount)}
-                          </span>
+                        <div className="w-full md:w-auto flex justify-end gap-2">
                           {canManage && (
                             <div className="flex gap-1">
                               <button
@@ -864,18 +924,24 @@ export default function FundingPage() {
           {canManage && (
             <div className="bg-card rounded-lg p-4 border border-border">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold">{t('funding.matchExpenses')}</h2>
+                <h2 className="text-lg font-semibold">
+                  {t('funding.matchExpenses')}
+                </h2>
                 <button
                   onClick={() => setShowMatchExpenseForm(!showMatchExpenseForm)}
                   className="text-sm text-primary hover:text-primary-hover transition-colors"
                 >
-                  {showMatchExpenseForm ? `- ${t('common.cancel')}` : t('funding.addMatchExpense')}
+                  {showMatchExpenseForm
+                    ? `- ${t('common.cancel')}`
+                    : t('funding.addMatchExpense')}
                 </button>
               </div>
 
               {showMatchExpenseForm && (
                 <form
-                  onSubmit={matchExpenseFormHook.handleSubmit(handleAddMatchExpense)}
+                  onSubmit={matchExpenseFormHook.handleSubmit(
+                    handleAddMatchExpense,
+                  )}
                   className="space-y-2 mb-4 p-3 bg-background rounded-lg border border-border"
                 >
                   <Controller
@@ -892,7 +958,7 @@ export default function FundingPage() {
                         {availableMatches.map((m) => (
                           <option key={m.id} value={m.id}>
                             vs {m.opponent} —{' '}
-                            {new Date(m.matchDate).toLocaleDateString('en-US')}
+                            {new Date(m.matchDate).toLocaleDateString('vi-VN')}
                           </option>
                         ))}
                       </Select>
@@ -904,7 +970,9 @@ export default function FundingPage() {
                     error={matchExpenseFormHook.formState.errors.amount}
                     required
                     min="0"
-                    {...matchExpenseFormHook.register('amount', { valueAsNumber: true })}
+                    {...matchExpenseFormHook.register('amount', {
+                      valueAsNumber: true,
+                    })}
                   />
                   <InputText
                     type="date"
@@ -916,7 +984,9 @@ export default function FundingPage() {
                     disabled={matchExpenseFormHook.formState.isSubmitting}
                     className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
                   >
-                    {matchExpenseFormHook.formState.isSubmitting ? t('common.saving') : t('funding.addMatchExpense')}
+                    {matchExpenseFormHook.formState.isSubmitting
+                      ? t('common.saving')
+                      : t('funding.addMatchExpense')}
                   </button>
                 </form>
               )}
@@ -930,19 +1000,55 @@ export default function FundingPage() {
                   {availableMatches.map((m) => (
                     <div
                       key={m.id}
-                      className="p-3 bg-card-hover rounded-lg flex items-center justify-between"
+                      className="p-3 bg-card-hover rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate">
                           vs {m.opponent}
                         </div>
-                        <div className="text-xs text-muted">
-                          {new Date(m.matchDate).toLocaleDateString('en-US')}
+                        <div className="text-xs text-muted mt-0.5">
+                          {new Date(m.matchDate).toLocaleDateString('vi-VN')}
                         </div>
                       </div>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400">
-                        Not entered
-                      </span>
+                      {canManage ? (
+                        <div className="flex items-center gap-2">
+                          <InputText
+                            type="number"
+                            placeholder="0"
+                            className="w-28 text-right h-8 text-sm"
+                            min="0"
+                            value={inlineMatchExpenses[m.id] || ''}
+                            onChange={(e) =>
+                              setInlineMatchExpenses((prev) => ({
+                                ...prev,
+                                [m.id]: e.target.value,
+                              }))
+                            }
+                          />
+                          <button
+                            onClick={() =>
+                              handleSaveInlineMatchExpense(
+                                m.id,
+                                m.opponent,
+                                m.matchDate,
+                              )
+                            }
+                            disabled={
+                              !inlineMatchExpenses[m.id] ||
+                              savingMatchExpense === m.id
+                            }
+                            className="text-xs font-medium bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded disabled:opacity-50 min-w-[60px] flex justify-center transition-colors"
+                          >
+                            {savingMatchExpense === m.id
+                              ? '...'
+                              : t('common.save')}
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 self-start md:self-auto">
+                          Not entered
+                        </span>
+                      )}
                     </div>
                   ))}
 
@@ -953,32 +1059,85 @@ export default function FundingPage() {
                     return (
                       <div
                         key={m.id}
-                        className="p-3 bg-card-hover rounded-lg flex items-center justify-between"
+                        className="p-3 bg-card-hover rounded-lg transition-colors group hover:bg-border/50 flex flex-col md:flex-row md:items-center justify-between"
                       >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium truncate">
-                              vs {m.opponent}
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.5 bg-accent/20 text-accent rounded">
-                              Entered
-                            </span>
+                        {editingExpense === exp.id ? (
+                          <div className="space-y-2 w-full">
+                            <InputText
+                              value={editExpenseForm.description}
+                              onChange={(e) =>
+                                setEditExpenseForm({
+                                  ...editExpenseForm,
+                                  description: e.target.value,
+                                })
+                              }
+                            />
+                            <InputText
+                              type="number"
+                              value={editExpenseForm.amount}
+                              onChange={(e) =>
+                                setEditExpenseForm({
+                                  ...editExpenseForm,
+                                  amount: e.target.value,
+                                })
+                              }
+                              min="0"
+                            />
+                            <InputText
+                              type="date"
+                              value={editExpenseForm.date}
+                              onChange={(e) =>
+                                setEditExpenseForm({
+                                  ...editExpenseForm,
+                                  date: e.target.value,
+                                })
+                              }
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleSaveEditExpense(exp.id)}
+                                className="text-xs text-accent hover:text-accent/80"
+                              >
+                                {t('common.save')}
+                              </button>
+                              <button
+                                onClick={() => setEditingExpense(null)}
+                                className="text-xs text-muted hover:text-foreground"
+                              >
+                                {t('common.cancel')}
+                              </button>
+                            </div>
                           </div>
-                          <div className="text-xs text-muted">
-                            {new Date(m.matchDate).toLocaleDateString('en-US')}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-danger text-sm">
-                            -{formatVND(exp.amount)}
-                          </span>
-                          <button
-                            onClick={() => handleStartEditExpense(exp)}
-                            className="px-2 py-1 text-xs text-primary hover:bg-primary/20 rounded"
-                          >
-                            {t('common.edit')}
-                          </button>
-                        </div>
+                        ) : (
+                          <>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium truncate">
+                                  vs {m.opponent}
+                                </span>
+                                <span className="text-[10px] px-1.5 py-0.5 bg-accent/20 text-accent rounded">
+                                  Entered
+                                </span>
+                              </div>
+                              <div className="text-xs text-muted">
+                                {new Date(m.matchDate).toLocaleDateString(
+                                  'vi-VN',
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2 md:mt-0">
+                              <span className="font-bold text-danger text-sm">
+                                -{formatVND(exp.amount)}
+                              </span>
+                              <button
+                                onClick={() => handleStartEditExpense(exp)}
+                                className="px-2 py-1 text-xs text-primary hover:bg-primary/20 rounded"
+                              >
+                                {t('common.edit')}
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     );
                   })}

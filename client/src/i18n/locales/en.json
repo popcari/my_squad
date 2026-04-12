@@ -19,7 +19,9 @@
     "vs": "vs",
     "players": "Players",
     "appName": "My Squad",
-    "teamManagement": "Team Management"
+    "teamManagement": "Team Management",
+    "month": "Month",
+    "year": "Year"
   },
   "nav": {
     "home": "Home",
@@ -158,11 +160,13 @@
     "descriptionOptional": "Description (optional)"
   },
   "funding": {
+    "all": "Total funding",
     "title": "Funding",
     "overview": "Overview",
     "totalIncome": "Total Income",
     "totalExpense": "Total Expense",
     "balance": "Balance",
+    "expensesTrend": "Expenses Trend",
     "rounds": "Rounds",
     "contributions": "Contributions",
     "expenses": "Expenses",

@@ -19,7 +19,9 @@
     "vs": "vs",
     "players": "Cầu thủ",
     "appName": "My Squad",
-    "teamManagement": "Quản lý đội bóng"
+    "teamManagement": "Quản lý đội bóng",
+    "month": "Tháng",
+    "year": "Năm"
   },
   "nav": {
     "home": "Trang chủ",
@@ -158,11 +160,13 @@
     "descriptionOptional": "Mô tả (tùy chọn)"
   },
   "funding": {
+    "all": "Tổng quỹ",
     "title": "Quỹ đội",
     "overview": "Tổng quan",
     "totalIncome": "Tổng thu",
     "totalExpense": "Tổng chi",
     "balance": "Số dư",
+    "expensesTrend": "Biểu đồ chi phí",
     "rounds": "Đợt đóng quỹ",
     "contributions": "Đóng góp",
     "expenses": "Chi phí",
