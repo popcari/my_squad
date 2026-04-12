@@ -7,10 +7,16 @@ import { InputText } from '@/components/ui/input-text';
 import { MATCH_RESULT_TYPES, MATCH_STATUS } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+import {
+  createMatchSchema,
+  type CreateMatchForm,
+} from '@/schemas/create-match.schema';
 import { matchesService } from '@/services';
 import { teamSettingsService } from '@/services/team-settings.service';
 import type { Match } from '@/types';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 export default function HomePage() {
   const canManage = useCanManage();
@@ -27,11 +33,23 @@ export default function HomePage() {
 
   const [showForm, setShowForm] = useState(false);
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T15:00`;
-  const [form, setForm] = useState({
-    opponent: '',
-    matchDate: todayStr,
-    location: '',
-    notes: '',
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    getValues,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateMatchForm>({
+    resolver: zodResolver(createMatchSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      opponent: '',
+      matchDate: todayStr,
+      location: '',
+      notes: '',
+    },
   });
 
   const loadMatches = async (year: number, month: number) => {
@@ -86,23 +104,22 @@ export default function HomePage() {
   const handleSelectDate = (date: string) => {
     setSelectedDate(selectedDate === date ? null : date);
     if (canManage) {
-      setForm((f) => ({ ...f, matchDate: `${date}T15:00` }));
+      setValue('matchDate', `${date}T15:00`);
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onCreateMatch = async (data: CreateMatchForm) => {
     const ok = await confirm({
       title: 'Create Match',
-      message: `Create match vs ${form.opponent}?`,
+      message: `Create match vs ${data.opponent}?`,
       confirmText: 'Create',
     });
     if (!ok) return;
     await matchesService.create({
-      ...form,
-      matchDate: new Date(form.matchDate).toISOString(),
+      ...data,
+      matchDate: new Date(data.matchDate).toISOString(),
     });
-    setForm({ opponent: '', matchDate: todayStr, location: '', notes: '' });
+    reset({ opponent: '', matchDate: todayStr, location: '', notes: '' });
     setShowForm(false);
     loadMatches(calYear, calMonth);
   };
@@ -268,43 +285,35 @@ export default function HomePage() {
                   {showForm ? '- Cancel' : '+ Create new match'}
                 </button>
                 {showForm && (
-                  <form onSubmit={handleCreate} className="mt-3 space-y-3">
+                  <form onSubmit={handleSubmit(onCreateMatch)} className="mt-3 space-y-3">
                     <InputText
                       placeholder="Opponent"
-                      value={form.opponent}
-                      onChange={(e) =>
-                        setForm({ ...form, opponent: e.target.value })
-                      }
+                      error={errors.opponent}
                       required
+                      {...register('opponent')}
                     />
                     <InputText
                       type="datetime-local"
-                      value={form.matchDate}
-                      onChange={(e) =>
-                        setForm({ ...form, matchDate: e.target.value })
-                      }
+                      error={errors.matchDate}
                       required
+                      {...register('matchDate')}
                     />
                     <InputText
                       placeholder="Location"
-                      value={form.location}
-                      onChange={(e) =>
-                        setForm({ ...form, location: e.target.value })
-                      }
+                      error={errors.location}
                       required
+                      {...register('location')}
                     />
                     <InputText
                       placeholder="Notes (optional)"
-                      value={form.notes}
-                      onChange={(e) =>
-                        setForm({ ...form, notes: e.target.value })
-                      }
+                      {...register('notes')}
                     />
                     <button
                       type="submit"
-                      className="w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-lg text-sm transition-colors"
+                      disabled={isSubmitting}
+                      className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
                     >
-                      Create Match
+                      {isSubmitting ? 'Creating...' : 'Create Match'}
                     </button>
                   </form>
                 )}

@@ -45,20 +45,24 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const updateDropdownPosition = () => {
       if (wrapperRef.current) {
         const rect = wrapperRef.current.getBoundingClientRect();
-        setDropdownStyle({
-          top: rect.bottom + 4,
-          left: rect.left,
-          width: rect.width,
+        setDropdownStyle((prev) => {
+          if (
+            prev.top === rect.bottom + 4 &&
+            prev.left === rect.left &&
+            prev.width === rect.width
+          ) {
+            return prev; // No change — skip re-render
+          }
+          return { top: rect.bottom + 4, left: rect.left, width: rect.width };
         });
       }
     };
 
-    // Keep position synced while open (handles parent re-renders with keepOpen)
+    // Keep position synced while open (handles scroll/resize with keepOpen)
     useEffect(() => {
-      if (isOpen) {
-        updateDropdownPosition();
-      }
-    });
+      if (!isOpen) return;
+      updateDropdownPosition();
+    }, [isOpen]);
 
     const toggleOpen = () => {
       if (disabled) return;

@@ -3,43 +3,13 @@
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { InputText } from '@/components/ui/input-text';
 import { useAuth } from '@/contexts/auth-context';
+import { loginSchema, type LoginForm } from '@/schemas/login.schema';
 import { authService } from '@/services/auth.service';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().superRefine((val, ctx) => {
-    if (val.length === 0) {
-      ctx.addIssue({ code: 'custom', message: 'Password is required' });
-      return;
-    }
-    if (val.length < 6) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Password must be at least 6 characters',
-      });
-    }
-    if (!/[A-Z]/.test(val)) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Password must contain at least 1 uppercase letter',
-      });
-    }
-    if (!/\d/.test(val)) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Password must contain at least 1 number',
-      });
-    }
-  }),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [serverError, setServerError] = useState('');

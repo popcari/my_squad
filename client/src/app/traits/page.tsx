@@ -5,9 +5,17 @@ import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+import {
+  assignTraitSchema,
+  createTraitSchema,
+  type AssignTraitForm,
+  type CreateTraitForm,
+} from '@/schemas/trait.schema';
 import { traitsService, usersService, userTraitsService } from '@/services';
 import type { Trait, User, UserTrait } from '@/types';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 
 export default function TraitsPage() {
   const canManage = useCanManage();
@@ -16,15 +24,23 @@ export default function TraitsPage() {
   const [players, setPlayers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '' });
-  const [assignForm, setAssignForm] = useState({
-    userId: '',
-    traitId: '',
-    rating: '50',
-  });
   const [showAssign, setShowAssign] = useState(false);
   const [playerTraits, setPlayerTraits] = useState<UserTrait[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState('');
+
+  // Create Trait form
+  const createForm = useForm<CreateTraitForm>({
+    resolver: zodResolver(createTraitSchema),
+    mode: 'onTouched',
+    defaultValues: { name: '', description: '' },
+  });
+
+  const assignFormHook = useForm<AssignTraitForm>({
+    resolver: zodResolver(assignTraitSchema),
+    mode: 'onTouched',
+    defaultValues: { userId: '', traitId: '', rating: 50 },
+  });
+  const { handleSubmit: handleAssignSubmit } = assignFormHook;
 
   const reload = async () => {
     const [t, p] = await Promise.all([
@@ -37,16 +53,7 @@ export default function TraitsPage() {
   };
 
   useEffect(() => {
-    const load = async () => {
-      const [t, p] = await Promise.all([
-        traitsService.getAll(),
-        usersService.getAll(),
-      ]);
-      setTraits(t);
-      setPlayers(p);
-      setLoading(false);
-    };
-    load();
+    reload();
   }, []);
 
   const loadPlayerTraits = async (userId: string) => {
@@ -59,16 +66,15 @@ export default function TraitsPage() {
     setPlayerTraits(ut);
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreate = async (data: CreateTraitForm) => {
     const ok = await confirm({
       title: 'Create Trait',
-      message: `Create trait "${form.name}"?`,
+      message: `Create trait "${data.name}"?`,
       confirmText: 'Create',
     });
     if (!ok) return;
-    await traitsService.create(form);
-    setForm({ name: '', description: '' });
+    await traitsService.create(data);
+    createForm.reset();
     setShowForm(false);
     setLoading(true);
     await reload();
@@ -88,20 +94,19 @@ export default function TraitsPage() {
     await reload();
   };
 
-  const handleAssign = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAssign: SubmitHandler<AssignTraitForm> = async (data) => {
     const ok = await confirm({
       title: 'Assign Trait',
-      message: `Assign trait with rating ${assignForm.rating}?`,
+      message: `Assign trait with rating ${data.rating}?`,
       confirmText: 'Assign',
     });
     if (!ok) return;
     await userTraitsService.assign({
-      userId: assignForm.userId,
-      traitId: assignForm.traitId,
-      rating: Number(assignForm.rating),
+      userId: data.userId,
+      traitId: data.traitId,
+      rating: data.rating,
     });
-    setAssignForm({ userId: '', traitId: '', rating: '50' });
+    assignFormHook.reset();
     setShowAssign(false);
     if (selectedPlayer) loadPlayerTraits(selectedPlayer);
   };
@@ -146,82 +151,88 @@ export default function TraitsPage() {
 
       {canManage && showForm && (
         <form
-          onSubmit={handleCreate}
+          onSubmit={createForm.handleSubmit(handleCreate)}
           className="bg-card p-4 rounded-lg mb-6 grid grid-cols-2 gap-4"
         >
           <InputText
             placeholder="Trait name (e.g. Speed, Stamina)"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            error={createForm.formState.errors.name}
             required
+            {...createForm.register('name')}
           />
           <InputText
             placeholder="Description (optional)"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            {...createForm.register('description')}
           />
           <button
             type="submit"
-            className="col-span-2 bg-accent hover:bg-accent/80 text-white py-2 rounded-lg text-sm transition-colors"
+            disabled={createForm.formState.isSubmitting}
+            className="col-span-2 bg-accent hover:bg-accent/80 disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
           >
-            Create Trait
+            {createForm.formState.isSubmitting ? 'Creating...' : 'Create Trait'}
           </button>
         </form>
       )}
 
       {canManage && showAssign && (
         <form
-          onSubmit={handleAssign}
+          onSubmit={handleAssignSubmit(handleAssign)}
           className="bg-card p-4 rounded-lg mb-6 grid grid-cols-3 gap-4"
         >
-          <Select
-            value={assignForm.userId}
-            onChange={(e) =>
-              setAssignForm({ ...assignForm, userId: e.target.value })
-            }
-            className="text-sm"
-            required
-          >
-            <option value="">Select Player</option>
-            {players.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.displayName}
-              </option>
-            ))}
-          </Select>
-          <Select
-            value={assignForm.traitId}
-            onChange={(e) =>
-              setAssignForm({ ...assignForm, traitId: e.target.value })
-            }
-            className="text-sm"
-            required
-          >
-            <option value="">Select Trait</option>
-            {traits.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </Select>
+          <Controller
+            name="userId"
+            control={assignFormHook.control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+                className="text-sm"
+                required
+              >
+                <option value="">Select Player</option>
+                {players.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.displayName}
+                  </option>
+                ))}
+              </Select>
+            )}
+          />
+          <Controller
+            name="traitId"
+            control={assignFormHook.control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+                className="text-sm"
+                required
+              >
+                <option value="">Select Trait</option>
+                {traits.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          />
           <div className="flex items-center gap-2">
             <input
               type="range"
               min={1}
               max={100}
-              value={assignForm.rating}
-              onChange={(e) =>
-                setAssignForm({ ...assignForm, rating: e.target.value })
-              }
+              {...assignFormHook.register('rating', { valueAsNumber: true })}
               className="flex-1"
             />
-            <span className="text-sm font-mono w-8">{assignForm.rating}</span>
+            <span className="text-sm font-mono w-8">{assignFormHook.watch('rating')}</span>
           </div>
           <button
             type="submit"
-            className="col-span-3 bg-primary hover:bg-primary-hover text-white py-2 rounded-lg text-sm transition-colors"
+            disabled={assignFormHook.formState.isSubmitting}
+            className="col-span-3 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
           >
-            Assign Trait
+            {assignFormHook.formState.isSubmitting ? 'Assigning...' : 'Assign Trait'}
           </button>
         </form>
       )}

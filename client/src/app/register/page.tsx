@@ -4,52 +4,13 @@ import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { InputText } from '@/components/ui/input-text';
 import { USER_ROLE } from '@/constant/enum';
 import { useAuth } from '@/contexts/auth-context';
+import { registerSchema, type RegisterForm } from '@/schemas/register.schema';
 import { authService } from '@/services/auth.service';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-const registerSchema = z.object({
-  displayName: z.string().min(1, 'Display name is required'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().superRefine((val, ctx) => {
-    if (val.length === 0) {
-      ctx.addIssue({ code: 'custom', message: 'Password is required' });
-      return;
-    }
-    if (val.length < 6) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Password must be at least 6 characters',
-      });
-    }
-    if (val.length > 32) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Password must be at most 32 characters',
-      });
-    }
-    if (!/[A-Z]/.test(val)) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Password must contain at least 1 uppercase letter',
-      });
-    }
-    if (!/\d/.test(val)) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Password must contain at least 1 number',
-      });
-    }
-  }),
-  phone: z.string().min(1, 'Phone number is required'),
-  jerseyNumber: z.string().optional(),
-});
-
-type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const [serverError, setServerError] = useState('');

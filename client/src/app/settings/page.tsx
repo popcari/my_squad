@@ -4,10 +4,16 @@ import { SettingsPageSkeleton } from '@/components/shared/skeleton';
 import { InputText } from '@/components/ui/input-text';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+import {
+  teamSettingsSchema,
+  type TeamSettingsForm,
+} from '@/schemas/team-settings.schema';
 import { teamSettingsService } from '@/services/team-settings.service';
 import type { TeamSettings } from '@/types/team-settings';
+import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 export default function SettingsPage() {
   const canManage = useCanManage();
@@ -15,20 +21,22 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<TeamSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    description: '',
-    foundedDate: '',
-    logo: '',
-    homeStadium: '',
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<TeamSettingsForm>({
+    resolver: zodResolver(teamSettingsSchema),
+    mode: 'onTouched',
   });
-  const [saving, setSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
     const data = await teamSettingsService.get();
     setSettings(data);
-    setForm({
+    reset({
       name: data.name || '',
       description: data.description || '',
       foundedDate: data.foundedDate || '',
@@ -39,35 +47,19 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      const data = await teamSettingsService.get();
-      setSettings(data);
-      setForm({
-        name: data.name || '',
-        description: data.description || '',
-        foundedDate: data.foundedDate || '',
-        logo: data.logo || '',
-        homeStadium: data.homeStadium || '',
-      });
-      setLoading(false);
-    };
-    init();
+    load();
   }, []);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: TeamSettingsForm) => {
     const ok = await confirm({
       title: 'Save Settings',
       message: 'Save changes to team settings?',
       confirmText: 'Save',
     });
     if (!ok) return;
-    setSaving(true);
-    await teamSettingsService.update(form);
+    await teamSettingsService.update(data);
     setEditing(false);
     await load();
-    setSaving(false);
   };
 
   if (loading) return <SettingsPageSkeleton />;
@@ -88,24 +80,21 @@ export default function SettingsPage() {
 
       {editing ? (
         <form
-          onSubmit={handleSave}
+          onSubmit={handleSubmit(onSubmit)}
           className="bg-card rounded-lg p-6 space-y-4 max-w-2xl"
         >
           <InputText
             label="Team Name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            error={errors.name}
             required
+            {...register('name')}
           />
           <div>
             <label className="block text-sm font-medium mb-1">
               Description
             </label>
             <textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
+              {...register('description')}
               rows={3}
               className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
             />
@@ -114,33 +103,26 @@ export default function SettingsPage() {
             <InputText
               label="Founded Date"
               type="date"
-              value={form.foundedDate}
-              onChange={(e) =>
-                setForm({ ...form, foundedDate: e.target.value })
-              }
+              {...register('foundedDate')}
             />
             <InputText
               label="Home Stadium"
-              value={form.homeStadium}
-              onChange={(e) =>
-                setForm({ ...form, homeStadium: e.target.value })
-              }
               placeholder="Stadium name"
+              {...register('homeStadium')}
             />
           </div>
           <InputText
             label="Logo URL"
-            value={form.logo}
-            onChange={(e) => setForm({ ...form, logo: e.target.value })}
             placeholder="https://..."
+            {...register('logo')}
           />
           <div className="flex gap-3">
             <button
               type="submit"
-              disabled={saving}
+              disabled={isSubmitting}
               className="px-6 py-2 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-lg text-sm transition-colors"
             >
-              {saving ? 'Saving...' : 'Save'}
+              {isSubmitting ? 'Saving...' : 'Save'}
             </button>
             <button
               type="button"

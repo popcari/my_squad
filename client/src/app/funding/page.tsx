@@ -6,6 +6,12 @@ import { VN_CURRENCY } from '@/constant';
 import { CONTRIBUTION_TYPE } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+import {
+  expenseSchema,
+  matchExpenseSchema,
+  type ExpenseForm,
+  type MatchExpenseForm,
+} from '@/schemas/funding.schema';
 import { matchesService, usersService } from '@/services';
 import { fundingService } from '@/services/funding.service';
 import type {
@@ -16,7 +22,9 @@ import type {
   Match,
   User,
 } from '@/types';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { ContributionChart } from './contribution-chart';
 
 function formatVND(amount: number): string {
@@ -61,10 +69,14 @@ export default function FundingPage() {
 
   // Expense form
   const [showExpenseForm, setShowExpenseForm] = useState(false);
-  const [expenseForm, setExpenseForm] = useState({
-    description: '',
-    amount: '',
-    date: new Date().toISOString().slice(0, 10),
+  const expenseFormHook = useForm<ExpenseForm>({
+    resolver: zodResolver(expenseSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      description: '',
+      amount: 0,
+      date: new Date().toISOString().slice(0, 10),
+    },
   });
 
   // Expense month filter (YYYY-MM or '' for all)
@@ -74,10 +86,14 @@ export default function FundingPage() {
 
   // Match expense form
   const [showMatchExpenseForm, setShowMatchExpenseForm] = useState(false);
-  const [matchExpenseForm, setMatchExpenseForm] = useState({
-    matchId: '',
-    amount: '',
-    date: new Date().toISOString().slice(0, 10),
+  const matchExpenseFormHook = useForm<MatchExpenseForm>({
+    resolver: zodResolver(matchExpenseSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      matchId: '',
+      amount: 0,
+      date: new Date().toISOString().slice(0, 10),
+    },
   });
 
   // Editing expense
@@ -218,38 +234,26 @@ export default function FundingPage() {
     loadData();
   };
 
-  const handleAddExpense = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!expenseForm.description || !expenseForm.amount) return;
+  const handleAddExpense = async (data: ExpenseForm) => {
     await fundingService.addExpense({
-      description: expenseForm.description,
-      amount: Number(expenseForm.amount),
-      date: expenseForm.date,
+      description: data.description,
+      amount: data.amount,
+      date: data.date,
     });
-    setExpenseForm({
-      description: '',
-      amount: '',
-      date: new Date().toISOString().slice(0, 10),
-    });
+    expenseFormHook.reset();
     setShowExpenseForm(false);
     loadData();
   };
 
-  const handleAddMatchExpense = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!matchExpenseForm.matchId || !matchExpenseForm.amount) return;
-    const match = matches.find((m) => m.id === matchExpenseForm.matchId);
+  const handleAddMatchExpense = async (data: MatchExpenseForm) => {
+    const match = matches.find((m) => m.id === data.matchId);
     await fundingService.addExpense({
       description: `Match vs ${match?.opponent || 'N/A'}`,
-      amount: Number(matchExpenseForm.amount),
-      date: matchExpenseForm.date,
-      matchId: matchExpenseForm.matchId,
+      amount: data.amount,
+      date: data.date,
+      matchId: data.matchId,
     });
-    setMatchExpenseForm({
-      matchId: '',
-      amount: '',
-      date: new Date().toISOString().slice(0, 10),
-    });
+    matchExpenseFormHook.reset();
     setShowMatchExpenseForm(false);
     loadData();
   };
@@ -725,43 +729,34 @@ export default function FundingPage() {
 
             {showExpenseForm && (
               <form
-                onSubmit={handleAddExpense}
+                onSubmit={expenseFormHook.handleSubmit(handleAddExpense)}
                 className="space-y-2 mb-4 p-3 bg-background rounded-lg border border-border"
               >
                 <InputText
                   placeholder="Description"
-                  value={expenseForm.description}
-                  onChange={(e) =>
-                    setExpenseForm({
-                      ...expenseForm,
-                      description: e.target.value,
-                    })
-                  }
+                  error={expenseFormHook.formState.errors.description}
                   required
+                  {...expenseFormHook.register('description')}
                 />
                 <InputText
                   type="number"
                   placeholder={`Amount (${VN_CURRENCY})`}
-                  value={expenseForm.amount}
-                  onChange={(e) =>
-                    setExpenseForm({ ...expenseForm, amount: e.target.value })
-                  }
+                  error={expenseFormHook.formState.errors.amount}
                   required
                   min="0"
+                  {...expenseFormHook.register('amount', { valueAsNumber: true })}
                 />
                 <InputText
                   type="date"
-                  value={expenseForm.date}
-                  onChange={(e) =>
-                    setExpenseForm({ ...expenseForm, date: e.target.value })
-                  }
                   required
+                  {...expenseFormHook.register('date')}
                 />
                 <button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-lg text-sm transition-colors"
+                  disabled={expenseFormHook.formState.isSubmitting}
+                  className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
                 >
-                  Add Expense
+                  {expenseFormHook.formState.isSubmitting ? 'Adding...' : 'Add Expense'}
                 </button>
               </form>
             )}
@@ -887,57 +882,48 @@ export default function FundingPage() {
 
               {showMatchExpenseForm && (
                 <form
-                  onSubmit={handleAddMatchExpense}
+                  onSubmit={matchExpenseFormHook.handleSubmit(handleAddMatchExpense)}
                   className="space-y-2 mb-4 p-3 bg-background rounded-lg border border-border"
                 >
-                  <Select
-                    value={matchExpenseForm.matchId}
-                    onChange={(e) =>
-                      setMatchExpenseForm({
-                        ...matchExpenseForm,
-                        matchId: e.target.value,
-                      })
-                    }
-                    className="w-full text-sm"
-                    required
-                  >
-                    <option value="">Select Match</option>
-                    {availableMatches.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        vs {m.opponent} —{' '}
-                        {new Date(m.matchDate).toLocaleDateString('en-US')}
-                      </option>
-                    ))}
-                  </Select>
+                  <Controller
+                    name="matchId"
+                    control={matchExpenseFormHook.control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        className="w-full text-sm"
+                        required
+                      >
+                        <option value="">Select Match</option>
+                        {availableMatches.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            vs {m.opponent} —{' '}
+                            {new Date(m.matchDate).toLocaleDateString('en-US')}
+                          </option>
+                        ))}
+                      </Select>
+                    )}
+                  />
                   <InputText
                     type="number"
                     placeholder={`Amount (${VN_CURRENCY})`}
-                    value={matchExpenseForm.amount}
-                    onChange={(e) =>
-                      setMatchExpenseForm({
-                        ...matchExpenseForm,
-                        amount: e.target.value,
-                      })
-                    }
+                    error={matchExpenseFormHook.formState.errors.amount}
                     required
                     min="0"
+                    {...matchExpenseFormHook.register('amount', { valueAsNumber: true })}
                   />
                   <InputText
                     type="date"
-                    value={matchExpenseForm.date}
-                    onChange={(e) =>
-                      setMatchExpenseForm({
-                        ...matchExpenseForm,
-                        date: e.target.value,
-                      })
-                    }
                     required
+                    {...matchExpenseFormHook.register('date')}
                   />
                   <button
                     type="submit"
-                    className="w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-lg text-sm transition-colors"
+                    disabled={matchExpenseFormHook.formState.isSubmitting}
+                    className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
                   >
-                    Add Match Expense
+                    {matchExpenseFormHook.formState.isSubmitting ? 'Adding...' : 'Add Match Expense'}
                   </button>
                 </form>
               )}
