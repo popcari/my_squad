@@ -130,16 +130,10 @@ export function PlayersPageSkeleton() {
                   />
                 </td>
                 <td className="px-4 py-3">
-                  <Skeleton
-                    height="16px"
-                    width={`${w}%`}
-                  />
+                  <Skeleton height="16px" width={`${w}%`} />
                 </td>
                 <td className="px-4 py-3">
-                  <Skeleton
-                    height="16px"
-                    width={`${w - 15}%`}
-                  />
+                  <Skeleton height="16px" width={`${w - 15}%`} />
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
@@ -217,10 +211,7 @@ export function TraitsPageSkeleton() {
                 className="bg-card p-3 rounded-lg flex items-center justify-between"
               >
                 <div className="space-y-1.5 flex-1">
-                  <Skeleton
-                    height="16px"
-                    width={`${w}%`}
-                  />
+                  <Skeleton height="16px" width={`${w}%`} />
                 </div>
               </div>
             ))}

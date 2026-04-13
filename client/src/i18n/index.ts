@@ -10,7 +10,8 @@ i18n.use(initReactI18next).init({
     en: { translation: en },
     vi: { translation: vi },
   },
-  lng: (typeof window !== 'undefined' && localStorage.getItem(LANG_KEY)) || 'en',
+  lng:
+    (typeof window !== 'undefined' && localStorage.getItem(LANG_KEY)) || 'en',
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
 });

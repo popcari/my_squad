@@ -1,7 +1,7 @@
 'use client';
 
-import { usersService } from '@/services';
 import { CloseButton } from '@/components/ui/close-button';
+import { usersService } from '@/services';
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -43,10 +43,8 @@ export function AvatarPickerModal({
       setUploading(true);
       setUploadProgress(0);
       try {
-        const result = await usersService.uploadAvatar(
-          userId,
-          file,
-          (p) => setUploadProgress(p),
+        const result = await usersService.uploadAvatar(userId, file, (p) =>
+          setUploadProgress(p),
         );
         onSelect(result.avatar);
       } finally {
@@ -79,10 +77,7 @@ export function AvatarPickerModal({
     onSelect(url);
   };
 
-  const handleDeleteImage = async (
-    e: React.MouseEvent,
-    publicId: string,
-  ) => {
+  const handleDeleteImage = async (e: React.MouseEvent, publicId: string) => {
     e.stopPropagation();
     setDeletingId(publicId);
     try {
@@ -126,7 +121,9 @@ export function AvatarPickerModal({
           >
             {uploading ? (
               <div className="space-y-2">
-                <p className="text-sm text-muted">Uploading... {uploadProgress}%</p>
+                <p className="text-sm text-muted">
+                  Uploading... {uploadProgress}%
+                </p>
                 <div className="w-full bg-background rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-primary h-2 rounded-full transition-all duration-200"
@@ -164,7 +161,10 @@ export function AvatarPickerModal({
           ) : (
             <div className="grid grid-cols-4 gap-2">
               {images.map((img) => (
-                <div key={img.publicId} className="relative group aspect-square">
+                <div
+                  key={img.publicId}
+                  className="relative group aspect-square"
+                >
                   <button
                     onClick={() => handleSelectExisting(img.url)}
                     className="w-full h-full rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-colors"

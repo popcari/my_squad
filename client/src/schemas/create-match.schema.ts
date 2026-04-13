@@ -1,4 +1,4 @@
-import { requiredString, optionalString } from '@/schemas';
+import { optionalString, requiredString } from '@/schemas';
 import { z } from 'zod';
 
 export const createMatchSchema = z.object({

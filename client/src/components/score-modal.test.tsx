@@ -1,9 +1,14 @@
+import { MATCH_STATUS } from '@/constant/enum';
+import {
+  matchesService,
+  positionsService,
+  userPositionsService,
+  usersService,
+} from '@/services';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ScoreModal } from './score-modal';
-import { matchesService, usersService, positionsService, userPositionsService } from '@/services';
-import { MATCH_STATUS } from '@/constant/enum';
 
 const mockConfirm = vi.fn().mockResolvedValue(true);
 
@@ -44,19 +49,47 @@ describe('ScoreModal Save Goals', () => {
   };
 
   const mockPlayers = [
-    { id: 'u1', displayName: 'Player 1', jerseyNumber: 9, email: 'p1@ex.com', phone: '111', role: 'player', status: 1, createdAt: '', updatedAt: '' },
-    { id: 'u2', displayName: 'Player 2', jerseyNumber: 10, email: 'p2@ex.com', phone: '222', role: 'player', status: 1, createdAt: '', updatedAt: '' },
+    {
+      id: 'u1',
+      displayName: 'Player 1',
+      jerseyNumber: 9,
+      email: 'p1@ex.com',
+      phone: '111',
+      role: 'player',
+      status: 1,
+      createdAt: '',
+      updatedAt: '',
+    },
+    {
+      id: 'u2',
+      displayName: 'Player 2',
+      jerseyNumber: 10,
+      email: 'p2@ex.com',
+      phone: '222',
+      role: 'player',
+      status: 1,
+      createdAt: '',
+      updatedAt: '',
+    },
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (usersService.getAll as ReturnType<typeof vi.fn>).mockResolvedValue(mockPlayers);
+    (usersService.getAll as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockPlayers,
+    );
     (positionsService.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (userPositionsService.getByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (
+      userPositionsService.getByUser as ReturnType<typeof vi.fn>
+    ).mockResolvedValue([]);
     (matchesService.getGoals as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (matchesService.getLineups as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (matchesService.getLineups as ReturnType<typeof vi.fn>).mockResolvedValue(
+      [],
+    );
     // After save, getLineups & getGoals are called again for cleanup
-    (matchesService.getLineups as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (matchesService.getLineups as ReturnType<typeof vi.fn>).mockResolvedValue(
+      [],
+    );
     (matchesService.getGoals as ReturnType<typeof vi.fn>).mockResolvedValue([]);
   });
 
@@ -69,7 +102,7 @@ describe('ScoreModal Save Goals', () => {
         canManage={true}
         onClose={vi.fn()}
         onSaved={onSaved}
-      />
+      />,
     );
 
     // Wait for load to finish
@@ -92,17 +125,21 @@ describe('ScoreModal Save Goals', () => {
     // The goal row has 2 selects (Scorer, Assist) and 1 number input (Min)
     const allSelects = screen.getAllByRole('combobox');
     // Find the select that contains the "Scorer *" option
-    const scorerSelect = allSelects.find(sel => {
+    const scorerSelect = allSelects.find((sel) => {
       const options = sel.querySelectorAll('option');
-      return Array.from(options).some(opt => opt.textContent?.includes('Scorer'));
+      return Array.from(options).some((opt) =>
+        opt.textContent?.includes('Scorer'),
+      );
     });
     expect(scorerSelect).toBeTruthy();
     await userEvent.selectOptions(scorerSelect!, 'u1');
 
     // Assist select
-    const assistSelect = allSelects.find(sel => {
+    const assistSelect = allSelects.find((sel) => {
       const options = sel.querySelectorAll('option');
-      return Array.from(options).some(opt => opt.textContent?.includes('Assist'));
+      return Array.from(options).some((opt) =>
+        opt.textContent?.includes('Assist'),
+      );
     });
     expect(assistSelect).toBeTruthy();
     await userEvent.selectOptions(assistSelect!, 'u2');
@@ -132,7 +169,7 @@ describe('ScoreModal Save Goals', () => {
         canManage={true}
         onClose={vi.fn()}
         onSaved={vi.fn()}
-      />
+      />,
     );
 
     await waitFor(() => {
@@ -150,8 +187,10 @@ describe('ScoreModal Save Goals', () => {
 
     // Select scorer
     const allSelects = screen.getAllByRole('combobox');
-    const scorerSelect = allSelects.find(sel =>
-      Array.from(sel.querySelectorAll('option')).some(opt => opt.textContent?.includes('Scorer'))
+    const scorerSelect = allSelects.find((sel) =>
+      Array.from(sel.querySelectorAll('option')).some((opt) =>
+        opt.textContent?.includes('Scorer'),
+      ),
     );
     await userEvent.selectOptions(scorerSelect!, 'u1');
 

@@ -190,7 +190,9 @@ export default function HomePage() {
           {new Date(m.matchDate).getDate()}
         </span>
         <span className="text-[10px] text-muted uppercase">
-          {new Date(m.matchDate).toLocaleDateString('vi-VN', { weekday: 'short' })}
+          {new Date(m.matchDate).toLocaleDateString('vi-VN', {
+            weekday: 'short',
+          })}
         </span>
       </div>
 
@@ -260,11 +262,14 @@ export default function HomePage() {
             {selectedDate && selectedMatches && (
               <div className="bg-card rounded-lg p-4">
                 <h3 className="text-sm font-semibold mb-2">
-                  {new Date(selectedDate + 'T00:00').toLocaleDateString('vi-VN', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                  })}
+                  {new Date(selectedDate + 'T00:00').toLocaleDateString(
+                    'vi-VN',
+                    {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                    },
+                  )}
                 </h3>
                 {selectedMatches.length === 0 ? (
                   <p className="text-xs text-muted">

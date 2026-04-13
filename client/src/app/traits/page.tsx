@@ -17,9 +17,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import {
   Controller,
-  type SubmitHandler,
   useForm,
   useWatch,
+  type SubmitHandler,
 } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -189,7 +189,9 @@ export default function TraitsPage() {
             disabled={createForm.formState.isSubmitting}
             className="col-span-2 bg-accent hover:bg-accent/80 disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
           >
-            {createForm.formState.isSubmitting ? t('common.creating') : t('traits.createTrait')}
+            {createForm.formState.isSubmitting
+              ? t('common.creating')
+              : t('traits.createTrait')}
           </button>
         </form>
       )}
@@ -252,7 +254,9 @@ export default function TraitsPage() {
             disabled={assignFormHook.formState.isSubmitting}
             className="col-span-3 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
           >
-            {assignFormHook.formState.isSubmitting ? t('common.creating') : t('traits.assignTrait')}
+            {assignFormHook.formState.isSubmitting
+              ? t('common.creating')
+              : t('traits.assignTrait')}
           </button>
         </form>
       )}
@@ -260,7 +264,9 @@ export default function TraitsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Traits List */}
         <div>
-          <h2 className="text-lg font-semibold mb-3">{t('traits.allTraits')}</h2>
+          <h2 className="text-lg font-semibold mb-3">
+            {t('traits.allTraits')}
+          </h2>
           {loading ? (
             <TraitsPageSkeleton />
           ) : traits.length === 0 ? (
@@ -296,7 +302,9 @@ export default function TraitsPage() {
 
         {/* Player Traits View */}
         <div>
-          <h2 className="text-lg font-semibold mb-3">{t('traits.playerTraits')}</h2>
+          <h2 className="text-lg font-semibold mb-3">
+            {t('traits.playerTraits')}
+          </h2>
           <Select
             value={selectedPlayer}
             onChange={(e) => loadPlayerTraits(e.target.value)}
@@ -311,9 +319,7 @@ export default function TraitsPage() {
           </Select>
 
           {selectedPlayer && playerTraits.length === 0 && (
-            <p className="text-muted text-sm">
-              {t('traits.noPlayerTraits')}
-            </p>
+            <p className="text-muted text-sm">{t('traits.noPlayerTraits')}</p>
           )}
 
           {playerTraits.length > 0 && (

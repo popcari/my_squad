@@ -20,10 +20,18 @@ vi.mock('@/services/auth.service', () => ({
 describe('RegisterPage', () => {
   it('should render all form fields', () => {
     render(<RegisterPage />);
-    expect(screen.getByLabelText('Display Name', { exact: false })).toBeInTheDocument();
-    expect(screen.getByLabelText('Email', { exact: false })).toBeInTheDocument();
-    expect(screen.getByLabelText('Password', { exact: false })).toBeInTheDocument();
-    expect(screen.getByLabelText('Phone', { exact: false })).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Display Name', { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Email', { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Password', { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Phone', { exact: false }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Jersey')).toBeInTheDocument();
   });
 
@@ -37,7 +45,9 @@ describe('RegisterPage', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText('Phone number is required')).toBeInTheDocument();
+        expect(
+          screen.getByText('Phone number is required'),
+        ).toBeInTheDocument();
       });
     });
   });
@@ -131,9 +141,7 @@ describe('RegisterPage', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(
-          screen.queryByText(/Password must/),
-        ).not.toBeInTheDocument();
+        expect(screen.queryByText(/Password must/)).not.toBeInTheDocument();
       });
     });
   });

@@ -86,7 +86,9 @@ export function Sidebar() {
         <div className="p-4 flex items-center justify-between">
           {(!collapsed || mobileOpen) && (
             <div>
-              <h1 className="text-xl font-bold text-primary">{t('common.appName')}</h1>
+              <h1 className="text-xl font-bold text-primary">
+                {t('common.appName')}
+              </h1>
               <p className="text-xs text-muted">{t('common.teamManagement')}</p>
             </div>
           )}
@@ -131,7 +133,9 @@ export function Sidebar() {
               >
                 <span className="text-lg md:text-base">{item.icon}</span>
                 {(!collapsed || mobileOpen) && (
-                  <span className="text-base md:text-sm">{t(item.labelKey)}</span>
+                  <span className="text-base md:text-sm">
+                    {t(item.labelKey)}
+                  </span>
                 )}
               </Link>
             );

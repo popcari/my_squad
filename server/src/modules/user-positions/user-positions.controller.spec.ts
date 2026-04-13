@@ -58,7 +58,9 @@ describe('UserPositionsController', () => {
   });
 
   it('DELETE /user-positions/:id removes', async () => {
-    const res = await request(app.getHttpServer()).delete('/user-positions/up1');
+    const res = await request(app.getHttpServer()).delete(
+      '/user-positions/up1',
+    );
     expect(res.status).toBe(200);
     expect(mockService.remove).toHaveBeenCalledWith('up1');
   });

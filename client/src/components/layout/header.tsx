@@ -53,7 +53,9 @@ export function Header() {
         <button
           onClick={toggle}
           className="relative w-12 h-6 rounded-full bg-background border border-border transition-colors cursor-pointer"
-          title={theme === 'dark' ? t('header.lightMode') : t('header.darkMode')}
+          title={
+            theme === 'dark' ? t('header.lightMode') : t('header.darkMode')
+          }
         >
           <span
             className={`absolute top-[50%] translate-y-[-50%] w-4 h-4 rounded-full flex items-center justify-center text-xs transition-all ${

@@ -26,7 +26,7 @@ describe('MatchesController', () => {
     }).compile();
 
     app = module.createNestApplication();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     app.use((req: any, _res: any, next: any) => {
       req.user = { id: 'admin-1', role: UserRole.PRESIDENT };
       next();
@@ -69,13 +69,11 @@ describe('MatchesController', () => {
 
   it('POST /matches creates', async () => {
     (mockService.create as jest.Mock).mockResolvedValue({ id: 'new' });
-    const res = await request(app.getHttpServer())
-      .post('/matches')
-      .send({
-        opponent: 'FC Rivals',
-        matchDate: '2026-05-01T15:00:00.000Z',
-        location: 'Home',
-      });
+    const res = await request(app.getHttpServer()).post('/matches').send({
+      opponent: 'FC Rivals',
+      matchDate: '2026-05-01T15:00:00.000Z',
+      location: 'Home',
+    });
     expect(res.status).toBe(201);
   });
 

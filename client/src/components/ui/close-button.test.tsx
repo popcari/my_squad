@@ -19,8 +19,8 @@ describe('CloseButton', () => {
 
   it('applies custom className', () => {
     render(<CloseButton onClick={vi.fn()} className="custom-x" />);
-    expect(
-      screen.getByRole('button', { name: /close/i }).className,
-    ).toContain('custom-x');
+    expect(screen.getByRole('button', { name: /close/i }).className).toContain(
+      'custom-x',
+    );
   });
 });

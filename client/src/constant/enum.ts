@@ -25,4 +25,3 @@ export enum LINEUP_TYPE {
   STARTING = 'starting',
   SUBSTITUTE = 'substitute',
 }
-

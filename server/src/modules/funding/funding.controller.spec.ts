@@ -22,7 +22,9 @@ describe('FundingController', () => {
       createExpense: jest.fn(),
       updateExpense: jest.fn(),
       removeExpense: jest.fn(),
-      getSummary: jest.fn().mockResolvedValue({ totalIncome: 0, totalExpense: 0, balance: 0 }),
+      getSummary: jest
+        .fn()
+        .mockResolvedValue({ totalIncome: 0, totalExpense: 0, balance: 0 }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -31,7 +33,7 @@ describe('FundingController', () => {
     }).compile();
 
     app = module.createNestApplication();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     app.use((req: any, _res: any, next: any) => {
       req.user = { id: 'admin-1', role: UserRole.PRESIDENT };
       next();
@@ -76,7 +78,9 @@ describe('FundingController', () => {
     });
 
     it('DELETE /funding/rounds/:id removes', async () => {
-      const res = await request(app.getHttpServer()).delete('/funding/rounds/r1');
+      const res = await request(app.getHttpServer()).delete(
+        '/funding/rounds/r1',
+      );
       expect(res.status).toBe(200);
       expect(mockService.removeRound).toHaveBeenCalledWith('r1');
     });
@@ -84,12 +88,16 @@ describe('FundingController', () => {
 
   describe('contributions', () => {
     it('GET /funding/contributions with roundId filter', async () => {
-      await request(app.getHttpServer()).get('/funding/contributions?roundId=r1');
+      await request(app.getHttpServer()).get(
+        '/funding/contributions?roundId=r1',
+      );
       expect(mockService.findContributions).toHaveBeenCalledWith('r1');
     });
 
     it('POST /funding/contributions creates', async () => {
-      (mockService.createContribution as jest.Mock).mockResolvedValue({ id: 'c1' });
+      (mockService.createContribution as jest.Mock).mockResolvedValue({
+        id: 'c1',
+      });
       const res = await request(app.getHttpServer())
         .post('/funding/contributions')
         .send({

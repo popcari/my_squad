@@ -118,7 +118,7 @@ export default function PlayersPage() {
         if (name === 'Midfielders') label = t('players.midfielders');
         if (name === 'Forwards') label = t('players.forwards');
         if (name === 'Unassigned') label = t('players.unassigned');
-        
+
         return [label, groupPlayers] as [string, PlayerWithPositions[]];
       });
 
@@ -152,12 +152,13 @@ export default function PlayersPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {groupedByPosition.map(([positionName, posPlayers]) => {
             const getBorderColorClass = (name: string) => {
-              const enName = Object.entries({
-                [t('players.goalkeepers')]: 'Goalkeeper',
-                [t('players.defenders')]: 'Defender',
-                [t('players.midfielders')]: 'Midfielder',
-                [t('players.forwards')]: 'Forward',
-              }).find(([k]) => k === name)?.[1] || name;
+              const enName =
+                Object.entries({
+                  [t('players.goalkeepers')]: 'Goalkeeper',
+                  [t('players.defenders')]: 'Defender',
+                  [t('players.midfielders')]: 'Midfielder',
+                  [t('players.forwards')]: 'Forward',
+                }).find(([k]) => k === name)?.[1] || name;
 
               if (enName.includes('Goalkeeper')) return 'border-yellow-500';
               if (enName.includes('Defender')) return 'border-blue-500';
@@ -172,64 +173,66 @@ export default function PlayersPage() {
                 >
                   {positionName}
                 </h2>
-              <div className="space-y-1">
-                {posPlayers.map((p) => (
-                  <Link
-                    key={`${positionName}-${p.id}`}
-                    href={`/players/${p.id}`}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
-                      {p.avatar ? (
-                        <Image
-                          src={p.avatar}
-                          alt={p.displayName}
-                          width={40}
-                          height={40}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-primary font-bold text-sm">
-                          {p.displayName.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-                          {p.displayName}
-                        </p>
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                            p.status === 1
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'bg-red-500/20 text-red-400'
-                          }`}
-                        >
-                          {p.status === 1 ? t('common.active') : t('common.inactive')}
-                        </span>
-                        <span className="text-md font-bold">
-                          #{p.jerseyNumber ?? '-'}
-                        </span>
+                <div className="space-y-1">
+                  {posPlayers.map((p) => (
+                    <Link
+                      key={`${positionName}-${p.id}`}
+                      href={`/players/${p.id}`}
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
+                        {p.avatar ? (
+                          <Image
+                            src={p.avatar}
+                            alt={p.displayName}
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-primary font-bold text-sm">
+                            {p.displayName.charAt(0).toUpperCase()}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-muted">
-                        {p.phone} &middot; {p.email}
-                      </p>
-                    </div>
-                    {canManage && (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleDelete(p.id);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
-                      >
-                        {t('common.delete')}
-                      </button>
-                    )}
-                  </Link>
-                ))}
-              </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                            {p.displayName}
+                          </p>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              p.status === 1
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-red-500/20 text-red-400'
+                            }`}
+                          >
+                            {p.status === 1
+                              ? t('common.active')
+                              : t('common.inactive')}
+                          </span>
+                          <span className="text-md font-bold">
+                            #{p.jerseyNumber ?? '-'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted">
+                          {p.phone} &middot; {p.email}
+                        </p>
+                      </div>
+                      {canManage && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleDelete(p.id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
+                        >
+                          {t('common.delete')}
+                        </button>
+                      )}
+                    </Link>
+                  ))}
+                </div>
               </div>
             );
           })}

@@ -19,8 +19,12 @@ vi.mock('@/services/auth.service', () => ({
 describe('LoginPage', () => {
   it('should render email and password fields', () => {
     render(<LoginPage />);
-    expect(screen.getByLabelText('Email', { exact: false })).toBeInTheDocument();
-    expect(screen.getByLabelText('Password', { exact: false })).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Email', { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Password', { exact: false }),
+    ).toBeInTheDocument();
   });
 
   describe('password validation', () => {
@@ -128,7 +132,10 @@ describe('LoginPage', () => {
     const user = userEvent.setup();
     render(<LoginPage />);
 
-    await user.type(screen.getByLabelText('Email', { exact: false }), 'a@b.com');
+    await user.type(
+      screen.getByLabelText('Email', { exact: false }),
+      'a@b.com',
+    );
     await user.type(
       screen.getByLabelText('Password', { exact: false }),
       'Hello123',
@@ -150,7 +157,10 @@ describe('LoginPage', () => {
     const user = userEvent.setup();
     render(<LoginPage />);
 
-    await user.type(screen.getByLabelText('Email', { exact: false }), 'a@b.com');
+    await user.type(
+      screen.getByLabelText('Email', { exact: false }),
+      'a@b.com',
+    );
     await user.type(
       screen.getByLabelText('Password', { exact: false }),
       'Hello123',

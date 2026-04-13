@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/link', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,13 +34,19 @@ vi.mock('@/services', () => ({
     update: vi.fn(),
     uploadAvatar: vi.fn(),
   },
-  positionsService: { getAll: (...args: unknown[]) => mockGetAllPositions(...args) },
+  positionsService: {
+    getAll: (...args: unknown[]) => mockGetAllPositions(...args),
+  },
   traitsService: { getAll: (...args: unknown[]) => mockGetAllTraits(...args) },
   userPositionsService: { assign: vi.fn(), remove: vi.fn() },
-  userTraitsService: { assign: vi.fn(), updateRating: vi.fn(), remove: vi.fn() },
-  matchesService: { 
+  userTraitsService: {
+    assign: vi.fn(),
+    updateRating: vi.fn(),
+    remove: vi.fn(),
+  },
+  matchesService: {
     getAll: vi.fn().mockResolvedValue([]),
-    getAllGoals: vi.fn().mockResolvedValue([])
+    getAllGoals: vi.fn().mockResolvedValue([]),
   },
 }));
 
@@ -55,8 +61,8 @@ vi.mock('recharts', async (importOriginal) => {
   };
 });
 
-import PlayerProfilePage from './page';
 import { matchesService } from '@/services';
+import PlayerProfilePage from './page';
 
 describe('PlayerProfilePage - Status Display', () => {
   beforeEach(() => {
@@ -66,7 +72,9 @@ describe('PlayerProfilePage - Status Display', () => {
     ]);
     mockGetAllTraits.mockResolvedValue([]);
     (matchesService.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (matchesService.getAllGoals as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (matchesService.getAllGoals as ReturnType<typeof vi.fn>).mockResolvedValue(
+      [],
+    );
   });
 
   it('should display phone number in profile', async () => {

@@ -379,7 +379,9 @@ export default function PlayerProfilePage() {
                         : 'bg-red-500/20 text-red-400'
                     }`}
                   >
-                    {profile.status === 1 ? t('common.active') : t('common.inactive')}
+                    {profile.status === 1
+                      ? t('common.active')
+                      : t('common.inactive')}
                   </span>
                   {(currentUser?.id === playerId ||
                     currentUser?.email === 'admin@example.com') && (
@@ -432,7 +434,9 @@ export default function PlayerProfilePage() {
         {/* Positions */}
         {profile && (
           <div className="bg-card rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4">{t('playerProfile.positions')}</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              {t('playerProfile.positions')}
+            </h2>
 
             <div className="mb-4">
               <p className="text-xs text-muted mb-2 uppercase tracking-wide">
@@ -497,7 +501,9 @@ export default function PlayerProfilePage() {
         {/* Traits */}
         <div className="bg-card rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">{t('playerProfile.traits')}</h2>
+            <h2 className="text-lg font-semibold">
+              {t('playerProfile.traits')}
+            </h2>
             {canManage && unassignedTraits.length > 0 && (
               <button
                 onClick={() => setShowAssignTrait(!showAssignTrait)}
@@ -641,7 +647,9 @@ export default function PlayerProfilePage() {
             <div className="text-3xl font-bold text-accent">
               {displayStats.assists}
             </div>
-            <div className="text-sm text-muted">{t('playerProfile.assists')}</div>
+            <div className="text-sm text-muted">
+              {t('playerProfile.assists')}
+            </div>
           </div>
         </div>
 

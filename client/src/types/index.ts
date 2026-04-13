@@ -1,4 +1,9 @@
-import { CONTRIBUTION_TYPE, MATCH_STATUS, LINEUP_TYPE, USER_ROLE } from '@/constant/enum';
+import {
+  CONTRIBUTION_TYPE,
+  LINEUP_TYPE,
+  MATCH_STATUS,
+  USER_ROLE,
+} from '@/constant/enum';
 
 export type UserRole = `${USER_ROLE}`;
 export type MatchStatus = `${MATCH_STATUS}`;

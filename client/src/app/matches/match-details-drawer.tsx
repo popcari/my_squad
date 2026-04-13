@@ -8,7 +8,14 @@ import {
   type UpdateMatchForm,
 } from '@/schemas/match.schema';
 import { fundingService, matchesService } from '@/services';
-import type { Match, MatchGoal, MatchLineup, Expense, User, MatchStatus } from '@/types';
+import type {
+  Expense,
+  Match,
+  MatchGoal,
+  MatchLineup,
+  MatchStatus,
+  User,
+} from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -74,8 +81,11 @@ export function MatchDetailsDrawer({
         .finally(() => setLoadingGoals(false));
     } else if (activeTab === 'expense' && match) {
       setLoadingExpenses(true);
-      fundingService.getExpenses()
-        .then((allExp) => setExpenses(allExp.filter(e => e.matchId === match.id)))
+      fundingService
+        .getExpenses()
+        .then((allExp) =>
+          setExpenses(allExp.filter((e) => e.matchId === match.id)),
+        )
         .finally(() => setLoadingExpenses(false));
     }
   }, [activeTab, match]);
@@ -107,10 +117,19 @@ export function MatchDetailsDrawer({
     });
   };
 
-  const isGoalChanged = goals.some(g => g.id.startsWith('temp-')) || deletedGoalIds.length > 0;
-  const isExpenseChanged = expenses.some(e => e.id.startsWith('temp-')) || deletedExpenseIds.length > 0;
-  const hasPendingAdditions = (!!newGoalScorerId && !!newGoalMinute) || (!!newExpenseDesc && !!newExpenseAmount);
-  const hasUnsavedChanges = formHook.formState.isDirty || hasPendingAdditions || isGoalChanged || isExpenseChanged;
+  const isGoalChanged =
+    goals.some((g) => g.id.startsWith('temp-')) || deletedGoalIds.length > 0;
+  const isExpenseChanged =
+    expenses.some((e) => e.id.startsWith('temp-')) ||
+    deletedExpenseIds.length > 0;
+  const hasPendingAdditions =
+    (!!newGoalScorerId && !!newGoalMinute) ||
+    (!!newExpenseDesc && !!newExpenseAmount);
+  const hasUnsavedChanges =
+    formHook.formState.isDirty ||
+    hasPendingAdditions ||
+    isGoalChanged ||
+    isExpenseChanged;
 
   const handleGlobalSave = async () => {
     if (!match) return;
@@ -122,7 +141,7 @@ export function MatchDetailsDrawer({
         promises.push(
           handleUpdateMatch(formHook.getValues()).then(() => {
             formHook.reset(formHook.getValues()); // clear dirty state
-          })
+          }),
         );
       } else {
         setActiveTab('info'); // switch to show errors
@@ -131,46 +150,64 @@ export function MatchDetailsDrawer({
     }
 
     // Process deleted Goals
-    deletedGoalIds.forEach(id => promises.push(matchesService.removeGoal(id)));
+    deletedGoalIds.forEach((id) =>
+      promises.push(matchesService.removeGoal(id)),
+    );
     setDeletedGoalIds([]);
 
     // Process new Goals
-    goals.filter(g => g.id.startsWith('temp-')).forEach(g => {
-      promises.push(matchesService.addGoal({
-        matchId: match.id,
-        scorerId: g.scorerId,
-        assistId: g.assistId || undefined,
-        minute: g.minute,
-      }));
-    });
+    goals
+      .filter((g) => g.id.startsWith('temp-'))
+      .forEach((g) => {
+        promises.push(
+          matchesService.addGoal({
+            matchId: match.id,
+            scorerId: g.scorerId,
+            assistId: g.assistId || undefined,
+            minute: g.minute,
+          }),
+        );
+      });
     // The "un-added" goal inputs
-    if (newGoalScorerId) promises.push(matchesService.addGoal({
-        matchId: match.id,
-        scorerId: newGoalScorerId,
-        assistId: newGoalAssistId || undefined,
-        minute: newGoalMinute ? Number(newGoalMinute) : null,
-    }));
+    if (newGoalScorerId)
+      promises.push(
+        matchesService.addGoal({
+          matchId: match.id,
+          scorerId: newGoalScorerId,
+          assistId: newGoalAssistId || undefined,
+          minute: newGoalMinute ? Number(newGoalMinute) : null,
+        }),
+      );
 
     // Process deleted Expenses
-    deletedExpenseIds.forEach(id => promises.push(fundingService.removeExpense(id)));
+    deletedExpenseIds.forEach((id) =>
+      promises.push(fundingService.removeExpense(id)),
+    );
     setDeletedExpenseIds([]);
 
     // Process new Expenses
-    expenses.filter(e => e.id.startsWith('temp-')).forEach(e => {
-      promises.push(fundingService.addExpense({
-        matchId: match.id,
-        description: e.description,
-        amount: e.amount,
-        date: match.matchDate.split('T')[0],
-      }));
-    });
+    expenses
+      .filter((e) => e.id.startsWith('temp-'))
+      .forEach((e) => {
+        promises.push(
+          fundingService.addExpense({
+            matchId: match.id,
+            description: e.description,
+            amount: e.amount,
+            date: match.matchDate.split('T')[0],
+          }),
+        );
+      });
     // The "un-added" expense inputs
-    if (newExpenseDesc && newExpenseAmount) promises.push(fundingService.addExpense({
-        matchId: match.id,
-        description: newExpenseDesc,
-        amount: Number(newExpenseAmount),
-        date: match.matchDate.split('T')[0],
-    }));
+    if (newExpenseDesc && newExpenseAmount)
+      promises.push(
+        fundingService.addExpense({
+          matchId: match.id,
+          description: newExpenseDesc,
+          amount: Number(newExpenseAmount),
+          date: match.matchDate.split('T')[0],
+        }),
+      );
 
     await Promise.all(promises);
     setNewGoalScorerId('');
@@ -178,20 +215,23 @@ export function MatchDetailsDrawer({
     setNewGoalMinute('');
     setNewExpenseDesc('');
     setNewExpenseAmount('');
-    
+
     // Reload local data
     const [fetchedGoals, fetchedExpenses] = await Promise.all([
       matchesService.getGoals(match.id),
-      fundingService.getExpenses()
+      fundingService.getExpenses(),
     ]);
     setGoals(fetchedGoals);
-    setExpenses(fetchedExpenses.filter(e => e.matchId === match.id));
+    setExpenses(fetchedExpenses.filter((e) => e.matchId === match.id));
 
     // Fire external callback to update Dashboard charts and Match List
     onUpdated();
   };
 
-  const handleAddLineupDirect = async (userId: string, type: 'starting' | 'substitute') => {
+  const handleAddLineupDirect = async (
+    userId: string,
+    type: 'starting' | 'substitute',
+  ) => {
     if (!match || !userId) return;
     setLoadingLineups(true);
     try {
@@ -210,7 +250,7 @@ export function MatchDetailsDrawer({
     setLoadingLineups(true);
     try {
       await matchesService.removeLineup(lineupId);
-      setLineups(lineups.filter(l => l.id !== lineupId));
+      setLineups(lineups.filter((l) => l.id !== lineupId));
     } finally {
       setLoadingLineups(false);
     }
@@ -236,7 +276,7 @@ export function MatchDetailsDrawer({
     if (!id.startsWith('temp-')) {
       setDeletedGoalIds([...deletedGoalIds, id]);
     }
-    setGoals(goals.filter(g => g.id !== id));
+    setGoals(goals.filter((g) => g.id !== id));
   };
 
   const handleAddExpense = () => {
@@ -259,7 +299,7 @@ export function MatchDetailsDrawer({
     if (!id.startsWith('temp-')) {
       setDeletedExpenseIds([...deletedExpenseIds, id]);
     }
-    setExpenses(expenses.filter(e => e.id !== id));
+    setExpenses(expenses.filter((e) => e.id !== id));
   };
 
   if (!match) return null;
@@ -391,7 +431,9 @@ export function MatchDetailsDrawer({
                           key={l.id}
                           className="flex items-center justify-between text-sm py-1 border-b border-border last:border-0"
                         >
-                          <span className="truncate">{player?.displayName || l.userId}</span>
+                          <span className="truncate">
+                            {player?.displayName || l.userId}
+                          </span>
                           {canManage && (
                             <button
                               onClick={() => handleRemoveLineupDirect(l.id)}
@@ -403,13 +445,17 @@ export function MatchDetailsDrawer({
                         </div>
                       );
                     })}
-                    {startingPlayers.length === 0 && <p className="text-xs text-muted">No players</p>}
+                    {startingPlayers.length === 0 && (
+                      <p className="text-xs text-muted">No players</p>
+                    )}
                   </div>
                   {canManage && availablePlayers.length > 0 && (
                     <Select
                       aria-label="+ Add starting..."
                       value=""
-                      onChange={(e) => handleAddLineupDirect(e.target.value, 'starting')}
+                      onChange={(e) =>
+                        handleAddLineupDirect(e.target.value, 'starting')
+                      }
                       className="mt-2 text-xs w-full"
                     >
                       <option value="">+ Add starting...</option>
@@ -437,7 +483,9 @@ export function MatchDetailsDrawer({
                           key={l.id}
                           className="flex items-center justify-between text-sm py-1 border-b border-border last:border-0"
                         >
-                          <span className="truncate">{player?.displayName || l.userId}</span>
+                          <span className="truncate">
+                            {player?.displayName || l.userId}
+                          </span>
                           {canManage && (
                             <button
                               onClick={() => handleRemoveLineupDirect(l.id)}
@@ -449,13 +497,17 @@ export function MatchDetailsDrawer({
                         </div>
                       );
                     })}
-                    {substitutePlayers.length === 0 && <p className="text-xs text-muted">No players</p>}
+                    {substitutePlayers.length === 0 && (
+                      <p className="text-xs text-muted">No players</p>
+                    )}
                   </div>
                   {canManage && availablePlayers.length > 0 && (
                     <Select
                       aria-label="+ Add substitute..."
                       value=""
-                      onChange={(e) => handleAddLineupDirect(e.target.value, 'substitute')}
+                      onChange={(e) =>
+                        handleAddLineupDirect(e.target.value, 'substitute')
+                      }
                       className="mt-2 text-xs w-full"
                     >
                       <option value="">+ Add substitute...</option>
@@ -477,23 +529,54 @@ export function MatchDetailsDrawer({
             {canManage && (
               <div className="bg-card-hover p-4 rounded-lg flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1 w-full space-y-1">
-                  <label className="text-sm font-medium" htmlFor="goal-scorer-select">Scorer *</label>
-                  <Select id="goal-scorer-select" value={newGoalScorerId} onChange={(e) => setNewGoalScorerId(e.target.value)}>
+                  <label
+                    className="text-sm font-medium"
+                    htmlFor="goal-scorer-select"
+                  >
+                    Scorer *
+                  </label>
+                  <Select
+                    id="goal-scorer-select"
+                    value={newGoalScorerId}
+                    onChange={(e) => setNewGoalScorerId(e.target.value)}
+                  >
                     <option value="">Select scorer...</option>
-                    {players.map(p => <option key={p.id} value={p.id}>{p.displayName}</option>)}
-                  </Select>
-                </div>
-                <div className="flex-1 w-full space-y-1">
-                  <label className="text-sm font-medium" htmlFor="goal-assist-select">Assist</label>
-                  <Select id="goal-assist-select" value={newGoalAssistId} onChange={(e) => setNewGoalAssistId(e.target.value)}>
-                    <option value="">None</option>
-                    {players.filter(p => p.id !== newGoalScorerId).map(p => (
-                      <option key={p.id} value={p.id}>{p.displayName}</option>
+                    {players.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.displayName}
+                      </option>
                     ))}
                   </Select>
                 </div>
+                <div className="flex-1 w-full space-y-1">
+                  <label
+                    className="text-sm font-medium"
+                    htmlFor="goal-assist-select"
+                  >
+                    Assist
+                  </label>
+                  <Select
+                    id="goal-assist-select"
+                    value={newGoalAssistId}
+                    onChange={(e) => setNewGoalAssistId(e.target.value)}
+                  >
+                    <option value="">None</option>
+                    {players
+                      .filter((p) => p.id !== newGoalScorerId)
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.displayName}
+                        </option>
+                      ))}
+                  </Select>
+                </div>
                 <div className="w-24 space-y-1">
-                  <label className="text-sm font-medium" htmlFor="goal-minute-input">Minute *</label>
+                  <label
+                    className="text-sm font-medium"
+                    htmlFor="goal-minute-input"
+                  >
+                    Minute *
+                  </label>
                   <InputText
                     id="goal-minute-input"
                     type="number"
@@ -518,33 +601,54 @@ export function MatchDetailsDrawer({
             {loadingGoals ? (
               <div className="text-center py-4 text-muted">Loading...</div>
             ) : goals.length === 0 ? (
-              <div className="text-center py-4 text-muted">No goals recorded yet.</div>
+              <div className="text-center py-4 text-muted">
+                No goals recorded yet.
+              </div>
             ) : (
               <div className="space-y-2">
-                {goals.sort((a, b) => (a.minute ?? Infinity) - (b.minute ?? Infinity)).map(g => {
-                  const scorer = players.find(p => p.id === g.scorerId);
-                  const assist = players.find(p => p.id === g.assistId);
-                  return (
-                    <div key={g.id} className="flex justify-between items-center p-3 bg-card-hover rounded-lg border border-border">
-                      <div>
-                        <span className="font-medium text-primary">⚽ {scorer?.displayName || g.scorerId}</span>
-                        {assist && <span className="text-sm text-muted ml-2">(Assist: {assist.displayName})</span>}
-                        {g.id.startsWith('temp-') && <span className="ml-2 text-xs text-amber-500 font-medium italic">(Pending)</span>}
+                {goals
+                  .sort(
+                    (a, b) => (a.minute ?? Infinity) - (b.minute ?? Infinity),
+                  )
+                  .map((g) => {
+                    const scorer = players.find((p) => p.id === g.scorerId);
+                    const assist = players.find((p) => p.id === g.assistId);
+                    return (
+                      <div
+                        key={g.id}
+                        className="flex justify-between items-center p-3 bg-card-hover rounded-lg border border-border"
+                      >
+                        <div>
+                          <span className="font-medium text-primary">
+                            ⚽ {scorer?.displayName || g.scorerId}
+                          </span>
+                          {assist && (
+                            <span className="text-sm text-muted ml-2">
+                              (Assist: {assist.displayName})
+                            </span>
+                          )}
+                          {g.id.startsWith('temp-') && (
+                            <span className="ml-2 text-xs text-amber-500 font-medium italic">
+                              (Pending)
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-mono text-muted">
+                            {g.minute != null ? `${g.minute}'` : '-'}
+                          </span>
+                          {canManage && (
+                            <button
+                              onClick={() => handleRemoveGoal(g.id)}
+                              className="text-danger text-xs hover:bg-danger/20 px-1 rounded transition-colors"
+                            >
+                              &times;
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-mono text-muted">{g.minute != null ? `${g.minute}'` : '-'}</span>
-                        {canManage && (
-                          <button
-                            onClick={() => handleRemoveGoal(g.id)}
-                            className="text-danger text-xs hover:bg-danger/20 px-1 rounded transition-colors"
-                          >
-                            &times;
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             )}
           </div>
@@ -555,7 +659,12 @@ export function MatchDetailsDrawer({
             {canManage && (
               <div className="bg-card-hover p-4 rounded-lg flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1 w-full space-y-1">
-                  <label className="text-sm font-medium" htmlFor="expense-desc-input">Description *</label>
+                  <label
+                    className="text-sm font-medium"
+                    htmlFor="expense-desc-input"
+                  >
+                    Description *
+                  </label>
                   <InputText
                     id="expense-desc-input"
                     placeholder="e.g. Pitch fee, drinks..."
@@ -564,7 +673,12 @@ export function MatchDetailsDrawer({
                   />
                 </div>
                 <div className="flex-1 w-full space-y-1">
-                  <label className="text-sm font-medium" htmlFor="expense-amount-input">Amount (VND) *</label>
+                  <label
+                    className="text-sm font-medium"
+                    htmlFor="expense-amount-input"
+                  >
+                    Amount (VND) *
+                  </label>
                   <InputText
                     id="expense-amount-input"
                     type="number"
@@ -588,17 +702,28 @@ export function MatchDetailsDrawer({
             {loadingExpenses ? (
               <div className="text-center py-4 text-muted">Loading...</div>
             ) : expenses.length === 0 ? (
-              <div className="text-center py-4 text-muted">No expenses recorded yet.</div>
+              <div className="text-center py-4 text-muted">
+                No expenses recorded yet.
+              </div>
             ) : (
               <div className="space-y-2">
-                {expenses.map(exp => (
-                  <div key={exp.id} className="flex justify-between items-center p-3 bg-card-hover rounded-lg border border-border">
+                {expenses.map((exp) => (
+                  <div
+                    key={exp.id}
+                    className="flex justify-between items-center p-3 bg-card-hover rounded-lg border border-border"
+                  >
                     <div>
                       <span className="font-medium">{exp.description}</span>
-                      {exp.id.startsWith('temp-') && <span className="ml-2 text-xs text-amber-500 font-medium italic">(Pending)</span>}
+                      {exp.id.startsWith('temp-') && (
+                        <span className="ml-2 text-xs text-amber-500 font-medium italic">
+                          (Pending)
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-mono text-danger">-{exp.amount.toLocaleString('vi-VN')}đ</span>
+                      <span className="text-sm font-mono text-danger">
+                        -{exp.amount.toLocaleString('vi-VN')}đ
+                      </span>
                       {canManage && (
                         <button
                           onClick={() => handleRemoveExpense(exp.id)}
@@ -620,11 +745,17 @@ export function MatchDetailsDrawer({
       {hasUnsavedChanges && canManage && (
         <div className="sticky bottom-0 bg-card p-4 border-t border-border mt-4 -mx-4 -mb-4 flex flex-col md:flex-row justify-between items-center gap-4 animate-in slide-in-from-bottom border-t shadow-lg z-10 transition-colors">
           <div className="text-sm text-amber-500 font-medium">
-            ⚠️ You have unsaved changes ({[
+            ⚠️ You have unsaved changes (
+            {[
               formHook.formState.isDirty && 'Match Info',
-              (isGoalChanged || (!!newGoalScorerId && !!newGoalMinute)) && 'Goals',
-              (isExpenseChanged || (!!newExpenseDesc && !!newExpenseAmount)) && 'Expenses'
-            ].filter(Boolean).join(', ')})
+              (isGoalChanged || (!!newGoalScorerId && !!newGoalMinute)) &&
+                'Goals',
+              (isExpenseChanged || (!!newExpenseDesc && !!newExpenseAmount)) &&
+                'Expenses',
+            ]
+              .filter(Boolean)
+              .join(', ')}
+            )
           </div>
           <button
             onClick={handleGlobalSave}

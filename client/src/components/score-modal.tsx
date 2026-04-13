@@ -1,13 +1,18 @@
 'use client';
 
+import { CloseButton } from '@/components/ui/close-button';
 import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
-import { CloseButton } from '@/components/ui/close-button';
-import { LINEUP_TYPE, MATCH_STATUS } from '@/constant/enum';
 import { POSITION_GROUPS } from '@/constant';
+import { LINEUP_TYPE, MATCH_STATUS } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
-import { matchesService, usersService, positionsService, userPositionsService } from '@/services';
-import type { LineupType, Match, User, Position, UserPosition } from '@/types';
+import {
+  matchesService,
+  positionsService,
+  userPositionsService,
+  usersService,
+} from '@/services';
+import type { LineupType, Match, Position, User, UserPosition } from '@/types';
 import { useEffect, useState } from 'react';
 
 interface GoalEntry {
@@ -149,7 +154,14 @@ export function ScoreModal({
         if (num === prev.length) return prev;
         if (num > prev.length) {
           const toAdd = num - prev.length;
-          return [...prev, ...Array.from({ length: toAdd }, () => ({ scorerId: '', assistId: '', minute: '' }))];
+          return [
+            ...prev,
+            ...Array.from({ length: toAdd }, () => ({
+              scorerId: '',
+              assistId: '',
+              minute: '',
+            })),
+          ];
         } else {
           return prev.slice(0, num);
         }
@@ -175,7 +187,7 @@ export function ScoreModal({
     if (!pos) return null;
     const name = pos.name.toUpperCase();
     let colorClass = POSITION_GROUPS.UNKNOWN.colorClass;
-    
+
     for (const group of Object.values(POSITION_GROUPS)) {
       if (group.roles.includes(name)) {
         colorClass = group.colorClass;
@@ -184,7 +196,9 @@ export function ScoreModal({
     }
 
     return (
-      <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${colorClass}`}>
+      <span
+        className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${colorClass}`}
+      >
         {name}
       </span>
     );
@@ -368,7 +382,8 @@ export function ScoreModal({
                         const pos = getPrimaryPosition(p.id);
                         return (
                           <option key={p.id} value={p.id}>
-                            #{p.jerseyNumber} {p.displayName} {pos ? `(${pos.name})` : ''}
+                            #{p.jerseyNumber} {p.displayName}{' '}
+                            {pos ? `(${pos.name})` : ''}
                           </option>
                         );
                       })}
@@ -423,7 +438,8 @@ export function ScoreModal({
                         const pos = getPrimaryPosition(p.id);
                         return (
                           <option key={p.id} value={p.id}>
-                            #{p.jerseyNumber} {p.displayName} {pos ? `(${pos.name})` : ''}
+                            #{p.jerseyNumber} {p.displayName}{' '}
+                            {pos ? `(${pos.name})` : ''}
                           </option>
                         );
                       })}

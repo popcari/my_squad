@@ -45,7 +45,11 @@ function getAuthServerSnapshot(): string | null {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const raw = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthServerSnapshot);
+  const raw = useSyncExternalStore(
+    subscribeAuth,
+    getAuthSnapshot,
+    getAuthServerSnapshot,
+  );
   const user = raw ? (JSON.parse(raw) as User) : null;
   const loading = false;
 

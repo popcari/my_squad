@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useRef, useEffect } from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
@@ -7,11 +7,22 @@ export type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   (
-    { className = '', children, value, defaultValue, onChange, disabled, keepOpen, ...props },
+    {
+      className = '',
+      children,
+      value,
+      defaultValue,
+      onChange,
+      disabled,
+      keepOpen,
+      ...props
+    },
     ref,
   ) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [internalValue, setInternalValue] = useState(value ?? defaultValue ?? '');
+    const [internalValue, setInternalValue] = useState(
+      value ?? defaultValue ?? '',
+    );
     const wrapperRef = useRef<HTMLDivElement>(null);
 
     // Controlled prop is read via `currentValue` below; no need to mirror it
@@ -40,7 +51,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       disabled?: boolean;
     }[];
 
-    const [dropdownStyle, setDropdownStyle] = useState({ top: 0, left: 0, width: 0 });
+    const [dropdownStyle, setDropdownStyle] = useState({
+      top: 0,
+      left: 0,
+      width: 0,
+    });
 
     const updateDropdownPosition = () => {
       if (wrapperRef.current) {
@@ -163,7 +178,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               strokeLinecap="round"
               strokeLinejoin="round"
               className={`transition-transform duration-500 ${
-                isOpen ? '-rotate-180 text-primary' : 'group-focus-within:-rotate-180'
+                isOpen
+                  ? '-rotate-180 text-primary'
+                  : 'group-focus-within:-rotate-180'
               }`}
             >
               <path d="m6 9 6 6 6-6" />
@@ -185,7 +202,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               className="select-dropdown-menu z-[9999] bg-card border border-border rounded-lg shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] overflow-hidden max-h-60 overflow-y-auto outline-none py-1 animate-in fade-in zoom-in-95 duration-200"
             >
               {options.map((option, idx) => {
-                const isSelected = String(option.value) === String(currentValue);
+                const isSelected =
+                  String(option.value) === String(currentValue);
                 return (
                   <li
                     key={idx}
@@ -206,7 +224,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 );
               })}
             </ul>,
-            document.body
+            document.body,
           )}
 
         {/* Hidden native select for standard compatibility */}
@@ -223,7 +241,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         </select>
       </div>
     );
-  }
+  },
 );
 
 Select.displayName = 'Select';

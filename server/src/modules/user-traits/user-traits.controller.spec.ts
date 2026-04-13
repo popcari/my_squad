@@ -64,7 +64,9 @@ describe('UserTraitsController', () => {
       .patch('/user-traits/ut1')
       .send({ rating: 90 });
     expect(res.status).toBe(200);
-    expect(mockService.updateRating).toHaveBeenCalledWith('ut1', { rating: 90 });
+    expect(mockService.updateRating).toHaveBeenCalledWith('ut1', {
+      rating: 90,
+    });
   });
 
   it('DELETE /user-traits/:id removes', async () => {

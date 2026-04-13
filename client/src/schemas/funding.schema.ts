@@ -1,4 +1,9 @@
-import { dateField, requiredNumber, requiredSelect, requiredString } from '@/schemas';
+import {
+  dateField,
+  requiredNumber,
+  requiredSelect,
+  requiredString,
+} from '@/schemas';
 import { z } from 'zod';
 
 export const expenseSchema = z.object({
