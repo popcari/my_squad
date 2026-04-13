@@ -5,6 +5,8 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useState,
   useSyncExternalStore,
 } from 'react';
 
@@ -51,7 +53,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     getAuthServerSnapshot,
   );
   const user = raw ? (JSON.parse(raw) as User) : null;
-  const loading = false;
+
+  // Track hydration so AuthGuard doesn't redirect to /login before localStorage
+  // is readable (useSyncExternalStore returns server snapshot = null on first
+  // client render, same as during SSR).
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot hydration flag
+    setHydrated(true);
+  }, []);
+  const loading = !hydrated;
 
   const login = useCallback((u: User) => {
     localStorage.setItem(AUTH_KEY, JSON.stringify(u));

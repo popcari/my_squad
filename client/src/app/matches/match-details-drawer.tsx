@@ -8,6 +8,7 @@ import {
   type UpdateMatchForm,
 } from '@/schemas/match.schema';
 import { fundingService, matchesService } from '@/services';
+import { formationsService } from '@/services/formations.service';
 import type {
   Expense,
   Match,
@@ -16,9 +17,11 @@ import type {
   MatchStatus,
   User,
 } from '@/types';
+import type { Formation } from '@/types/formation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { TacticsPanel } from './tactics-panel';
 
 interface MatchDetailsDrawerProps {
   match: Match | null;
@@ -37,8 +40,11 @@ export function MatchDetailsDrawer({
 }: MatchDetailsDrawerProps) {
   const canManage = useCanManage();
   const [activeTab, setActiveTab] = useState<
-    'info' | 'lineups' | 'goals' | 'expense'
+    'info' | 'tactics' | 'goals' | 'expense'
   >('info');
+
+  const [formations, setFormations] = useState<Formation[]>([]);
+  const [selectedFormationId, setSelectedFormationId] = useState<string>('');
 
   const formHook = useForm<UpdateMatchForm>({
     resolver: zodResolver(updateMatchSchema),
@@ -47,11 +53,6 @@ export function MatchDetailsDrawer({
 
   const [lineups, setLineups] = useState<MatchLineup[]>([]);
   const [loadingLineups, setLoadingLineups] = useState(false);
-
-  const startingPlayers = lineups.filter((l) => l.type === 'starting');
-  const substitutePlayers = lineups.filter((l) => l.type === 'substitute');
-  const assignedIds = new Set(lineups.map((l) => l.userId));
-  const availablePlayers = players.filter((p) => !assignedIds.has(p.id));
 
   const [goals, setGoals] = useState<MatchGoal[]>([]);
   const [loadingGoals, setLoadingGoals] = useState(false);
@@ -67,11 +68,19 @@ export function MatchDetailsDrawer({
   const [deletedExpenseIds, setDeletedExpenseIds] = useState<string[]>([]);
 
   useEffect(() => {
-    if (activeTab === 'lineups' && match) {
+    if (activeTab === 'tactics' && match) {
       setLoadingLineups(true);
-      matchesService
-        .getLineups(match.id)
-        .then(setLineups)
+      Promise.all([
+        matchesService.getLineups(match.id),
+        formationsService.getAll(),
+      ])
+        .then(([ls, fs]) => {
+          setLineups(ls);
+          setFormations(fs);
+          if (!selectedFormationId && fs.length > 0) {
+            setSelectedFormationId(fs[0].id);
+          }
+        })
         .finally(() => setLoadingLineups(false));
     } else if (activeTab === 'goals' && match) {
       setLoadingGoals(true);
@@ -88,7 +97,7 @@ export function MatchDetailsDrawer({
         )
         .finally(() => setLoadingExpenses(false));
     }
-  }, [activeTab, match]);
+  }, [activeTab, match, selectedFormationId]);
 
   useEffect(() => {
     if (match && isOpen) {
@@ -312,7 +321,7 @@ export function MatchDetailsDrawer({
     >
       {/* Tabs */}
       <div className="flex space-x-1 border-b border-border mb-4 overflow-x-auto">
-        {(['info', 'lineups', 'goals', 'expense'] as const).map((tab) => (
+        {(['info', 'tactics', 'goals', 'expense'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -410,118 +419,18 @@ export function MatchDetailsDrawer({
           </form>
         )}
 
-        {activeTab === 'lineups' && (
-          <div className="space-y-6">
-            {loadingLineups ? (
-              <div className="text-center py-4 text-muted">Loading...</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Starting */}
-                <div className="bg-background rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-primary uppercase">
-                      Starting ({startingPlayers.length})
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    {startingPlayers.map((l) => {
-                      const player = players.find((p) => p.id === l.userId);
-                      return (
-                        <div
-                          key={l.id}
-                          className="flex items-center justify-between text-sm py-1 border-b border-border last:border-0"
-                        >
-                          <span className="truncate">
-                            {player?.displayName || l.userId}
-                          </span>
-                          {canManage && (
-                            <button
-                              onClick={() => handleRemoveLineupDirect(l.id)}
-                              className="text-danger text-xs hover:bg-danger/20 px-1 rounded"
-                            >
-                              &times;
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {startingPlayers.length === 0 && (
-                      <p className="text-xs text-muted">No players</p>
-                    )}
-                  </div>
-                  {canManage && availablePlayers.length > 0 && (
-                    <Select
-                      aria-label="+ Add starting..."
-                      value=""
-                      onChange={(e) =>
-                        handleAddLineupDirect(e.target.value, 'starting')
-                      }
-                      className="mt-2 text-xs w-full"
-                    >
-                      <option value="">+ Add starting...</option>
-                      {availablePlayers.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          #{p.jerseyNumber} {p.displayName}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
-                </div>
-
-                {/* Substitute */}
-                <div className="bg-background rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-yellow-400 uppercase">
-                      Substitute ({substitutePlayers.length})
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    {substitutePlayers.map((l) => {
-                      const player = players.find((p) => p.id === l.userId);
-                      return (
-                        <div
-                          key={l.id}
-                          className="flex items-center justify-between text-sm py-1 border-b border-border last:border-0"
-                        >
-                          <span className="truncate">
-                            {player?.displayName || l.userId}
-                          </span>
-                          {canManage && (
-                            <button
-                              onClick={() => handleRemoveLineupDirect(l.id)}
-                              className="text-danger text-xs hover:bg-danger/20 px-1 rounded"
-                            >
-                              &times;
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {substitutePlayers.length === 0 && (
-                      <p className="text-xs text-muted">No players</p>
-                    )}
-                  </div>
-                  {canManage && availablePlayers.length > 0 && (
-                    <Select
-                      aria-label="+ Add substitute..."
-                      value=""
-                      onChange={(e) =>
-                        handleAddLineupDirect(e.target.value, 'substitute')
-                      }
-                      className="mt-2 text-xs w-full"
-                    >
-                      <option value="">+ Add substitute...</option>
-                      {availablePlayers.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          #{p.jerseyNumber} {p.displayName}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+        {activeTab === 'tactics' && (
+          <TacticsPanel
+            loading={loadingLineups}
+            players={players}
+            lineups={lineups}
+            formations={formations}
+            selectedFormationId={selectedFormationId}
+            onFormationChange={setSelectedFormationId}
+            canManage={canManage}
+            onAddLineup={handleAddLineupDirect}
+            onRemoveLineup={handleRemoveLineupDirect}
+          />
         )}
 
         {activeTab === 'goals' && (

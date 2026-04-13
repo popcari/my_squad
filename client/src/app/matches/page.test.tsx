@@ -33,6 +33,15 @@ vi.mock('@/hooks/use-can-manage', () => ({
   useCanManage: vi.fn(),
 }));
 
+vi.mock('@/services/formations.service', () => ({
+  formationsService: {
+    getAll: vi.fn().mockResolvedValue([]),
+    create: vi.fn(),
+    update: vi.fn(),
+    remove: vi.fn(),
+  },
+}));
+
 // Suppress Recharts ResponsiveContainer warnings in JSDOM
 vi.mock('recharts', async (importOriginal) => {
   const actual = await importOriginal<typeof import('recharts')>();
@@ -264,7 +273,7 @@ describe('Stats Dashboard', () => {
       // Tabs check
       expect(screen.getByRole('button', { name: 'Info' })).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: 'Lineups' }),
+        screen.getByRole('button', { name: 'Tactics' }),
       ).toBeInTheDocument();
 
       // Submit an update
@@ -284,14 +293,8 @@ describe('Stats Dashboard', () => {
       });
     });
 
-    it('should view lineups and add a player when accessing Lineups tab', async () => {
+    it('should load lineups and formations when Tactics tab is opened', async () => {
       const user = userEvent.setup();
-      (matchesService.addLineup as Mock).mockResolvedValue({
-        id: 'l2',
-        matchId: 'm1',
-        userId: 'u2',
-        type: 'substitute',
-      });
 
       render(<MatchesPage />);
 
@@ -299,39 +302,17 @@ describe('Stats Dashboard', () => {
         expect(screen.getByText('FC Vercel')).toBeInTheDocument();
       });
 
-      // Open drawer
       await user.click(screen.getByText('FC Vercel'));
 
       await waitFor(() => {
         expect(screen.getByText('Match vs FC Vercel')).toBeInTheDocument();
       });
 
-      // Switch to Lineups tab
-      const lineupsTab = screen.getByRole('button', { name: 'Lineups' });
-      await user.click(lineupsTab);
+      const tacticsTab = screen.getByRole('button', { name: 'Tactics' });
+      await user.click(tacticsTab);
 
-      // It should fetch lineups
       await waitFor(() => {
         expect(matchesService.getLineups).toHaveBeenCalledWith('m1');
-      });
-
-      // It should show Messi in starting
-      await waitFor(() => {
-        const messiElements = screen.getAllByText('Messi');
-        expect(messiElements.length).toBeGreaterThan(0);
-        expect(screen.getByText('Starting (1)')).toBeInTheDocument();
-      });
-
-      // Select "Xavi" (u2) as a Substitute
-      const userSelect = screen.getByLabelText('+ Add substitute...');
-      await user.selectOptions(userSelect, 'u2');
-
-      await waitFor(() => {
-        expect(matchesService.addLineup).toHaveBeenCalledWith({
-          matchId: 'm1',
-          userId: 'u2',
-          type: 'substitute',
-        });
       });
     });
     it('should view goals and add a goal when accessing Goals tab', async () => {

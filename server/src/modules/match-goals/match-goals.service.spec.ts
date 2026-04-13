@@ -30,6 +30,86 @@ describe('MatchGoalsService', () => {
     service = module.get<MatchGoalsService>(MatchGoalsService);
   });
 
+  describe('findAll', () => {
+    it('returns all goals', async () => {
+      mockCollection.get.mockResolvedValue({
+        docs: [
+          {
+            id: 'g-1',
+            data: () => ({
+              matchId: 'm-1',
+              scorerId: 'u-1',
+              createdAt: { toDate: () => new Date() },
+            }),
+          },
+        ],
+      });
+      const result = await service.findAll();
+      expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('findByAssist', () => {
+    it('returns goals where user assisted', async () => {
+      mockCollection.where.mockReturnValue({
+        get: jest.fn().mockResolvedValue({
+          docs: [
+            {
+              id: 'g-1',
+              data: () => ({
+                matchId: 'm-1',
+                scorerId: 'u-2',
+                assistId: 'u-1',
+                minute: 42,
+                createdAt: { toDate: () => new Date() },
+              }),
+            },
+          ],
+        }),
+      });
+      const result = await service.findByAssist('u-1');
+      expect(result).toHaveLength(1);
+      expect(mockCollection.where).toHaveBeenCalledWith(
+        'assistId',
+        '==',
+        'u-1',
+      );
+    });
+  });
+
+  describe('findByMatch sorting with null minutes', () => {
+    it('sorts goals with null minute last', async () => {
+      mockCollection.where.mockReturnValue({
+        get: jest.fn().mockResolvedValue({
+          docs: [
+            {
+              id: 'g-a',
+              data: () => ({
+                matchId: 'm-1',
+                scorerId: 'u-1',
+                minute: null,
+                createdAt: { toDate: () => new Date() },
+              }),
+            },
+            {
+              id: 'g-b',
+              data: () => ({
+                matchId: 'm-1',
+                scorerId: 'u-2',
+                minute: 30,
+                createdAt: { toDate: () => new Date() },
+              }),
+            },
+          ],
+        }),
+      });
+
+      const result = await service.findByMatch('m-1');
+      expect(result[0].minute).toBe(30);
+      expect(result[1].minute).toBeNull();
+    });
+  });
+
   describe('findByMatch', () => {
     it('should return goals for a match', async () => {
       const mockDocs = [

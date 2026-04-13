@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed": "ts-node -r tsconfig-paths/register src/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register src/seed.ts",
+    "clear:match-lineups": "ts-node -r tsconfig-paths/register src/scripts/clear-match-lineups.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -88,7 +89,9 @@
       "!**/app.controller.ts",
       "!**/common/index.ts",
       "!**/config/**/*.ts",
-      "!**/common/decorators/**"
+      "!**/common/decorators/**",
+      "!**/common/middleware/**",
+      "!**/scripts/**"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"

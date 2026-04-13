@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 const navItems = [
   { href: '/', labelKey: 'nav.home', icon: '⚽' },
   { href: '/matches', labelKey: 'nav.stats', icon: '📊' },
+  { href: '/formations', labelKey: 'nav.formations', icon: '📋' },
   { href: '/funding', labelKey: 'nav.funding', icon: '💰' },
   { href: '/players', labelKey: 'nav.players', icon: '👥' },
   { href: '/traits', labelKey: 'nav.traits', icon: '🎯' },

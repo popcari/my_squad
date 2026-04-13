@@ -71,4 +71,41 @@ describe('ConfirmContext', () => {
     const confirmBtn = screen.getByText('Yes');
     expect(confirmBtn.className).toContain('bg-danger');
   });
+
+  it('uses default labels when options omit them', async () => {
+    function MinimalComponent() {
+      const confirm = useConfirm();
+      return (
+        <button onClick={() => confirm({ message: 'hi' })}>Trigger</button>
+      );
+    }
+
+    const user = userEvent.setup();
+    render(
+      <ConfirmProvider>
+        <MinimalComponent />
+      </ConfirmProvider>,
+    );
+
+    await user.click(screen.getByText('Trigger'));
+    // Default title "Confirm" appears as heading; default button labels.
+    expect(
+      screen.getByRole('heading', { name: 'Confirm' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+    const confirmBtn = screen.getByRole('button', { name: 'Confirm' });
+    expect(confirmBtn.className).toContain('bg-primary');
+  });
+
+  it('closes via backdrop click (cancels)', async () => {
+    const user = userEvent.setup();
+    renderWithProvider();
+
+    await user.click(screen.getByText('Trigger'));
+    // The backdrop overlay is a div with bg-black/60
+    const backdrop = document.querySelector('.bg-black\\/60');
+    expect(backdrop).toBeTruthy();
+    await user.click(backdrop as Element);
+    expect(document.title).toBe('cancelled');
+  });
 });

@@ -6,6 +6,7 @@ import { AuthMiddleware } from './common';
 import { FirebaseModule, firebaseConfig } from './config';
 import cloudinaryConfig from './config/cloudinary.config';
 import { AuthModule } from './modules/auth/auth.module';
+import { FormationsModule } from './modules/formations/formations.module';
 import { FundingModule } from './modules/funding/funding.module';
 import { MatchGoalsModule } from './modules/match-goals/match-goals.module';
 import { MatchLineupsModule } from './modules/match-lineups/match-lineups.module';
@@ -35,6 +36,7 @@ import { UsersModule } from './modules/users/users.module';
     MatchLineupsModule,
     MatchGoalsModule,
     AuthModule,
+    FormationsModule,
     FundingModule,
     TeamSettingsModule,
     TeamUniformsModule,

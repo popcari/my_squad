@@ -69,4 +69,41 @@ describe('Select', () => {
     const items = screen.queryAllByText('Beta');
     expect(items.every((el) => el.tagName !== 'LI')).toBe(true);
   });
+
+  it('uncontrolled Select updates its own state on selection', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select defaultValue="a" aria-label="Letters">
+        <option value="a">Alpha</option>
+        <option value="b">Beta</option>
+      </Select>,
+    );
+    await user.click(trigger('Alpha'));
+    const items = screen.getAllByText('Beta');
+    const li = items.find((el) => el.tagName === 'LI');
+    await user.click(li!);
+    // After selecting Beta, the trigger should now show Beta.
+    expect(trigger('Beta')).toBeInTheDocument();
+  });
+
+  it('closes dropdown when clicking outside', async () => {
+    const user = userEvent.setup();
+    render(
+      <div>
+        <Select value="a" onChange={vi.fn()} aria-label="Letters">
+          <option value="a">Alpha</option>
+          <option value="b">Beta</option>
+        </Select>
+        <button>Outside</button>
+      </div>,
+    );
+    await user.click(trigger('Alpha'));
+    expect(screen.getAllByText('Beta').length).toBeGreaterThanOrEqual(2);
+
+    // Click outside to close
+    await user.click(screen.getByRole('button', { name: 'Outside' }));
+    // Only the hidden <option>Beta</option> remains; no <li>Beta</li>
+    const items = screen.queryAllByText('Beta');
+    expect(items.every((el) => el.tagName !== 'LI')).toBe(true);
+  });
 });
