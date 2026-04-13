@@ -62,4 +62,44 @@ describe('FootballPitch', () => {
     const slot = screen.getByText('ST').parentElement;
     expect(slot).toHaveStyle({ left: '50%', top: '12%' });
   });
+
+  describe('uniform prop', () => {
+    const uniform = {
+      shirtColor: '#ff0000',
+      pantColor: '#000000',
+      numberColor: '#ffffff',
+    };
+
+    it('renders UniformVisual SVG for each slot when uniform is provided', () => {
+      render(<FootballPitch slots={sampleSlots} uniform={uniform} />);
+      // UniformVisual renders an SVG with aria-label "Uniform preview"
+      const uniforms = screen.getAllByRole('img', { name: 'Uniform preview' });
+      expect(uniforms).toHaveLength(sampleSlots.length);
+    });
+
+    it('still shows role label below each uniform', () => {
+      render(<FootballPitch slots={sampleSlots} uniform={uniform} />);
+      expect(screen.getByText('GK')).toBeInTheDocument();
+      expect(screen.getByText('ST')).toBeInTheDocument();
+    });
+
+    it('renderSlot overrides uniform prop when both are provided', () => {
+      render(
+        <FootballPitch
+          slots={[{ role: 'GK', x: 50, y: 10 }]}
+          uniform={uniform}
+          renderSlot={(slot) => <div>custom-{slot.role}</div>}
+        />,
+      );
+      expect(screen.getByText('custom-GK')).toBeInTheDocument();
+      // UniformVisual should NOT be rendered
+      expect(screen.queryByRole('img', { name: 'Uniform preview' })).toBeNull();
+    });
+
+    it('falls back to circle if no uniform prop', () => {
+      render(<FootballPitch slots={[{ role: 'GK', x: 50, y: 10 }]} />);
+      expect(screen.queryByRole('img', { name: 'Uniform preview' })).toBeNull();
+      expect(screen.getByText('GK')).toBeInTheDocument();
+    });
+  });
 });

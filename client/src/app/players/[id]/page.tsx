@@ -6,6 +6,7 @@ import { InputText } from '@/components/ui/input-text';
 import { Lightbox } from '@/components/ui/lightbox';
 import { Select } from '@/components/ui/select';
 import { USER_ROLE } from '@/constant/enum';
+import { POSITION_GROUPS } from '@/constant';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -443,18 +444,27 @@ export default function PlayerProfilePage() {
                 {t('playerProfile.primary')}
               </p>
               <div className="flex flex-wrap gap-2">
-                {allPositions.map((pos) => {
+                {[...allPositions].sort((a, b) => {
+                  const getWeight = (name: string) =>
+                    (Object.values(POSITION_GROUPS).find((g) =>
+                      g.roles.includes(name.toUpperCase()),
+                    ) ?? POSITION_GROUPS.UNKNOWN).weight;
+                  return getWeight(a.name) - getWeight(b.name);
+                }).map((pos) => {
                   const up = profile.positions.find(
                     (p) => p.positionId === pos.id,
                   );
                   const isPrimary = up?.type === 'primary';
+                  const posGroup = Object.values(POSITION_GROUPS).find((g) =>
+                    g.roles.includes(pos.name.toUpperCase()),
+                  ) ?? POSITION_GROUPS.UNKNOWN;
                   return (
                     <button
                       key={pos.id}
                       onClick={() => handleSetPrimary(pos.id)}
-                      className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                         isPrimary
-                          ? 'bg-primary text-white'
+                          ? posGroup.colorClass
                           : 'bg-card-hover text-muted hover:text-foreground'
                       }`}
                     >
@@ -470,22 +480,31 @@ export default function PlayerProfilePage() {
                 {t('playerProfile.sub')}
               </p>
               <div className="flex flex-wrap gap-2">
-                {allPositions.map((pos) => {
+                {[...allPositions].sort((a, b) => {
+                  const getWeight = (name: string) =>
+                    (Object.values(POSITION_GROUPS).find((g) =>
+                      g.roles.includes(name.toUpperCase()),
+                    ) ?? POSITION_GROUPS.UNKNOWN).weight;
+                  return getWeight(a.name) - getWeight(b.name);
+                }).map((pos) => {
                   const up = profile.positions.find(
                     (p) => p.positionId === pos.id,
                   );
                   const isPrimary = up?.type === 'primary';
                   const isSub = up?.type === 'sub';
+                  const posGroup = Object.values(POSITION_GROUPS).find((g) =>
+                    g.roles.includes(pos.name.toUpperCase()),
+                  ) ?? POSITION_GROUPS.UNKNOWN;
                   return (
                     <button
                       key={pos.id}
                       onClick={() => handleToggleSub(pos.id)}
                       disabled={isPrimary}
-                      className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                         isPrimary
-                          ? 'bg-primary/30 text-primary/50 cursor-not-allowed'
+                          ? 'opacity-30 cursor-not-allowed ' + posGroup.colorClass
                           : isSub
-                            ? 'bg-accent text-white'
+                            ? posGroup.colorClass
                             : 'bg-card-hover text-muted hover:text-foreground'
                       }`}
                     >

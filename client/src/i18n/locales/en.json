@@ -21,7 +21,9 @@
     "appName": "My Squad",
     "teamManagement": "Team Management",
     "month": "Month",
-    "year": "Year"
+    "year": "Year",
+    "active": "Active",
+    "inactive": "Inactive"
   },
   "nav": {
     "home": "Home",
@@ -269,5 +271,28 @@
     "confirmSaveMessage": "Save changes to \"{{name}}\"?",
     "confirmDeleteTitle": "Delete Uniform",
     "confirmDeleteMessage": "Delete \"{{name}}\"? This cannot be undone."
+  },
+  "formations": {
+    "title": "Formations (7-a-side)",
+    "loading": "Loading formations...",
+    "noFormations": "No formations yet.",
+    "addFormation": "+ Add Formation",
+    "editFormation": "Edit Formation",
+    "addFormationPlain": "Add Formation",
+    "players": "{{count}} players",
+    "editAria": "Edit {{name}}",
+    "deleteAria": "Delete {{name}}",
+    "deleteTitle": "Delete Formation",
+    "deleteMessage": "Delete \"{{name}}\"?",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. 3-2-1",
+    "pitchLayout": "Pitch layout",
+    "clickToPlace": "(click pitch to place {{role}})",
+    "roleForSlot": "Role for slot {{index}}",
+    "slotAria": "Slot {{index}} \u2014 {{role}}",
+    "saveChanges": "Save changes",
+    "saving": "Saving...",
+    "create": "Create",
+    "cancel": "Cancel"
   }
 }

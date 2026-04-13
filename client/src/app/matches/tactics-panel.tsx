@@ -3,8 +3,10 @@
 import {
   FootballPitch,
   type FootballPitchSlot,
+  type UniformColors,
 } from '@/components/football-pitch';
 import { Select } from '@/components/ui/select';
+import { UniformVisual } from '@/components/uniform-visual';
 import type { MatchLineup, Position, User, UserPosition } from '@/types';
 import type { Formation } from '@/types/formation';
 import { useMemo, useState } from 'react';
@@ -21,6 +23,8 @@ export interface TacticsPanelProps {
   positions: Position[];
   /** Per-user position assignments (primary used for grouping). */
   userPositions: UserPosition[];
+  /** Latest team uniform colors to display on pitch */
+  uniform?: UniformColors;
   /** Adds a new lineup entry (new player never seen before). */
   onAddLineup: (data: {
     userId: string;
@@ -100,6 +104,7 @@ export function TacticsPanel({
   canManage,
   positions,
   userPositions,
+  uniform,
   onAddLineup,
   onUpdateLineup,
   onRemoveLineup,
@@ -285,22 +290,54 @@ export function TacticsPanel({
                   ? `${slot.role} — ${player.displayName}`
                   : `Assign player to ${slot.role}`
               }
-              className={`flex flex-col items-center gap-0.5 ${
-                canManage ? 'cursor-pointer' : 'cursor-default'
+              className={`flex flex-col items-center gap-0.5 transition-all ${
+                canManage ? 'cursor-pointer hover:scale-110' : 'cursor-default'
+              } ${
+                activeSlot === i
+                  ? 'scale-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]'
+                  : ''
               }`}
             >
-              <div
-                className={`w-10 h-10 rounded-full text-xs font-bold flex items-center justify-center border-2 shadow-lg ${
-                  player
-                    ? 'bg-primary text-white border-white'
-                    : 'bg-white/90 text-green-800 border-dashed border-white'
-                }`}
-              >
-                {player ? (player.jerseyNumber ?? '?') : slot.role}
-              </div>
-              <span className="text-[10px] text-white font-medium drop-shadow bg-black/40 px-1 rounded max-w-[70px] truncate">
-                {player?.displayName ?? slot.role}
-              </span>
+              {uniform ? (
+                <>
+                  <UniformVisual
+                    shirtColor={uniform.shirtColor}
+                    pantColor={uniform.pantColor}
+                    numberColor={uniform.numberColor}
+                    number={
+                      player?.jerseyNumber != null
+                        ? String(player.jerseyNumber)
+                        : undefined
+                    }
+                    className={`w-12 h-15 drop-shadow-md ${
+                      !player ? 'opacity-40' : ''
+                    } ${activeSlot === i ? 'animate-pulse' : ''}`}
+                  />
+                  <span
+                    className={`text-[12px] md:text-[14px] font-bold leading-none max-w-[70px] truncate ${
+                      activeSlot === i ? 'text-yellow-300' : 'text-white'
+                    }`}
+                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+                  >
+                    {player?.displayName ?? slot.role}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div
+                    className={`w-10 h-10 rounded-full text-xs font-bold flex items-center justify-center border-2 shadow-lg ${
+                      player
+                        ? 'bg-primary text-white border-white'
+                        : 'bg-white/90 text-green-800 border-dashed border-white'
+                    }`}
+                  >
+                    {player ? (player.jerseyNumber ?? '?') : slot.role}
+                  </div>
+                  <span className="text-[10px] text-white font-medium drop-shadow bg-black/40 px-1 rounded max-w-[70px] truncate">
+                    {player?.displayName ?? slot.role}
+                  </span>
+                </>
+              )}
             </button>
           );
         }}

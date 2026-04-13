@@ -195,7 +195,7 @@ export default function UniformsPage() {
                           }
                           aria-label={t('uniforms.editAria', { name: u.name })}
                           title={t('uniforms.editTooltip')}
-                          className="absolute top-2 right-10 w-7 h-7 rounded-full bg-black/70 text-white text-xs opacity-0 group-hover:opacity-100 hover:bg-primary transition-all flex items-center justify-center"
+                          className="absolute top-2 right-10 w-7 h-7 rounded-full bg-black/70 text-white text-xs hover:bg-primary transition-all flex items-center justify-center"
                         >
                           ✎
                         </button>
@@ -206,7 +206,7 @@ export default function UniformsPage() {
                             name: u.name,
                           })}
                           title={t('uniforms.deleteTooltip')}
-                          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white text-xs opacity-0 group-hover:opacity-100 hover:bg-danger transition-all flex items-center justify-center"
+                          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white text-xs hover:bg-danger transition-all flex items-center justify-center"
                         >
                           ×
                         </button>

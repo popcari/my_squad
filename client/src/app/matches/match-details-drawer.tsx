@@ -1,3 +1,4 @@
+import type { UniformColors } from '@/components/football-pitch';
 import { Drawer } from '@/components/ui/drawer';
 import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
@@ -14,6 +15,7 @@ import {
   userPositionsService,
 } from '@/services';
 import { formationsService } from '@/services/formations.service';
+import { uniformsService } from '@/services/uniforms.service';
 import type {
   Expense,
   Match,
@@ -62,6 +64,9 @@ export function MatchDetailsDrawer({
 
   const [lineups, setLineups] = useState<MatchLineup[]>([]);
   const [loadingLineups, setLoadingLineups] = useState(false);
+  const [latestUniform, setLatestUniform] = useState<UniformColors | undefined>(
+    undefined,
+  );
 
   const [goals, setGoals] = useState<MatchGoal[]>([]);
   const [loadingGoals, setLoadingGoals] = useState(false);
@@ -85,14 +90,25 @@ export function MatchDetailsDrawer({
         formationsService.getAll(),
         positionsService.getAll(),
         Promise.all(players.map((p) => userPositionsService.getByUser(p.id))),
+        uniformsService.getAll(),
       ])
-        .then(([ls, fs, ps, upByUser]) => {
+        .then(([ls, fs, ps, upByUser, uniforms]) => {
           setLineups(ls);
           setFormations(fs);
           setPositions(ps);
           setUserPositions(upByUser.flat());
           if (!selectedFormationId && fs.length > 0) {
             setSelectedFormationId(fs[0].id);
+          }
+          if (uniforms.length > 0) {
+            const latest = uniforms.reduce((a, b) =>
+              b.year >= a.year ? b : a,
+            );
+            setLatestUniform({
+              shirtColor: latest.shirtColor,
+              pantColor: latest.pantColor,
+              numberColor: latest.numberColor,
+            });
           }
         })
         .finally(() => setLoadingLineups(false));
@@ -444,6 +460,7 @@ export function MatchDetailsDrawer({
             canManage={canManage}
             positions={positions}
             userPositions={userPositions}
+            uniform={latestUniform}
             onAddLineup={handleAddLineup}
             onUpdateLineup={handleUpdateLineup}
             onRemoveLineup={handleRemoveLineup}
@@ -453,7 +470,7 @@ export function MatchDetailsDrawer({
         {activeTab === 'goals' && (
           <div className="space-y-6">
             {canManage && (
-              <div className="bg-card-hover p-4 rounded-lg flex flex-col md:flex-row gap-4 items-end">
+              <div className="bg-card-hover p-4 rounded-lg flex flex-col md:flex-row gap-2 items-end">
                 <div className="flex-1 w-full space-y-1">
                   <label
                     className="text-sm font-medium"
@@ -519,7 +536,7 @@ export function MatchDetailsDrawer({
                   className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm w-full md:w-auto disabled:opacity-50"
                   style={{ height: '42px' }}
                 >
-                  Add Goal
+                  Add
                 </button>
               </div>
             )}
@@ -583,7 +600,7 @@ export function MatchDetailsDrawer({
         {activeTab === 'expense' && (
           <div className="space-y-6">
             {canManage && (
-              <div className="bg-card-hover p-4 rounded-lg flex flex-col md:flex-row gap-4 items-end">
+              <div className="bg-card-hover p-4 rounded-lg flex flex-col md:flex-row gap-2 items-end">
                 <div className="flex-1 w-full space-y-1">
                   <label
                     className="text-sm font-medium"
@@ -620,7 +637,7 @@ export function MatchDetailsDrawer({
                   className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm w-full md:w-auto disabled:opacity-50"
                   style={{ height: '42px' }}
                 >
-                  Add Expense
+                  Add
                 </button>
               </div>
             )}

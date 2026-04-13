@@ -1,16 +1,19 @@
 'use client';
 
 import { Drawer } from '@/components/drawer';
-import { FootballPitch } from '@/components/football-pitch';
+import { FootballPitch, type UniformColors } from '@/components/football-pitch';
 import { InputText } from '@/components/ui/input-text';
+import { UniformVisual } from '@/components/uniform-visual';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import {
   type CreateFormationPayload,
   formationsService,
 } from '@/services/formations.service';
+import { uniformsService } from '@/services/uniforms.service';
 import type { Formation, FormationSlot } from '@/types/formation';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type DrawerState =
   | { mode: 'create' }
@@ -28,17 +31,32 @@ const DEFAULT_SLOTS: FormationSlot[] = [
 ];
 
 export default function FormationsPage() {
+  const { t } = useTranslation();
   const canManage = useCanManage();
   const confirm = useConfirm();
   const [formations, setFormations] = useState<Formation[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [drawerState, setDrawerState] = useState<DrawerState>(null);
+  const [latestUniform, setLatestUniform] = useState<UniformColors | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     const load = async () => {
-      const data = await formationsService.getAll();
-      setFormations(data);
+      const [formationData, uniformData] = await Promise.all([
+        formationsService.getAll(),
+        uniformsService.getAll(),
+      ]);
+      setFormations(formationData);
+      if (uniformData.length > 0) {
+        const latest = uniformData.reduce((a, b) => (b.year >= a.year ? b : a));
+        setLatestUniform({
+          shirtColor: latest.shirtColor,
+          pantColor: latest.pantColor,
+          numberColor: latest.numberColor,
+        });
+      }
       setLoading(false);
     };
     load();
@@ -73,9 +91,9 @@ export default function FormationsPage() {
 
   const handleDelete = async (f: Formation) => {
     const ok = await confirm({
-      title: 'Delete Formation',
-      message: `Delete "${f.name}"?`,
-      confirmText: 'Delete',
+      title: t('formations.deleteTitle'),
+      message: t('formations.deleteMessage', { name: f.name }),
+      confirmText: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
@@ -83,24 +101,24 @@ export default function FormationsPage() {
     await reload();
   };
 
-  if (loading) return <p className="text-muted">Loading formations...</p>;
+  if (loading) return <p className="text-muted">{t('formations.loading')}</p>;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h1 className="text-2xl font-bold">Formations (7-a-side)</h1>
+        <h1 className="text-2xl font-bold">{t('formations.title')}</h1>
         {canManage && (
           <button
             onClick={() => setDrawerState({ mode: 'create' })}
             className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm transition-colors"
           >
-            + Add Formation
+            {t('formations.addFormation')}
           </button>
         )}
       </div>
 
       {formations.length === 0 ? (
-        <p className="text-muted">No formations yet.</p>
+        <p className="text-muted">{t('formations.noFormations')}</p>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {formations.map((f) => (
@@ -108,19 +126,25 @@ export default function FormationsPage() {
               key={f.id}
               className="bg-card rounded-lg overflow-hidden group relative"
             >
-              <FootballPitch slots={f.slots} className="pointer-events-none" />
+              <FootballPitch
+                slots={f.slots}
+                uniform={latestUniform}
+                className="pointer-events-none"
+              />
               <div className="p-3">
                 <p className="text-sm font-medium">{f.name}</p>
-                <p className="text-xs text-muted">{f.slots.length} players</p>
+                <p className="text-xs text-muted">
+                  {t('formations.players', { count: f.slots.length })}
+                </p>
               </div>
               {canManage && (
-                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                <div className="absolute top-2 right-2 flex gap-1 transition-all">
                   <button
                     type="button"
                     onClick={() =>
                       setDrawerState({ mode: 'edit', formation: f })
                     }
-                    aria-label={`Edit ${f.name}`}
+                    aria-label={t('formations.editAria', { name: f.name })}
                     className="w-7 h-7 rounded-full bg-black/70 text-white text-xs hover:bg-primary flex items-center justify-center"
                   >
                     ✎
@@ -128,7 +152,7 @@ export default function FormationsPage() {
                   <button
                     type="button"
                     onClick={() => handleDelete(f)}
-                    aria-label={`Delete ${f.name}`}
+                    aria-label={t('formations.deleteAria', { name: f.name })}
                     className="w-7 h-7 rounded-full bg-black/70 text-white text-xs hover:bg-danger flex items-center justify-center"
                   >
                     ×
@@ -144,7 +168,9 @@ export default function FormationsPage() {
         open={drawerState !== null}
         onClose={() => setDrawerState(null)}
         title={
-          drawerState?.mode === 'edit' ? 'Edit Formation' : 'Add Formation'
+          drawerState?.mode === 'edit'
+            ? t('formations.editFormation')
+            : t('formations.addFormationPlain')
         }
       >
         {drawerState && (
@@ -157,8 +183,11 @@ export default function FormationsPage() {
             }
             saving={saving}
             submitLabel={
-              drawerState.mode === 'edit' ? 'Save changes' : 'Create'
+              drawerState.mode === 'edit'
+                ? t('formations.saveChanges')
+                : t('formations.create')
             }
+            uniform={latestUniform}
             onSubmit={(values) =>
               drawerState.mode === 'edit'
                 ? handleUpdate(drawerState.formation.id, values)
@@ -176,15 +205,18 @@ function FormationForm({
   initial,
   saving,
   submitLabel,
+  uniform,
   onSubmit,
   onCancel,
 }: {
   initial?: Formation;
   saving: boolean;
   submitLabel: string;
+  uniform?: UniformColors;
   onSubmit: (values: CreateFormationPayload) => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initial?.name ?? '');
   const [slots, setSlots] = useState<FormationSlot[]>(
     initial ? [...initial.slots] : [...DEFAULT_SLOTS],
@@ -218,8 +250,8 @@ function FormationForm({
     <form onSubmit={handleSubmit} className="p-4 space-y-4">
       <InputText
         id="formation-name"
-        label="Name"
-        placeholder="e.g. 3-2-1"
+        label={t('formations.nameLabel')}
+        placeholder={t('formations.namePlaceholder')}
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
@@ -227,10 +259,10 @@ function FormationForm({
 
       <div>
         <p className="text-sm font-medium mb-2">
-          Pitch layout{' '}
+          {t('formations.pitchLayout')}{' '}
           {activeSlot !== null && (
             <span className="text-xs text-primary">
-              (click pitch to place {slots[activeSlot].role})
+              {t('formations.clickToPlace', { role: slots[activeSlot].role })}
             </span>
           )}
         </p>
@@ -244,14 +276,46 @@ function FormationForm({
                   e.stopPropagation();
                   setActiveSlot(i);
                 }}
-                className={`w-10 h-10 rounded-full text-xs font-bold flex items-center justify-center border-2 shadow-lg transition-colors ${
+                className={`flex flex-col items-center gap-0.5 transition-all ${
                   activeSlot === i
-                    ? 'bg-primary text-white border-primary animate-pulse'
-                    : 'bg-white/90 text-green-800 border-white hover:bg-primary hover:text-white'
+                    ? 'scale-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]'
+                    : 'hover:scale-110'
                 }`}
-                aria-label={`Slot ${i + 1} — ${slot.role}`}
+                aria-label={t('formations.slotAria', {
+                  index: i + 1,
+                  role: slot.role,
+                })}
               >
-                {slot.role}
+                {uniform ? (
+                  <>
+                    <UniformVisual
+                      shirtColor={uniform.shirtColor}
+                      pantColor={uniform.pantColor}
+                      numberColor={uniform.numberColor}
+                      className={`w-12 h-15 drop-shadow-md ${
+                        activeSlot === i ? 'animate-pulse' : ''
+                      }`}
+                    />
+                    <span
+                      className={`text-[12px] md:text-[14px] font-bold leading-none ${
+                        activeSlot === i ? 'text-yellow-300' : 'text-white'
+                      }`}
+                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+                    >
+                      {slot.role}
+                    </span>
+                  </>
+                ) : (
+                  <div
+                    className={`w-10 h-10 rounded-full text-xs font-bold flex items-center justify-center border-2 shadow-lg ${
+                      activeSlot === i
+                        ? 'bg-primary text-white border-primary animate-pulse'
+                        : 'bg-white/90 text-green-800 border-white hover:bg-primary hover:text-white'
+                    }`}
+                  >
+                    {slot.role}
+                  </div>
+                )}
               </button>
             )}
           />
@@ -267,7 +331,7 @@ function FormationForm({
               value={slot.role}
               onChange={(e) => handleRoleChange(i, e.target.value)}
               className="flex-1 bg-background border border-border rounded px-2 py-1 text-xs font-mono"
-              aria-label={`Role for slot ${i + 1}`}
+              aria-label={t('formations.roleForSlot', { index: i + 1 })}
             />
             {/* <span className="text-[10px] text-muted font-mono">
               {slot.x},{slot.y}
@@ -282,14 +346,14 @@ function FormationForm({
           onClick={onCancel}
           className="flex-1 bg-card-hover hover:bg-border text-foreground py-2 rounded-lg text-sm transition-colors"
         >
-          Cancel
+          {t('formations.cancel')}
         </button>
         <button
           type="submit"
           disabled={saving || !name.trim()}
           className="flex-1 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-2 rounded-lg text-sm transition-colors"
         >
-          {saving ? 'Saving...' : submitLabel}
+          {saving ? t('formations.saving') : submitLabel}
         </button>
       </div>
     </form>

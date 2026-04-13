@@ -21,7 +21,9 @@
     "appName": "My Squad",
     "teamManagement": "Quản lý đội bóng",
     "month": "Tháng",
-    "year": "Năm"
+    "year": "Năm",
+    "active": "Hoạt động",
+    "inactive": "Không hoạt động"
   },
   "nav": {
     "home": "Trang chủ",
@@ -269,5 +271,28 @@
     "confirmSaveMessage": "Lưu thay đổi cho \"{{name}}\"?",
     "confirmDeleteTitle": "Xóa đồng phục",
     "confirmDeleteMessage": "Xóa \"{{name}}\"? Thao tác này không thể hoàn tác."
+  },
+  "formations": {
+    "title": "Đội hình (7 người)",
+    "loading": "Đang tải đội hình...",
+    "noFormations": "Chưa có đội hình nào.",
+    "addFormation": "+ Thêm đội hình",
+    "editFormation": "Sửa đội hình",
+    "addFormationPlain": "Thêm đội hình",
+    "players": "{{count}} cầu thủ",
+    "editAria": "Sửa {{name}}",
+    "deleteAria": "Xóa {{name}}",
+    "deleteTitle": "Xóa đội hình",
+    "deleteMessage": "Xóa \"{{name}}\"?",
+    "nameLabel": "Tên",
+    "namePlaceholder": "VD: 3-2-1",
+    "pitchLayout": "Bố cục sân",
+    "clickToPlace": "(nhấn vào sân để đặt {{role}})",
+    "roleForSlot": "Vai trò ô {{index}}",
+    "slotAria": "Ô {{index}} \u2014 {{role}}",
+    "saveChanges": "Lưu thay đổi",
+    "saving": "Đang lưu...",
+    "create": "Tạo",
+    "cancel": "Hủy"
   }
 }

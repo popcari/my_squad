@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/link', () => ({
@@ -159,5 +159,86 @@ describe('PlayerProfilePage - Status Display', () => {
 
     const badge = await screen.findByText('common.active');
     expect(badge.className).toContain('green');
+  });
+});
+
+describe('PlayerProfilePage - Position Section', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetAllTraits.mockResolvedValue([]);
+    (matchesService.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (matchesService.getAllGoals as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+  });
+
+  const baseProfile = {
+    id: 'u-1',
+    email: 'test@test.com',
+    displayName: 'Test Player',
+    role: 'player',
+    jerseyNumber: 10,
+    phone: '0901234567',
+    status: 1,
+    traits: [],
+    stats: { goals: 0, assists: 0 },
+    createdAt: '',
+    updatedAt: '',
+  };
+
+  it('renders positions sorted GK → DEF → MID → FWD', async () => {
+    mockGetAllPositions.mockResolvedValue([
+      { id: 'p-st', name: 'ST', createdAt: '', updatedAt: '' },
+      { id: 'p-cm', name: 'CM', createdAt: '', updatedAt: '' },
+      { id: 'p-cb', name: 'CB', createdAt: '', updatedAt: '' },
+      { id: 'p-gk', name: 'GK', createdAt: '', updatedAt: '' },
+    ]);
+    mockGetProfile.mockResolvedValue({ ...baseProfile, positions: [] });
+
+    render(<PlayerProfilePage />);
+    await screen.findByText('Test Player');
+
+    // Get all position buttons in the primary section
+    // Primary section text is the first set of position buttons
+    const allBtns = screen.getAllByRole('button', { name: /^(GK|CB|CM|ST)$/ });
+    const names = allBtns.map((b) => b.textContent?.trim());
+
+    // GK should appear before CB, CB before CM, CM before ST
+    expect(names.indexOf('GK')).toBeLessThan(names.indexOf('CB'));
+    expect(names.indexOf('CB')).toBeLessThan(names.indexOf('CM'));
+    expect(names.indexOf('CM')).toBeLessThan(names.indexOf('ST'));
+  });
+
+  it('applies yellow color class to selected GK primary position', async () => {
+    mockGetAllPositions.mockResolvedValue([
+      { id: 'p-gk', name: 'GK', createdAt: '', updatedAt: '' },
+    ]);
+    mockGetProfile.mockResolvedValue({
+      ...baseProfile,
+      positions: [{ id: 'up1', positionId: 'p-gk', type: 'primary', userId: 'u-1', createdAt: '' }],
+    });
+
+    render(<PlayerProfilePage />);
+    await screen.findByText('Test Player');
+
+    // Find the primary GK button - should have yellow color class
+    const primarySection = screen.getByText(/primary/i).closest('div')!;
+    const gkBtn = within(primarySection).getByRole('button', { name: 'GK' });
+    expect(gkBtn.className).toMatch(/yellow/);
+  });
+
+  it('applies blue color class to selected CB sub position', async () => {
+    mockGetAllPositions.mockResolvedValue([
+      { id: 'p-cb', name: 'CB', createdAt: '', updatedAt: '' },
+    ]);
+    mockGetProfile.mockResolvedValue({
+      ...baseProfile,
+      positions: [{ id: 'up1', positionId: 'p-cb', type: 'sub', userId: 'u-1', createdAt: '' }],
+    });
+
+    render(<PlayerProfilePage />);
+    await screen.findByText('Test Player');
+
+    const subSection = screen.getByText(/sub/i).closest('div')!;
+    const cbBtn = within(subSection).getByRole('button', { name: 'CB' });
+    expect(cbBtn.className).toMatch(/blue/);
   });
 });

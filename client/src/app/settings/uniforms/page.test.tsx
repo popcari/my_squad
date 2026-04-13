@@ -139,4 +139,20 @@ describe('UniformsPage', () => {
       expect.objectContaining({ name: 'Renamed' }),
     );
   });
+
+  it('edit and delete buttons are always visible without hover (mobile-friendly)', async () => {
+    mockGetAll.mockResolvedValue([
+      mockUniform({ id: 'u1', year: 2026, name: 'Home Kit 2026' }),
+    ]);
+
+    render(<UniformsPage />);
+    await screen.findByText('Home Kit 2026');
+
+    const editBtn = screen.getByRole('button', { name: /edit home kit 2026/i });
+    const deleteBtn = screen.getByRole('button', { name: /delete home kit 2026/i });
+
+    // Must NOT have opacity-0 — that would hide them from mobile users
+    expect(editBtn.className).not.toContain('opacity-0');
+    expect(deleteBtn.className).not.toContain('opacity-0');
+  });
 });

@@ -13,6 +13,7 @@ const mockGetAll = vi.fn();
 const mockCreate = vi.fn();
 const mockRemove = vi.fn();
 const mockUpdate = vi.fn();
+const mockUniformsGetAll = vi.fn();
 
 vi.mock('@/services/formations.service', () => ({
   formationsService: {
@@ -20,6 +21,12 @@ vi.mock('@/services/formations.service', () => ({
     create: (...args: unknown[]) => mockCreate(...args),
     update: (...args: unknown[]) => mockUpdate(...args),
     remove: (...args: unknown[]) => mockRemove(...args),
+  },
+}));
+
+vi.mock('@/services/uniforms.service', () => ({
+  uniformsService: {
+    getAll: (...args: unknown[]) => mockUniformsGetAll(...args),
   },
 }));
 
@@ -38,6 +45,7 @@ const sampleSlots = [
 describe('FormationsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUniformsGetAll.mockResolvedValue([]);
   });
 
   it('renders list of formations', async () => {
@@ -104,5 +112,36 @@ describe('FormationsPage', () => {
       /^Name/,
     ) as HTMLInputElement;
     expect(nameInput.value).toBe('3-2-1');
+  });
+
+  it('edit and delete buttons are always visible (not hidden without hover)', async () => {
+    mockGetAll.mockResolvedValue([
+      { id: 'f1', name: '3-2-1', slots: sampleSlots, createdAt: '', updatedAt: '' },
+    ]);
+    render(<FormationsPage />);
+    await screen.findByText('3-2-1');
+
+    const editBtn = screen.getByRole('button', { name: /edit 3-2-1/i });
+    const deleteBtn = screen.getByRole('button', { name: /delete 3-2-1/i });
+
+    // Buttons must NOT have opacity-0 class (hover-only visibility)
+    expect(editBtn.className).not.toContain('opacity-0');
+    expect(deleteBtn.className).not.toContain('opacity-0');
+  });
+
+  it('renders UniformVisual icons on pitch when uniform data is available', async () => {
+    mockGetAll.mockResolvedValue([
+      { id: 'f1', name: '3-2-1', slots: sampleSlots, createdAt: '', updatedAt: '' },
+    ]);
+    mockUniformsGetAll.mockResolvedValue([
+      { id: 'un1', year: 2026, name: 'Home', shirtColor: '#ff0000', pantColor: '#000', numberColor: '#fff', createdAt: '', updatedAt: '' },
+    ]);
+
+    render(<FormationsPage />);
+    await screen.findByText('3-2-1');
+
+    // UniformVisual renders SVG with role="img" aria-label="Uniform preview"
+    const uniforms = screen.getAllByRole('img', { name: 'Uniform preview' });
+    expect(uniforms.length).toBeGreaterThan(0);
   });
 });

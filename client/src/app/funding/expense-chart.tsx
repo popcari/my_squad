@@ -90,8 +90,9 @@ export function ExpenseChart({ expenses }: { expenses: Expense[] }) {
               dataKey="name"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: 'hsl(var(--muted))', fontSize: 10 }}
+              tick={{ fill: '#ef4444', fontSize: 12, fontWeight: 'bold' }}
               dy={10}
+              niceTicks="adaptive"
             />
             <YAxis hide />
             <Tooltip
@@ -100,8 +101,8 @@ export function ExpenseChart({ expenses }: { expenses: Expense[] }) {
                 strokeWidth: 1,
               }}
               contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                borderColor: 'hsl(var(--border))',
+                backgroundColor: '#ebebeb',
+                borderColor: '#acacac',
                 borderRadius: '0.5rem',
                 fontSize: '12px',
               }}

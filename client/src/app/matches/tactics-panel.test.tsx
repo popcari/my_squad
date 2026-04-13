@@ -50,6 +50,7 @@ interface RenderOpts {
   canManage?: boolean;
   positions?: Position[];
   userPositions?: UserPosition[];
+  uniform?: { shirtColor: string; pantColor: string; numberColor: string };
 }
 
 function renderPanel(opts: RenderOpts = {}) {
@@ -69,6 +70,7 @@ function renderPanel(opts: RenderOpts = {}) {
       canManage={opts.canManage ?? true}
       positions={opts.positions ?? []}
       userPositions={opts.userPositions ?? []}
+      uniform={opts.uniform}
       onAddLineup={onAddLineup}
       onUpdateLineup={onUpdateLineup}
       onRemoveLineup={onRemoveLineup}
@@ -370,6 +372,37 @@ describe('TacticsPanel', () => {
     expect(onUpdateLineup).toHaveBeenCalledWith('l2', {
       type: 'substitute',
       slotIndex: null,
+    });
+  });
+
+  describe('uniform prop', () => {
+    const uniform = {
+      shirtColor: '#ff0000',
+      pantColor: '#000000',
+      numberColor: '#ffffff',
+    };
+
+    it('renders UniformVisual for each slot when uniform is provided', () => {
+      renderPanel({ uniform });
+      const imgs = screen.getAllByRole('img', { name: 'Uniform preview' });
+      expect(imgs).toHaveLength(sampleFormation.slots.length);
+    });
+
+    it('shows assigned player jersey number on their uniform', () => {
+      renderPanel({
+        players: [mockPlayer({ id: 'u1', displayName: 'Messi', jerseyNumber: 10 })],
+        lineups: [mockLineup({ id: 'l1', userId: 'u1', type: 'starting', slotIndex: 6 })],
+        uniform,
+      });
+      // jersey number 10 should appear in the slot button area
+      expect(screen.getByRole('button', { name: /ST.*Messi|Messi.*ST/i })).toBeInTheDocument();
+    });
+
+    it('falls back to circle slots when no uniform is provided', () => {
+      renderPanel({});
+      expect(screen.queryByRole('img', { name: 'Uniform preview' })).toBeNull();
+      // Roles still rendered as text
+      expect(screen.getByRole('button', { name: /Assign player to GK/i })).toBeInTheDocument();
     });
   });
 });

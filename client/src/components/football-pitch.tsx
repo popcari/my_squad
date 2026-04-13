@@ -1,13 +1,21 @@
 'use client';
 
+import { UniformVisual } from '@/components/uniform-visual';
 import type { FormationSlot } from '@/types/formation';
 
 export interface FootballPitchSlot extends FormationSlot {
   id?: string;
 }
 
+export interface UniformColors {
+  shirtColor: string;
+  pantColor: string;
+  numberColor: string;
+}
+
 interface FootballPitchProps {
   slots: FootballPitchSlot[];
+  uniform?: UniformColors;
   renderSlot?: (slot: FootballPitchSlot, index: number) => React.ReactNode;
   onSlotDrop?: (slotIndex: number, data: string) => void;
   onSlotMove?: (slotIndex: number, x: number, y: number) => void;
@@ -22,6 +30,7 @@ interface FootballPitchProps {
  */
 export function FootballPitch({
   slots,
+  uniform,
   renderSlot,
   onSlotDrop,
   onSlotMove,
@@ -160,6 +169,21 @@ export function FootballPitch({
         >
           {renderSlot ? (
             renderSlot(slot, i)
+          ) : uniform ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <UniformVisual
+                shirtColor={uniform.shirtColor}
+                pantColor={uniform.pantColor}
+                numberColor={uniform.numberColor}
+                className="w-10 h-12 drop-shadow-md"
+              />
+              <span
+                className="text-[12px] md:text-[14px] font-bold text-white leading-none"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+              >
+                {slot.role}
+              </span>
+            </div>
           ) : (
             <div className="w-10 h-10 rounded-full bg-white/90 text-green-800 font-bold text-xs flex items-center justify-center border-2 border-white shadow-lg">
               {slot.role}
