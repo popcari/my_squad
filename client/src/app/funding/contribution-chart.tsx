@@ -3,6 +3,7 @@
 import { Select } from '@/components/ui/select';
 import type { Contribution, FundingRound, User } from '@/types';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { PieLabelRenderProps } from 'recharts';
 import {
   Cell,
@@ -49,6 +50,7 @@ export function ContributionChart({
   rounds,
   players,
 }: ContributionChartProps) {
+  const { t } = useTranslation();
   const [selectedRoundId, setSelectedRoundId] = useState<string>('');
   const [showAll, setShowAll] = useState(false);
 
@@ -96,14 +98,14 @@ export function ContributionChart({
   return (
     <div className="bg-card rounded-lg p-4 border border-border mb-6">
       <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-2">
-        <h2 className="text-lg font-semibold">Contribution Statistics</h2>
+        <h2 className="text-lg font-semibold">{t('funding.contributionStats')}</h2>
         <div className="w-full md:w-[30%] ">
           <Select
             value={selectedRoundId}
             onChange={(e) => setSelectedRoundId(e.target.value)}
             className="text-sm"
           >
-            <option value="">All Rounds</option>
+            <option value="">{t('funding.allRounds')}</option>
             {rounds.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
@@ -115,7 +117,7 @@ export function ContributionChart({
 
       {filtered.length === 0 ? (
         <p className="text-sm text-muted text-center py-8">
-          No contribution data for this round.
+          {t('funding.noContributionData')}
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -156,7 +158,7 @@ export function ContributionChart({
               </PieChart>
             </ResponsiveContainer>
             <p className="text-xs text-muted mt-2">
-              Total:{' '}
+              {t('funding.total')}:{' '}
               <span className="font-semibold text-accent">
                 {formatVND(total)}
               </span>
@@ -166,7 +168,7 @@ export function ContributionChart({
           {/* Ranking */}
           <div>
             <h3 className="text-sm font-semibold mb-3 text-muted uppercase tracking-wider">
-              Contribution Ranking
+              {t('funding.contributionRanking')}
             </h3>
             <div data-testid="ranking-list" className="space-y-2">
               {(showAll ? ranking : ranking.slice(0, VISIBLE_COUNT)).map(
@@ -209,7 +211,7 @@ export function ContributionChart({
                         />
                       </div>
                       <span className="text-[10px] text-muted">
-                        {player.percentage.toFixed(1)}% of total fund
+                        {player.percentage.toFixed(1)}{t('funding.percentOfTotal')}
                       </span>
                     </div>
                   </div>
@@ -224,8 +226,8 @@ export function ContributionChart({
                 className="mt-3 w-full text-xs text-primary hover:text-primary-hover font-medium py-1.5 rounded-lg border border-primary/30 hover:border-primary/60 transition-all"
               >
                 {showAll
-                  ? '▲ Show less'
-                  : `▼ Show ${ranking.length - VISIBLE_COUNT} more`}
+                  ? t('funding.showLess')
+                  : t('funding.showMore', { count: ranking.length - VISIBLE_COUNT })}
               </button>
             )}
           </div>

@@ -202,7 +202,14 @@
     "paid": "Paid",
     "unpaid": "Unpaid",
     "total": "Total",
-    "contributionChart": "Contribution Chart"
+    "contributionChart": "Contribution Chart",
+    "contributionStats": "Contribution Statistics",
+    "allRounds": "All Rounds",
+    "noContributionData": "No contribution data for this round.",
+    "contributionRanking": "Contribution Ranking",
+    "percentOfTotal": "% of total fund",
+    "showLess": "▲ Show less",
+    "showMore": "▼ Show {{count}} more"
   },
   "scoreModal": {
     "saveMatchResult": "Save Match Result",

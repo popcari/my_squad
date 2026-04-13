@@ -469,13 +469,13 @@ export default function FundingPage() {
                           onClick={() => handleUpdateRound(r.id)}
                           className="text-xs text-accent hover:text-accent/80"
                         >
-                          Save
+                          {t('common.save')}
                         </button>
                         <button
                           onClick={() => setEditingRound(null)}
                           className="text-xs text-muted hover:text-foreground"
                         >
-                          Cancel
+                          {t('common.cancel')}
                         </button>
                       </div>
                     ) : (
@@ -487,7 +487,7 @@ export default function FundingPage() {
                               contributions.filter((c) => c.roundId === r.id)
                                 .length
                             }{' '}
-                            contributions
+                            {t('funding.contributions').toLowerCase()}
                           </span>
                         </div>
                         {canManage && (

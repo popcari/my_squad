@@ -202,7 +202,14 @@
     "paid": "Đã đóng",
     "unpaid": "Chưa đóng",
     "total": "Tổng",
-    "contributionChart": "Biểu đồ đóng góp"
+    "contributionChart": "Biểu đồ đóng góp",
+    "contributionStats": "Thống kê đóng góp",
+    "allRounds": "Tất cả các đợt",
+    "noContributionData": "Không có dữ liệu đóng góp cho đợt này.",
+    "contributionRanking": "Bảng xếp hạng đóng góp",
+    "percentOfTotal": "% tổng quỹ",
+    "showLess": "▲ Ẩn bớt",
+    "showMore": "▼ Xem thêm {{count}} người"
   },
   "scoreModal": {
     "saveMatchResult": "Lưu kết quả trận đấu",
