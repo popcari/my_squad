@@ -81,6 +81,7 @@ export interface MatchLineup {
   matchId: string;
   userId: string;
   type: LineupType;
+  slotIndex?: number | null;
   createdAt: string;
 }
 

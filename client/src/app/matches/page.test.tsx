@@ -16,6 +16,7 @@ vi.mock('@/services', () => ({
     create: vi.fn(),
     getLineups: vi.fn(),
     addLineup: vi.fn(),
+    updateLineup: vi.fn(),
     removeLineup: vi.fn(),
     getGoals: vi.fn(),
     addGoal: vi.fn(),
@@ -26,6 +27,12 @@ vi.mock('@/services', () => ({
   },
   usersService: {
     getAll: vi.fn(),
+  },
+  positionsService: {
+    getAll: vi.fn().mockResolvedValue([]),
+  },
+  userPositionsService: {
+    getByUser: vi.fn().mockResolvedValue([]),
   },
 }));
 

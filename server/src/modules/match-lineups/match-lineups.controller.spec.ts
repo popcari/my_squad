@@ -13,6 +13,7 @@ describe('MatchLineupsController', () => {
     mockService = {
       findByMatch: jest.fn().mockResolvedValue([]),
       add: jest.fn(),
+      update: jest.fn(),
       remove: jest.fn(),
     };
 
@@ -53,6 +54,40 @@ describe('MatchLineupsController', () => {
       .post('/match-lineups')
       .send({ matchId: 'm1', userId: 'u1', type: 'starting' });
     expect(res.status).toBe(201);
+  });
+
+  it('POST /match-lineups accepts optional slotIndex', async () => {
+    (mockService.add as jest.Mock).mockResolvedValue({
+      id: 'l1',
+      slotIndex: 2,
+    });
+    const res = await request(app.getHttpServer())
+      .post('/match-lineups')
+      .send({
+        matchId: 'm1',
+        userId: 'u1',
+        type: 'starting',
+        slotIndex: 2,
+      });
+    expect(res.status).toBe(201);
+    expect(mockService.add).toHaveBeenCalledWith({
+      matchId: 'm1',
+      userId: 'u1',
+      type: 'starting',
+      slotIndex: 2,
+    });
+  });
+
+  it('PATCH /match-lineups/:id updates', async () => {
+    (mockService.update as jest.Mock).mockResolvedValue({
+      id: 'l1',
+      slotIndex: 4,
+    });
+    const res = await request(app.getHttpServer())
+      .patch('/match-lineups/l1')
+      .send({ slotIndex: 4 });
+    expect(res.status).toBe(200);
+    expect(mockService.update).toHaveBeenCalledWith('l1', { slotIndex: 4 });
   });
 
   it('DELETE /match-lineups/:id removes', async () => {

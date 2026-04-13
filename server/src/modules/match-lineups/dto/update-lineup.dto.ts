@@ -1,25 +1,19 @@
 import {
   IsEnum,
   IsInt,
-  IsNotEmpty,
   IsOptional,
-  IsString,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import { LineupType } from '../types';
 
-export class AddLineupDto {
-  @IsString()
-  @IsNotEmpty()
-  matchId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  userId: string;
-
+export class UpdateLineupDto {
   @IsEnum(LineupType)
-  type: LineupType;
+  @IsOptional()
+  type?: LineupType;
 
+  // Allow either a positive int slotIndex or explicit null (to clear it).
+  @ValidateIf((_o, v) => v !== null)
   @IsInt()
   @Min(0)
   @IsOptional()

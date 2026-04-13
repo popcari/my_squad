@@ -110,6 +110,89 @@ describe('MatchLineupsService', () => {
     });
   });
 
+  describe('add with slotIndex', () => {
+    it('persists slotIndex when provided', async () => {
+      const whereChain = {
+        where: jest.fn().mockReturnValue({
+          get: jest.fn().mockResolvedValue({ empty: true }),
+        }),
+      };
+      mockCollection.where.mockReturnValue(whereChain);
+      mockCollection.add.mockResolvedValue({ id: 'new-l' });
+
+      const result = await service.add({
+        matchId: 'm-1',
+        userId: 'u-1',
+        type: LineupType.STARTING,
+        slotIndex: 3,
+      });
+
+      expect(result.slotIndex).toBe(3);
+      const addedData = mockCollection.add.mock.calls[0][0];
+      expect(addedData.slotIndex).toBe(3);
+    });
+  });
+
+  describe('update', () => {
+    it('updates slotIndex of an existing lineup', async () => {
+      const docRef = {
+        get: jest.fn().mockResolvedValue({
+          exists: true,
+          id: 'l-1',
+          data: () => ({
+            matchId: 'm-1',
+            userId: 'u-1',
+            type: LineupType.STARTING,
+            slotIndex: 5,
+            createdAt: { toDate: () => new Date() },
+          }),
+        }),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
+      mockCollection.doc.mockReturnValue(docRef);
+
+      const result = await service.update('l-1', { slotIndex: 5 });
+      expect(result.slotIndex).toBe(5);
+      expect(docRef.update).toHaveBeenCalledWith(
+        expect.objectContaining({ slotIndex: 5 }),
+      );
+    });
+
+    it('updates type and slotIndex together', async () => {
+      const docRef = {
+        get: jest.fn().mockResolvedValue({
+          exists: true,
+          id: 'l-1',
+          data: () => ({
+            matchId: 'm-1',
+            userId: 'u-1',
+            type: LineupType.SUBSTITUTE,
+            slotIndex: null,
+            createdAt: { toDate: () => new Date() },
+          }),
+        }),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
+      mockCollection.doc.mockReturnValue(docRef);
+
+      const result = await service.update('l-1', {
+        type: LineupType.SUBSTITUTE,
+        slotIndex: null,
+      });
+      expect(result.type).toBe(LineupType.SUBSTITUTE);
+      expect(result.slotIndex).toBeNull();
+    });
+
+    it('throws NotFoundException when updating missing lineup', async () => {
+      mockCollection.doc.mockReturnValue({
+        get: jest.fn().mockResolvedValue({ exists: false }),
+      });
+      await expect(
+        service.update('missing', { slotIndex: 2 }),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
   describe('remove', () => {
     it('should remove lineup entry', async () => {
       const mockDocRef = {

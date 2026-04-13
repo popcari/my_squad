@@ -5,9 +5,9 @@ import {
   type FootballPitchSlot,
 } from '@/components/football-pitch';
 import { Select } from '@/components/ui/select';
-import type { MatchLineup, User } from '@/types';
+import type { MatchLineup, Position, User, UserPosition } from '@/types';
 import type { Formation } from '@/types/formation';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export interface TacticsPanelProps {
   loading: boolean;
@@ -17,18 +17,79 @@ export interface TacticsPanelProps {
   selectedFormationId: string;
   onFormationChange: (id: string) => void;
   canManage: boolean;
-  onAddLineup: (
-    userId: string,
-    type: 'starting' | 'substitute',
+  /** All position catalogue (for looking up names). */
+  positions: Position[];
+  /** Per-user position assignments (primary used for grouping). */
+  userPositions: UserPosition[];
+  /** Adds a new lineup entry (new player never seen before). */
+  onAddLineup: (data: {
+    userId: string;
+    type: 'starting' | 'substitute';
+    slotIndex?: number | null;
+  }) => Promise<void>;
+  /** Updates type/slotIndex of an existing lineup entry. */
+  onUpdateLineup: (
+    id: string,
+    data: Partial<Pick<MatchLineup, 'type' | 'slotIndex'>>,
   ) => Promise<void>;
+  /** Fully removes a lineup entry (used for bench cleanup). */
   onRemoveLineup: (lineupId: string) => Promise<void>;
 }
 
 /**
- * Tactics panel — mobile-friendly tap-to-select interaction.
- * Slot layout is driven by a client-side `slotMap` (slotIndex → userId),
- * because the backend's MatchLineup entity has no `slotIndex` field.
+ * Tactics panel — server is the source of truth for slot positions.
+ *
+ * Each MatchLineup carries a `slotIndex` (for starting players) or `null` (for
+ * bench players). The component renders purely from the `lineups` prop and
+ * fires API calls immediately on each tap. Reload always shows the last saved
+ * arrangement exactly.
  */
+type PositionGroup = 'GK' | 'DEF' | 'MID' | 'FWD' | 'OTHER';
+
+const GROUP_ORDER: PositionGroup[] = ['GK', 'DEF', 'MID', 'FWD', 'OTHER'];
+const GROUP_LABEL: Record<PositionGroup, string> = {
+  GK: 'Goalkeepers',
+  DEF: 'Defenders',
+  MID: 'Midfielders',
+  FWD: 'Forwards',
+  OTHER: 'Others',
+};
+
+/** Classify a position name into one of 4 football role groups. */
+function classifyPosition(name: string): PositionGroup {
+  const n = name.toLowerCase();
+  if (n.includes('keeper') || n === 'gk') return 'GK';
+  if (
+    n.includes('defend') ||
+    n.includes('back') ||
+    n === 'cb' ||
+    n === 'lb' ||
+    n === 'rb'
+  )
+    return 'DEF';
+  if (
+    n.includes('midfield') ||
+    n.includes('middle') ||
+    n === 'cm' ||
+    n === 'lm' ||
+    n === 'rm' ||
+    n === 'cdm' ||
+    n === 'cam'
+  )
+    return 'MID';
+  if (
+    n.includes('forward') ||
+    n.includes('striker') ||
+    n.includes('winger') ||
+    n === 'st' ||
+    n === 'cf' ||
+    n === 'lw' ||
+    n === 'rw'
+  )
+    return 'FWD';
+  return 'OTHER';
+}
+
 export function TacticsPanel({
   loading,
   players,
@@ -37,7 +98,10 @@ export function TacticsPanel({
   selectedFormationId,
   onFormationChange,
   canManage,
+  positions,
+  userPositions,
   onAddLineup,
+  onUpdateLineup,
   onRemoveLineup,
 }: TacticsPanelProps) {
   const selectedFormation = useMemo(
@@ -45,153 +109,114 @@ export function TacticsPanel({
     [formations, selectedFormationId],
   );
 
-  const startingLineups = useMemo(
-    () => lineups.filter((l) => l.type === 'starting'),
-    [lineups],
-  );
+  // Lookup: slotIndex -> lineup (for starting players).
+  const slotToLineup = useMemo(() => {
+    const map = new Map<number, MatchLineup>();
+    for (const l of lineups) {
+      if (l.type === 'starting' && typeof l.slotIndex === 'number') {
+        map.set(l.slotIndex, l);
+      }
+    }
+    return map;
+  }, [lineups]);
+
   const substituteLineups = useMemo(
     () => lineups.filter((l) => l.type === 'substitute'),
     [lineups],
   );
 
-  const slotCount = selectedFormation?.slots.length ?? 0;
-  const [slotMap, setSlotMap] = useState<(string | null)[]>([]);
-  const [activeSlot, setActiveSlot] = useState<number | null>(null);
-
-  // Sync slotMap with starting lineups (preserve existing assignments).
-  useEffect(() => {
-    if (slotCount === 0) {
-      setSlotMap([]);
-      return;
-    }
-    const startingIds = new Set(startingLineups.map((l) => l.userId));
-    setSlotMap((prev) => {
-      const next: (string | null)[] = Array(slotCount).fill(null);
-      const used = new Set<string>();
-      prev.forEach((uid, i) => {
-        if (i < slotCount && uid && startingIds.has(uid)) {
-          next[i] = uid;
-          used.add(uid);
-        }
-      });
-      const unplaced = startingLineups
-        .filter((l) => !used.has(l.userId))
-        .map((l) => l.userId);
-      let cursor = 0;
-      for (const uid of unplaced) {
-        while (cursor < slotCount && next[cursor] !== null) cursor++;
-        if (cursor >= slotCount) break;
-        next[cursor] = uid;
-        cursor++;
-      }
-      const unchanged =
-        prev.length === next.length && prev.every((v, i) => v === next[i]);
-      return unchanged ? prev : next;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- derived from lineups
-  }, [lineups, slotCount]);
-
-  const playerOnPitchIds = useMemo(
-    () => new Set(slotMap.filter((uid): uid is string => !!uid)),
-    [slotMap],
-  );
-
+  // Bench pool = substitutes + players not in any lineup.
   const benchPool = useMemo<User[]>(() => {
     const assignedIds = new Set(lineups.map((l) => l.userId));
     const subs = substituteLineups
       .map((l) => players.find((p) => p.id === l.userId))
       .filter((p): p is User => !!p);
     const unassigned = players.filter((p) => !assignedIds.has(p.id));
-    const orphanStarters = startingLineups
-      .filter((l) => !playerOnPitchIds.has(l.userId))
-      .map((l) => players.find((p) => p.id === l.userId))
-      .filter((p): p is User => !!p);
-    return [...subs, ...orphanStarters, ...unassigned];
-  }, [players, lineups, substituteLineups, startingLineups, playerOnPitchIds]);
+    return [...subs, ...unassigned];
+  }, [players, lineups, substituteLineups]);
 
-  const pitchSlots: FootballPitchSlot[] = useMemo(() => {
-    return selectedFormation?.slots.map((s) => ({ ...s })) ?? [];
-  }, [selectedFormation]);
+  const [activeSlot, setActiveSlot] = useState<number | null>(null);
 
-  const playerAt = (slotIndex: number): User | undefined => {
-    const uid = slotMap[slotIndex];
-    return uid ? players.find((p) => p.id === uid) : undefined;
-  };
-  const lineupAt = (slotIndex: number): MatchLineup | undefined => {
-    const uid = slotMap[slotIndex];
-    return uid ? startingLineups.find((l) => l.userId === uid) : undefined;
-  };
+  // Map userId → position group (based on their primary UserPosition).
+  const groupOfUser = useMemo(() => {
+    const positionNameById = new Map(positions.map((p) => [p.id, p.name]));
+    const m = new Map<string, PositionGroup>();
+    for (const up of userPositions) {
+      if (up.type !== 'primary') continue;
+      const name = positionNameById.get(up.positionId);
+      if (!name) continue;
+      m.set(up.userId, classifyPosition(name));
+    }
+    return m;
+  }, [positions, userPositions]);
+
+  // Group bench pool for the modal picker: Map<group, User[]>.
+  const benchByGroup = useMemo(() => {
+    const groups: Record<PositionGroup, User[]> = {
+      GK: [],
+      DEF: [],
+      MID: [],
+      FWD: [],
+      OTHER: [],
+    };
+    for (const p of benchPool) {
+      const g = groupOfUser.get(p.id) ?? 'OTHER';
+      groups[g].push(p);
+    }
+    return groups;
+  }, [benchPool, groupOfUser]);
+
+  const pitchSlots: FootballPitchSlot[] = useMemo(
+    () => selectedFormation?.slots.map((s) => ({ ...s })) ?? [],
+    [selectedFormation],
+  );
 
   const handleSlotClick = (slotIndex: number) => {
     if (!canManage) return;
     setActiveSlot(slotIndex);
   };
 
+  /** Assign a bench player to the currently active slot. */
   const handleAssign = async (userId: string) => {
     if (activeSlot === null) return;
     const slotIndex = activeSlot;
-    const existingUid = slotMap[slotIndex];
-    // If tapping same user, close.
-    if (existingUid === userId) {
-      setActiveSlot(null);
-      return;
-    }
-
-    // Optimistic: place userId at slot, bump existing to bench.
-    setSlotMap((prev) => {
-      const next = [...prev];
-      next[slotIndex] = userId;
-      return next;
-    });
     setActiveSlot(null);
 
-    // If user was already on pitch at another slot, just swap slots (both
-    // remain starting on the backend — no calls needed for swap).
-    const previousSlotOfUser = slotMap.findIndex((uid) => uid === userId);
-    if (previousSlotOfUser >= 0 && previousSlotOfUser !== slotIndex) {
-      setSlotMap((prev) => {
-        const next = [...prev];
-        next[previousSlotOfUser] = existingUid ?? null;
-        return next;
+    // If slot is already filled by someone else, move them to bench first.
+    const occupant = slotToLineup.get(slotIndex);
+    if (occupant) {
+      if (occupant.userId === userId) return; // same player — no-op
+      await onUpdateLineup(occupant.id, {
+        type: 'substitute',
+        slotIndex: null,
       });
-      return;
     }
 
-    // Bench → slot: add the new player as starting, remove their substitute lineup.
-    const subLineup = substituteLineups.find((l) => l.userId === userId);
-    if (subLineup) await onRemoveLineup(subLineup.id);
-
-    // Displaced previous starter (if any): remove starting, add substitute.
-    if (existingUid) {
-      const displaced = startingLineups.find((l) => l.userId === existingUid);
-      if (displaced) {
-        await onRemoveLineup(displaced.id);
-        await onAddLineup(existingUid, 'substitute');
-      }
+    // Promote an existing substitute lineup to starting, or create a new one.
+    const existingSub = substituteLineups.find((l) => l.userId === userId);
+    if (existingSub) {
+      await onUpdateLineup(existingSub.id, {
+        type: 'starting',
+        slotIndex,
+      });
+    } else {
+      await onAddLineup({ userId, type: 'starting', slotIndex });
     }
-    await onAddLineup(userId, 'starting');
   };
 
-  const handleRemoveFromSlot = async () => {
+  /** Demote the player at the active slot to the bench. */
+  const handleMoveToBench = async () => {
     if (activeSlot === null) return;
-    const uid = slotMap[activeSlot];
+    const lineup = slotToLineup.get(activeSlot);
     setActiveSlot(null);
-    if (!uid) return;
-
-    setSlotMap((prev) => {
-      const next = [...prev];
-      const idx = next.findIndex((u) => u === uid);
-      if (idx >= 0) next[idx] = null;
-      return next;
+    if (!lineup) return;
+    await onUpdateLineup(lineup.id, {
+      type: 'substitute',
+      slotIndex: null,
     });
-
-    const lineup = startingLineups.find((l) => l.userId === uid);
-    if (lineup) {
-      await onRemoveLineup(lineup.id);
-      await onAddLineup(uid, 'substitute');
-    }
   };
 
+  /** Remove a substitute from the squad entirely. */
   const handleRemoveSubstitute = async (userId: string) => {
     const sub = substituteLineups.find((l) => l.userId === userId);
     if (sub) await onRemoveLineup(sub.id);
@@ -212,7 +237,11 @@ export function TacticsPanel({
     );
   }
 
-  const activeSlotPlayer = activeSlot !== null ? playerAt(activeSlot) : null;
+  const activeSlotLineup =
+    activeSlot !== null ? slotToLineup.get(activeSlot) : undefined;
+  const activeSlotPlayer = activeSlotLineup
+    ? players.find((p) => p.id === activeSlotLineup.userId)
+    : null;
   const activeSlotRole =
     activeSlot !== null && selectedFormation
       ? selectedFormation.slots[activeSlot]?.role
@@ -222,7 +251,7 @@ export function TacticsPanel({
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <span className="text-sm text-muted">Formation:</span>
-        <div className="flex-1 max-w-[200px]">
+        <div className="w-40">
           <Select
             value={selectedFormationId}
             onChange={(e) => onFormationChange(e.target.value)}
@@ -240,8 +269,10 @@ export function TacticsPanel({
       <FootballPitch
         slots={pitchSlots}
         renderSlot={(slot, i) => {
-          const player = playerAt(i);
-          const lineup = lineupAt(i);
+          const lineup = slotToLineup.get(i);
+          const player = lineup
+            ? players.find((p) => p.id === lineup.userId)
+            : undefined;
           return (
             <button
               type="button"
@@ -267,10 +298,7 @@ export function TacticsPanel({
               >
                 {player ? (player.jerseyNumber ?? '?') : slot.role}
               </div>
-              <span
-                className="text-[10px] text-white font-medium drop-shadow bg-black/40 px-1 rounded max-w-[70px] truncate"
-                data-lineup-id={lineup?.id}
-              >
+              <span className="text-[10px] text-white font-medium drop-shadow bg-black/40 px-1 rounded max-w-[70px] truncate">
                 {player?.displayName ?? slot.role}
               </span>
             </button>
@@ -288,19 +316,19 @@ export function TacticsPanel({
             <p className="text-xs text-muted">No bench players</p>
           )}
           {benchPool.map((p) => {
-            const subLineup = substituteLineups.find((l) => l.userId === p.id);
+            const isSub = substituteLineups.some((l) => l.userId === p.id);
             return (
               <div
                 key={p.id}
                 className={`flex items-center gap-2 bg-card border border-border rounded-full px-3 py-1 text-xs ${
-                  subLineup ? 'border-yellow-500/40' : 'opacity-75'
+                  isSub ? 'border-yellow-500/40' : 'opacity-75'
                 }`}
               >
                 <span className="font-bold text-primary">
                   #{p.jerseyNumber ?? '-'}
                 </span>
                 <span className="truncate max-w-[120px]">{p.displayName}</span>
-                {subLineup && canManage && (
+                {isSub && canManage && (
                   <button
                     type="button"
                     onClick={() => handleRemoveSubstitute(p.id)}
@@ -314,14 +342,8 @@ export function TacticsPanel({
             );
           })}
         </div>
-        {canManage && (
-          <p className="text-[10px] text-muted mt-3">
-            Tap a slot on the pitch to assign or change a player.
-          </p>
-        )}
       </div>
 
-      {/* Slot-picker modal */}
       {activeSlot !== null && canManage && (
         <div
           role="dialog"
@@ -361,7 +383,7 @@ export function TacticsPanel({
               {activeSlotPlayer && (
                 <button
                   type="button"
-                  onClick={() => void handleRemoveFromSlot()}
+                  onClick={() => void handleMoveToBench()}
                   className="w-full px-3 py-2 text-sm text-danger hover:bg-danger/10 rounded-lg text-left mb-2"
                 >
                   ↓ Move to bench
@@ -376,27 +398,42 @@ export function TacticsPanel({
                   No players available.
                 </p>
               )}
-              <ul>
-                {benchPool.map((p) => (
-                  <li key={p.id}>
-                    <button
-                      type="button"
-                      onClick={() => void handleAssign(p.id)}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover text-left"
-                    >
-                      <span className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold text-xs flex items-center justify-center">
-                        #{p.jerseyNumber ?? '-'}
-                      </span>
-                      <span className="flex-1 text-sm">{p.displayName}</span>
-                      {substituteLineups.some((l) => l.userId === p.id) && (
-                        <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded">
-                          SUB
-                        </span>
-                      )}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              {GROUP_ORDER.map((group) => {
+                const list = benchByGroup[group];
+                if (list.length === 0) return null;
+                return (
+                  <section key={group} className="mb-2">
+                    <h4 className="text-[10px] font-semibold text-muted uppercase tracking-wider px-3 pt-2 pb-1">
+                      {GROUP_LABEL[group]}
+                    </h4>
+                    <ul>
+                      {list.map((p) => (
+                        <li key={p.id}>
+                          <button
+                            type="button"
+                            onClick={() => void handleAssign(p.id)}
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover text-left"
+                          >
+                            <span className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold text-xs flex items-center justify-center">
+                              #{p.jerseyNumber ?? '-'}
+                            </span>
+                            <span className="flex-1 text-sm">
+                              {p.displayName}
+                            </span>
+                            {substituteLineups.some(
+                              (l) => l.userId === p.id,
+                            ) && (
+                              <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded">
+                                SUB
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
             </div>
           </div>
         </div>

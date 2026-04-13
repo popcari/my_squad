@@ -7,7 +7,12 @@ import {
   updateMatchSchema,
   type UpdateMatchForm,
 } from '@/schemas/match.schema';
-import { fundingService, matchesService } from '@/services';
+import {
+  fundingService,
+  matchesService,
+  positionsService,
+  userPositionsService,
+} from '@/services';
 import { formationsService } from '@/services/formations.service';
 import type {
   Expense,
@@ -15,7 +20,9 @@ import type {
   MatchGoal,
   MatchLineup,
   MatchStatus,
+  Position,
   User,
+  UserPosition,
 } from '@/types';
 import type { Formation } from '@/types/formation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,6 +52,8 @@ export function MatchDetailsDrawer({
 
   const [formations, setFormations] = useState<Formation[]>([]);
   const [selectedFormationId, setSelectedFormationId] = useState<string>('');
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [userPositions, setUserPositions] = useState<UserPosition[]>([]);
 
   const formHook = useForm<UpdateMatchForm>({
     resolver: zodResolver(updateMatchSchema),
@@ -69,14 +78,19 @@ export function MatchDetailsDrawer({
 
   useEffect(() => {
     if (activeTab === 'tactics' && match) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch loads lineups/formations
       setLoadingLineups(true);
       Promise.all([
         matchesService.getLineups(match.id),
         formationsService.getAll(),
+        positionsService.getAll(),
+        Promise.all(players.map((p) => userPositionsService.getByUser(p.id))),
       ])
-        .then(([ls, fs]) => {
+        .then(([ls, fs, ps, upByUser]) => {
           setLineups(ls);
           setFormations(fs);
+          setPositions(ps);
+          setUserPositions(upByUser.flat());
           if (!selectedFormationId && fs.length > 0) {
             setSelectedFormationId(fs[0].id);
           }
@@ -97,8 +111,9 @@ export function MatchDetailsDrawer({
         )
         .finally(() => setLoadingExpenses(false));
     }
-  }, [activeTab, match, selectedFormationId]);
+  }, [activeTab, match, selectedFormationId, players]);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- reset UI state on match change */
   useEffect(() => {
     if (match && isOpen) {
       formHook.reset({
@@ -115,6 +130,7 @@ export function MatchDetailsDrawer({
       setActiveTab('info');
     }
   }, [match, isOpen, formHook]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleUpdateMatch = async (data: UpdateMatchForm) => {
     if (!match) return;
@@ -237,32 +253,30 @@ export function MatchDetailsDrawer({
     onUpdated();
   };
 
-  const handleAddLineupDirect = async (
-    userId: string,
-    type: 'starting' | 'substitute',
-  ) => {
-    if (!match || !userId) return;
-    setLoadingLineups(true);
-    try {
-      const added = await matchesService.addLineup({
-        matchId: match.id,
-        userId,
-        type,
-      });
-      setLineups([...lineups, added]);
-    } finally {
-      setLoadingLineups(false);
-    }
+  const handleAddLineup = async (data: {
+    userId: string;
+    type: 'starting' | 'substitute';
+    slotIndex?: number | null;
+  }) => {
+    if (!match) return;
+    const added = await matchesService.addLineup({
+      matchId: match.id,
+      ...data,
+    });
+    setLineups((prev) => [...prev, added]);
   };
 
-  const handleRemoveLineupDirect = async (lineupId: string) => {
-    setLoadingLineups(true);
-    try {
-      await matchesService.removeLineup(lineupId);
-      setLineups(lineups.filter((l) => l.id !== lineupId));
-    } finally {
-      setLoadingLineups(false);
-    }
+  const handleUpdateLineup = async (
+    id: string,
+    data: Partial<Pick<MatchLineup, 'type' | 'slotIndex'>>,
+  ) => {
+    const updated = await matchesService.updateLineup(id, data);
+    setLineups((prev) => prev.map((l) => (l.id === id ? updated : l)));
+  };
+
+  const handleRemoveLineup = async (lineupId: string) => {
+    await matchesService.removeLineup(lineupId);
+    setLineups((prev) => prev.filter((l) => l.id !== lineupId));
   };
 
   const handleAddGoal = () => {
@@ -428,8 +442,11 @@ export function MatchDetailsDrawer({
             selectedFormationId={selectedFormationId}
             onFormationChange={setSelectedFormationId}
             canManage={canManage}
-            onAddLineup={handleAddLineupDirect}
-            onRemoveLineup={handleRemoveLineupDirect}
+            positions={positions}
+            userPositions={userPositions}
+            onAddLineup={handleAddLineup}
+            onUpdateLineup={handleUpdateLineup}
+            onRemoveLineup={handleRemoveLineup}
           />
         )}
 

@@ -45,7 +45,7 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
       />
 
       {/* Drawer Panel */}
-      <div className="relative z-50 w-full h-full md:w-[600px] md:max-w-full bg-card shadow-xl flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="relative z-50 w-full h-full md:w-[300px] lg:w-[600px] md:max-w-full bg-card shadow-xl flex flex-col animate-in slide-in-from-right duration-300">
         <div className="flex items-center justify-between px-4 py-4 border-b border-border">
           <h2 className="text-lg font-semibold text-foreground">{title}</h2>
 

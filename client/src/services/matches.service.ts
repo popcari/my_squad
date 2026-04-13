@@ -16,6 +16,8 @@ export const matchesService = {
     api.get<MatchLineup[]>(`/match-lineups/${matchId}`),
   addLineup: (data: Partial<MatchLineup>) =>
     api.post<MatchLineup>('/match-lineups', data),
+  updateLineup: (id: string, data: Partial<MatchLineup>) =>
+    api.patch<MatchLineup>(`/match-lineups/${id}`, data),
   removeLineup: (id: string) => api.delete(`/match-lineups/${id}`),
 
   getGoals: (matchId: string) =>
