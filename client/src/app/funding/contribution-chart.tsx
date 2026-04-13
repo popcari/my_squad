@@ -50,6 +50,10 @@ export function ContributionChart({
   players,
 }: ContributionChartProps) {
   const [selectedRoundId, setSelectedRoundId] = useState<string>('');
+  const [showAll, setShowAll] = useState(false);
+
+  const VISIBLE_COUNT = 5;
+  const ITEM_HEIGHT_PX = 72;
 
   // Filter contributions by round
   const filtered = useMemo(
@@ -116,8 +120,8 @@ export function ContributionChart({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Pie Chart */}
-          <div className="flex flex-col items-center">
-            <ResponsiveContainer width="100%" height={260}>
+          <div className="flex flex-col items-center justify-center">
+            <ResponsiveContainer width="100%" minHeight={300}>
               <PieChart>
                 <Pie
                   data={chartData}
@@ -164,51 +168,66 @@ export function ContributionChart({
             <h3 className="text-sm font-semibold mb-3 text-muted uppercase tracking-wider">
               Contribution Ranking
             </h3>
-            <div className="space-y-2">
-              {ranking.map((player, idx) => (
-                <div key={player.name} className="flex items-center gap-3">
-                  {/* Rank badge */}
-                  <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                      idx === 0
-                        ? 'bg-yellow-500/20 text-yellow-400'
+            <div data-testid="ranking-list" className="space-y-2">
+              {(showAll ? ranking : ranking.slice(0, VISIBLE_COUNT)).map(
+                (player, idx) => (
+                  <div key={player.name} className="flex items-center gap-3">
+                    {/* Rank badge */}
+                    <div
+                      aria-label={`Rank ${idx + 1}`}
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-base font-bold shrink-0 ${
+                        idx < 3 ? '' : 'bg-border text-muted text-xs'
+                      }`}
+                    >
+                      {idx === 0
+                        ? '🥇'
                         : idx === 1
-                          ? 'bg-gray-400/20 text-gray-400'
+                          ? '🥈'
                           : idx === 2
-                            ? 'bg-amber-700/20 text-amber-600'
-                            : 'bg-border text-muted'
-                    }`}
-                  >
-                    {idx + 1}
-                  </div>
+                            ? '🥉'
+                            : idx + 1}
+                    </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium truncate">
-                        {player.name}
-                      </span>
-                      <span className="text-sm font-bold text-accent ml-2 shrink-0">
-                        {formatVND(player.amount)}
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium truncate">
+                          {player.name}
+                        </span>
+                        <span className="text-sm font-bold text-accent ml-2 shrink-0">
+                          {formatVND(player.amount)}
+                        </span>
+                      </div>
+                      {/* Progress bar */}
+                      <div className="w-full bg-border rounded-full h-1.5 mt-1">
+                        <div
+                          className="h-1.5 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${player.percentage}%`,
+                            backgroundColor: COLORS[idx % COLORS.length],
+                          }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-muted">
+                        {player.percentage.toFixed(1)}% of total fund
                       </span>
                     </div>
-                    {/* Progress bar */}
-                    <div className="w-full bg-border rounded-full h-1.5 mt-1">
-                      <div
-                        className="h-1.5 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${player.percentage}%`,
-                          backgroundColor: COLORS[idx % COLORS.length],
-                        }}
-                      />
-                    </div>
-                    <span className="text-[10px] text-muted">
-                      {player.percentage.toFixed(1)}% of total fund
-                    </span>
                   </div>
-                </div>
-              ))}
+                ),
+              )}
             </div>
+
+            {ranking.length > VISIBLE_COUNT && (
+              <button
+                type="button"
+                onClick={() => setShowAll((v) => !v)}
+                className="mt-3 w-full text-xs text-primary hover:text-primary-hover font-medium py-1.5 rounded-lg border border-primary/30 hover:border-primary/60 transition-all"
+              >
+                {showAll
+                  ? '▲ Show less'
+                  : `▼ Show ${ranking.length - VISIBLE_COUNT} more`}
+              </button>
+            )}
           </div>
         </div>
       )}

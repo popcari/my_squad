@@ -563,13 +563,13 @@ export default function FundingPage() {
                       return (
                         <div
                           key={p.id}
-                          className={`flex items-center gap-2 p-2 rounded-lg ${
+                          className={`flex items-center justify-between gap-2 p-2 rounded-lg ${
                             existing
                               ? 'bg-accent/10 border border-accent/20'
                               : 'bg-card border border-border'
                           }`}
                         >
-                          <div className="flex-1 min-w-0">
+                          <div className="min-w-0 w-[40%]">
                             <span className="text-sm font-medium truncate block">
                               {p.displayName}
                             </span>
@@ -579,41 +579,45 @@ export default function FundingPage() {
                               </span>
                             )}
                           </div>
-                          <div className="flex gap-2 items-center">
-                            <Select
-                              value={
-                                contribTypes[p.id] ||
-                                CONTRIBUTION_TYPE.RECURRING
-                              }
-                              onChange={(e) =>
-                                setContribTypes({
-                                  ...contribTypes,
-                                  [p.id]: e.target
-                                    .value as `${CONTRIBUTION_TYPE}`,
-                                })
-                              }
-                              className="w-[115px] text-sm"
-                            >
-                              <option value={CONTRIBUTION_TYPE.RECURRING}>
-                                {t('funding.cash')}
-                              </option>
-                              <option value={CONTRIBUTION_TYPE.DONATION}>
-                                {t('funding.transfer')}
-                              </option>
-                            </Select>
-                            <InputText
-                              type="number"
-                              placeholder="0"
-                              value={contribAmounts[p.id] || ''}
-                              onChange={(e) =>
-                                setContribAmounts({
-                                  ...contribAmounts,
-                                  [p.id]: e.target.value,
-                                })
-                              }
-                              className="w-28 text-right"
-                              min="0"
-                            />
+                          <div className="flex-1 flex gap-2 items-center">
+                            <div className="w-[40%]">
+                              <Select
+                                value={
+                                  contribTypes[p.id] ||
+                                  CONTRIBUTION_TYPE.RECURRING
+                                }
+                                onChange={(e) =>
+                                  setContribTypes({
+                                    ...contribTypes,
+                                    [p.id]: e.target
+                                      .value as `${CONTRIBUTION_TYPE}`,
+                                  })
+                                }
+                                className="w-[115px] text-sm"
+                              >
+                                <option value={CONTRIBUTION_TYPE.RECURRING}>
+                                  {t('funding.cash')}
+                                </option>
+                                <option value={CONTRIBUTION_TYPE.DONATION}>
+                                  {t('funding.transfer')}
+                                </option>
+                              </Select>
+                            </div>
+                            <div className="w-[60%]">
+                              <InputText
+                                type="number"
+                                placeholder="0"
+                                value={contribAmounts[p.id] || ''}
+                                onChange={(e) =>
+                                  setContribAmounts({
+                                    ...contribAmounts,
+                                    [p.id]: e.target.value,
+                                  })
+                                }
+                                className="text-right"
+                                min="0"
+                              />
+                            </div>
                           </div>
                         </div>
                       );
