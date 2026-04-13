@@ -12,6 +12,7 @@ import { MatchLineupsModule } from './modules/match-lineups/match-lineups.module
 import { MatchesModule } from './modules/matches/matches.module';
 import { PositionsModule } from './modules/positions/positions.module';
 import { TeamSettingsModule } from './modules/team-settings/team-settings.module';
+import { TeamUniformsModule } from './modules/team-uniforms/team-uniforms.module';
 import { TraitsModule } from './modules/traits/traits.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { UserPositionsModule } from './modules/user-positions/user-positions.module';
@@ -36,6 +37,7 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     FundingModule,
     TeamSettingsModule,
+    TeamUniformsModule,
     UploadModule,
   ],
   controllers: [AppController],
