@@ -1,6 +1,7 @@
 'use client';
 
 import { Drawer } from '@/components/drawer';
+import { UniformsPageSkeleton } from '@/components/shared/skeleton';
 import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
 import { UniformVisual } from '@/components/uniform-visual';
@@ -121,7 +122,7 @@ export default function UniformsPage() {
     await reload();
   };
 
-  if (loading) return <p className="text-muted">{t('uniforms.loading')}</p>;
+  if (loading) return <UniformsPageSkeleton />;
 
   return (
     <div>

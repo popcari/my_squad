@@ -2,6 +2,7 @@
 
 import { Drawer } from '@/components/drawer';
 import { FootballPitch, type UniformColors } from '@/components/football-pitch';
+import { FormationsPageSkeleton } from '@/components/shared/skeleton';
 import { InputText } from '@/components/ui/input-text';
 import { UniformVisual } from '@/components/uniform-visual';
 import { useConfirm } from '@/contexts/confirm-context';
@@ -101,7 +102,7 @@ export default function FormationsPage() {
     await reload();
   };
 
-  if (loading) return <p className="text-muted">{t('formations.loading')}</p>;
+  if (loading) return <FormationsPageSkeleton />;
 
   return (
     <div>

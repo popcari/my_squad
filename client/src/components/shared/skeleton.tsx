@@ -317,3 +317,90 @@ export function PlayerProfilePageSkeleton() {
     </div>
   );
 }
+
+export function FormationsPageSkeleton() {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <Skeleton width="180px" height="32px" />
+        <Skeleton width="140px" height="40px" />
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-card rounded-lg overflow-hidden">
+            <Skeleton height="200px" width="100%" className="rounded-none" />
+            <div className="p-3 space-y-2">
+              <Skeleton height="16px" width="70%" />
+              <Skeleton height="12px" width="40%" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function UniformsPageSkeleton() {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <Skeleton width="150px" height="32px" />
+          <Skeleton width="120px" height="40px" />
+        </div>
+        <Skeleton width="140px" height="40px" />
+      </div>
+      <div className="space-y-8">
+        {[1, 2].map((group) => (
+          <div key={group}>
+            <Skeleton width="100px" height="20px" className="mb-3" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-card rounded-lg overflow-hidden">
+                  <Skeleton height="150px" width="100%" className="rounded-none aspect-square" />
+                  <div className="p-3 space-y-2">
+                    <Skeleton height="16px" width="80%" />
+                    <Skeleton height="12px" width="40%" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function MatchesPageSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <Skeleton width="180px" height="32px" />
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
+          <Skeleton width="200px" height="40px" />
+          <Skeleton width="100px" height="40px" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-card rounded-lg p-6">
+          <Skeleton width="150px" height="24px" className="mb-4" />
+          <div className="flex justify-center">
+             <Skeleton width="260px" height="260px" className="rounded-full" />
+          </div>
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-card rounded-lg p-4 flex justify-between items-center">
+              <div className="space-y-2">
+                <Skeleton width="100px" height="16px" />
+                <Skeleton width="60px" height="12px" />
+              </div>
+              <Skeleton width="40px" height="40px" className="rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

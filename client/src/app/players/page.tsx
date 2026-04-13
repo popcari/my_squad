@@ -225,7 +225,7 @@ export default function PlayersPage() {
                             e.preventDefault();
                             handleDelete(p.id);
                           }}
-                          className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
+                          className="text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
                         >
                           {t('common.delete')}
                         </button>

@@ -1,5 +1,6 @@
 'use client';
 
+import { MatchesPageSkeleton } from '@/components/shared/skeleton';
 import { CloseButton } from '@/components/ui/close-button';
 import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
@@ -129,6 +130,8 @@ export default function MatchesPage() {
       }),
     ),
   ].sort((a, b) => b.localeCompare(a)); // Descending
+
+  if (loading) return <MatchesPageSkeleton />;
 
   return (
     <div className="space-y-8">
