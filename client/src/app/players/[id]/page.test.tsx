@@ -49,7 +49,7 @@ vi.mock('recharts', async (importOriginal) => {
   const actual = await importOriginal<typeof import('recharts')>();
   return {
     ...actual,
-    ResponsiveContainer: ({ children }: any) => (
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
       <div style={{ width: '800px', height: '600px' }}>{children}</div>
     ),
   };
@@ -65,8 +65,8 @@ describe('PlayerProfilePage - Status Display', () => {
       { id: 'pos-1', name: 'GK', createdAt: '', updatedAt: '' },
     ]);
     mockGetAllTraits.mockResolvedValue([]);
-    (matchesService.getAll as any).mockResolvedValue([]);
-    (matchesService.getAllGoals as any).mockResolvedValue([]);
+    (matchesService.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (matchesService.getAllGoals as ReturnType<typeof vi.fn>).mockResolvedValue([]);
   });
 
   it('should display phone number in profile', async () => {

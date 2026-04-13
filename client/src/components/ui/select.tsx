@@ -14,18 +14,18 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const [internalValue, setInternalValue] = useState(value ?? defaultValue ?? '');
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    // Sync controlled value
-    useEffect(() => {
-      if (value !== undefined) {
-        setInternalValue(value);
-      }
-    }, [value]);
+    // Controlled prop is read via `currentValue` below; no need to mirror it
+    // into internal state (which would violate react-hooks/set-state-in-effect).
 
     // Parse options
     const options = React.Children.toArray(children)
       .map((child) => {
         if (React.isValidElement(child) && child.type === 'option') {
-          const element = child as React.ReactElement<any>;
+          const element = child as React.ReactElement<{
+            value: string | number;
+            children: React.ReactNode;
+            disabled?: boolean;
+          }>;
           return {
             value: element.props.value,
             label: element.props.children,

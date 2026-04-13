@@ -114,7 +114,7 @@ export function MatchDetailsDrawer({
 
   const handleGlobalSave = async () => {
     if (!match) return;
-    let promises: Promise<any>[] = [];
+    const promises: Promise<unknown>[] = [];
 
     if (formHook.formState.isDirty) {
       const isValid = await formHook.trigger();

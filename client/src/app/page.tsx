@@ -41,7 +41,6 @@ export default function HomePage() {
     handleSubmit,
     reset,
     setValue,
-    getValues,
     formState: { errors, isSubmitting },
   } = useForm<CreateMatchForm>({
     resolver: zodResolver(createMatchSchema),

@@ -5,9 +5,9 @@ import { TeamUniformsService } from './team-uniforms.service';
 
 describe('TeamUniformsService', () => {
   let service: TeamUniformsService;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   let mockFirestore: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   let mockCollection: any;
 
   beforeEach(async () => {
@@ -167,9 +167,9 @@ describe('TeamUniformsService', () => {
       };
       mockCollection.doc.mockReturnValue(mockDocRef);
 
-      await expect(
-        service.update('missing', { name: 'X' }),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.update('missing', { name: 'X' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

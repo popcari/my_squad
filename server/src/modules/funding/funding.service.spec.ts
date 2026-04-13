@@ -129,7 +129,9 @@ describe('FundingService', () => {
       };
       mockRoundsCollection.doc.mockReturnValue(mockDocRef);
 
-      const result = await service.updateRound('r-1', { name: 'Đợt 1 Updated' });
+      const result = await service.updateRound('r-1', {
+        name: 'Đợt 1 Updated',
+      });
 
       expect(result.name).toBe('Đợt 1 Updated');
       expect(mockDocRef.update).toHaveBeenCalled();
@@ -141,9 +143,9 @@ describe('FundingService', () => {
         update: jest.fn(),
       });
 
-      await expect(
-        service.updateRound('x', { name: 'nope' }),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.updateRound('x', { name: 'nope' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -174,9 +176,7 @@ describe('FundingService', () => {
         get: jest.fn().mockResolvedValue({ exists: false }),
       });
 
-      await expect(service.removeRound('x')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.removeRound('x')).rejects.toThrow(NotFoundException);
     });
   });
 

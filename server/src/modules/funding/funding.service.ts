@@ -26,9 +26,7 @@ export class FundingService {
   // ─── ROUNDS ─────────────────────────────────────────────
 
   async findAllRounds(): Promise<FundingRound[]> {
-    const snapshot = await this.roundsCol
-      .orderBy('createdAt', 'desc')
-      .get();
+    const snapshot = await this.roundsCol.orderBy('createdAt', 'desc').get();
     return snapshot.docs.map((doc) => mapFirestoreDoc<FundingRound>(doc));
   }
 
@@ -43,10 +41,7 @@ export class FundingService {
     return { id: docRef.id, ...data } as FundingRound;
   }
 
-  async updateRound(
-    id: string,
-    dto: UpdateRoundDto,
-  ): Promise<FundingRound> {
+  async updateRound(id: string, dto: UpdateRoundDto): Promise<FundingRound> {
     const docRef = this.roundsCol.doc(id);
     const doc = await docRef.get();
     if (!doc.exists) {
@@ -81,15 +76,11 @@ export class FundingService {
         .get();
       return snapshot.docs.map((doc) => mapFirestoreDoc<Contribution>(doc));
     }
-    const snapshot = await this.contributionsCol
-      .orderBy('date', 'desc')
-      .get();
+    const snapshot = await this.contributionsCol.orderBy('date', 'desc').get();
     return snapshot.docs.map((doc) => mapFirestoreDoc<Contribution>(doc));
   }
 
-  async createContribution(
-    dto: CreateContributionDto,
-  ): Promise<Contribution> {
+  async createContribution(dto: CreateContributionDto): Promise<Contribution> {
     const now = new Date();
     const data = {
       roundId: dto.roundId,
@@ -109,9 +100,7 @@ export class FundingService {
     const docRef = this.contributionsCol.doc(id);
     const doc = await docRef.get();
     if (!doc.exists) {
-      throw new NotFoundException(
-        `Contribution with id "${id}" not found`,
-      );
+      throw new NotFoundException(`Contribution with id "${id}" not found`);
     }
     await docRef.delete();
   }
@@ -119,9 +108,7 @@ export class FundingService {
   // ─── EXPENSES ─────────────────────────────────────────────
 
   async findAllExpenses(): Promise<Expense[]> {
-    const snapshot = await this.expensesCol
-      .orderBy('date', 'desc')
-      .get();
+    const snapshot = await this.expensesCol.orderBy('date', 'desc').get();
     return snapshot.docs.map((doc) => mapFirestoreDoc<Expense>(doc));
   }
 
@@ -139,10 +126,7 @@ export class FundingService {
     return { id: docRef.id, ...data } as Expense;
   }
 
-  async updateExpense(
-    id: string,
-    dto: UpdateExpenseDto,
-  ): Promise<Expense> {
+  async updateExpense(id: string, dto: UpdateExpenseDto): Promise<Expense> {
     const docRef = this.expensesCol.doc(id);
     const doc = await docRef.get();
     if (!doc.exists) {

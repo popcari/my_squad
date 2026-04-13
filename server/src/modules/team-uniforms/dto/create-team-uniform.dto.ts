@@ -1,4 +1,11 @@
-import { IsInt, IsNotEmpty, IsString, Matches, Max, Min } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsString,
+  Matches,
+  Max,
+  Min,
+} from 'class-validator';
 
 const HEX_COLOR_REGEX = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
 

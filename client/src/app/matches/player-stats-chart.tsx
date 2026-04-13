@@ -15,6 +15,29 @@ interface PlayerStatsChartProps {
   players: User[];
 }
 
+interface TooltipPayload {
+  value: number;
+  payload: { name: string };
+}
+
+function CustomTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: TooltipPayload[];
+}) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-card text-card-foreground p-2 border border-border rounded text-sm shadow-lg">
+        <p className="font-semibold">{payload[0].payload.name}</p>
+        <p className="text-primary">{`${payload[0].value} Count`}</p>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function PlayerStatsChart({ goals, players }: PlayerStatsChartProps) {
   const { topScorers, topAssists } = useMemo(() => {
     const scorersMap: Record<string, number> = {};
@@ -49,18 +72,6 @@ export function PlayerStatsChart({ goals, players }: PlayerStatsChartProps) {
   if (goals.length === 0) {
     return null;
   }
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-card text-card-foreground p-2 border border-border rounded text-sm shadow-lg">
-          <p className="font-semibold">{payload[0].payload.name}</p>
-          <p className="text-primary">{`${payload[0].value} Count`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -4,14 +4,17 @@ import { describe, expect, it, vi } from 'vitest';
 import RegisterPage from './page';
 
 // Mock dependencies
+const mockPush = vi.fn();
+const mockCtxLogin = vi.fn();
+const mockRegister = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: mockPush }),
 }));
 vi.mock('@/contexts/auth-context', () => ({
-  useAuth: () => ({ user: null, login: vi.fn(), logout: vi.fn() }),
+  useAuth: () => ({ user: null, login: mockCtxLogin, logout: vi.fn() }),
 }));
 vi.mock('@/services/auth.service', () => ({
-  authService: { register: vi.fn() },
+  authService: { register: (...args: unknown[]) => mockRegister(...args) },
 }));
 
 describe('RegisterPage', () => {
@@ -139,5 +142,69 @@ describe('RegisterPage', () => {
     render(<RegisterPage />);
     const submitButton = screen.getByRole('button', { name: 'Register' });
     expect(submitButton).toBeDisabled();
+  });
+
+  it('submits and redirects on successful register', async () => {
+    mockRegister.mockResolvedValue({ id: 'new', email: 'n@x.com' });
+    const user = userEvent.setup();
+    render(<RegisterPage />);
+
+    await user.type(
+      screen.getByLabelText('Display Name', { exact: false }),
+      'New User',
+    );
+    await user.type(
+      screen.getByLabelText('Email', { exact: false }),
+      'n@x.com',
+    );
+    await user.type(
+      screen.getByLabelText('Password', { exact: false }),
+      'Hello123',
+    );
+    await user.type(
+      screen.getByLabelText('Phone', { exact: false }),
+      '0901234567',
+    );
+
+    const submitBtn = screen.getByRole('button', { name: 'Register' });
+    await waitFor(() => expect(submitBtn).toBeEnabled());
+    await user.click(submitBtn);
+
+    await waitFor(() => {
+      expect(mockRegister).toHaveBeenCalled();
+      expect(mockCtxLogin).toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith('/');
+    });
+  });
+
+  it('shows server error when register fails', async () => {
+    mockRegister.mockRejectedValue(new Error('Email taken'));
+    const user = userEvent.setup();
+    render(<RegisterPage />);
+
+    await user.type(
+      screen.getByLabelText('Display Name', { exact: false }),
+      'New User',
+    );
+    await user.type(
+      screen.getByLabelText('Email', { exact: false }),
+      'n@x.com',
+    );
+    await user.type(
+      screen.getByLabelText('Password', { exact: false }),
+      'Hello123',
+    );
+    await user.type(
+      screen.getByLabelText('Phone', { exact: false }),
+      '0901234567',
+    );
+
+    const submitBtn = screen.getByRole('button', { name: 'Register' });
+    await waitFor(() => expect(submitBtn).toBeEnabled());
+    await user.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Email taken')).toBeInTheDocument();
+    });
   });
 });

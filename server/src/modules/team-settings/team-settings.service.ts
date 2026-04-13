@@ -7,13 +7,15 @@ import { TeamSettings } from './types';
 const DOC_ID = 'default';
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
-
 @Injectable()
 export class TeamSettingsService {
   private readonly collection;
 
   /** Simple in-process cache — avoids hitting Firestore on every GET */
-  private cache: { data: TeamSettings & { playerCount: number }; expiresAt: number } | null = null;
+  private cache: {
+    data: TeamSettings & { playerCount: number };
+    expiresAt: number;
+  } | null = null;
 
   constructor(
     @Inject(FIRESTORE) private readonly firestore: admin.firestore.Firestore,

@@ -50,14 +50,14 @@ describe('ScoreModal Save Goals', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (usersService.getAll as any).mockResolvedValue(mockPlayers);
-    (positionsService.getAll as any).mockResolvedValue([]);
-    (userPositionsService.getByUser as any).mockResolvedValue([]);
-    (matchesService.getGoals as any).mockResolvedValue([]);
-    (matchesService.getLineups as any).mockResolvedValue([]);
+    (usersService.getAll as ReturnType<typeof vi.fn>).mockResolvedValue(mockPlayers);
+    (positionsService.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (userPositionsService.getByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (matchesService.getGoals as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (matchesService.getLineups as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     // After save, getLineups & getGoals are called again for cleanup
-    (matchesService.getLineups as any).mockResolvedValue([]);
-    (matchesService.getGoals as any).mockResolvedValue([]);
+    (matchesService.getLineups as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (matchesService.getGoals as ReturnType<typeof vi.fn>).mockResolvedValue([]);
   });
 
   it('should save goal with scorer and assist even when minute is empty', async () => {

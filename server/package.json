@@ -74,7 +74,21 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.module.ts",
+      "!**/*.dto.ts",
+      "!**/*.interface.ts",
+      "!**/*.enum.ts",
+      "!**/dto/index.ts",
+      "!**/types/index.ts",
+      "!**/types/**/*.ts",
+      "!**/main.ts",
+      "!**/seed.ts",
+      "!**/app.service.ts",
+      "!**/app.controller.ts",
+      "!**/common/index.ts",
+      "!**/config/**/*.ts",
+      "!**/common/decorators/**"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"

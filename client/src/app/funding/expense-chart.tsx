@@ -105,7 +105,7 @@ export function ExpenseChart({ expenses }: { expenses: Expense[] }) {
                 borderRadius: '0.5rem',
                 fontSize: '12px',
               }}
-              formatter={(value: any) => [
+              formatter={(value: number | string) => [
                 formatVND(Number(value) || 0),
                 t('funding.total'),
               ]}

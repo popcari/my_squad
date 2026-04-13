@@ -50,8 +50,21 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    const init = async () => {
+      setLoading(true);
+      const data = await teamSettingsService.get();
+      setSettings(data);
+      reset({
+        name: data.name || '',
+        description: data.description || '',
+        foundedDate: data.foundedDate || '',
+        logo: data.logo || '',
+        homeStadium: data.homeStadium || '',
+      });
+      setLoading(false);
+    };
+    init();
+  }, [reset]);
 
   const onSubmit = async (data: TeamSettingsForm) => {
     const ok = await confirm({

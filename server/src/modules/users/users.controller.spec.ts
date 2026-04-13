@@ -217,14 +217,12 @@ describe('UsersController', () => {
     });
 
     it('should return 400 when phone is missing', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          email: 'test@test.com',
-          displayName: 'No Phone',
-          role: 'player',
-          password: 'Hello123',
-        });
+      const response = await request(app.getHttpServer()).post('/users').send({
+        email: 'test@test.com',
+        displayName: 'No Phone',
+        role: 'player',
+        password: 'Hello123',
+      });
 
       expect(response.status).toBe(400);
     });

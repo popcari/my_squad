@@ -101,8 +101,12 @@ describe('UniformsPage', () => {
     const dialog = screen.getByRole('dialog', { name: /edit uniform/i });
     expect(dialog).toBeInTheDocument();
 
-    const nameInput = within(dialog).getByLabelText(/^Name/) as HTMLInputElement;
-    const yearInput = within(dialog).getByLabelText(/^Year/) as HTMLInputElement;
+    const nameInput = within(dialog).getByLabelText(
+      /^Name/,
+    ) as HTMLInputElement;
+    const yearInput = within(dialog).getByLabelText(
+      /^Year/,
+    ) as HTMLInputElement;
     expect(nameInput.value).toBe('Home Kit 2026');
     expect(yearInput.value).toBe('2026');
   });

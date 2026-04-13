@@ -15,7 +15,12 @@ import { traitsService, usersService, userTraitsService } from '@/services';
 import type { Trait, User, UserTrait } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import {
+  Controller,
+  type SubmitHandler,
+  useForm,
+  useWatch,
+} from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 export default function TraitsPage() {
@@ -43,6 +48,11 @@ export default function TraitsPage() {
     defaultValues: { userId: '', traitId: '', rating: 50 },
   });
   const { handleSubmit: handleAssignSubmit } = assignFormHook;
+  const assignRating = useWatch({
+    control: assignFormHook.control,
+    name: 'rating',
+    defaultValue: 50,
+  });
 
   const reload = async () => {
     const [t, p] = await Promise.all([
@@ -55,7 +65,16 @@ export default function TraitsPage() {
   };
 
   useEffect(() => {
-    reload();
+    const load = async () => {
+      const [ts, ps] = await Promise.all([
+        traitsService.getAll(),
+        usersService.getAll(),
+      ]);
+      setTraits(ts);
+      setPlayers(ps);
+      setLoading(false);
+    };
+    load();
   }, []);
 
   const loadPlayerTraits = async (userId: string) => {
@@ -226,7 +245,7 @@ export default function TraitsPage() {
               {...assignFormHook.register('rating', { valueAsNumber: true })}
               className="flex-1"
             />
-            <span className="text-sm font-mono w-8">{assignFormHook.watch('rating')}</span>
+            <span className="text-sm font-mono w-8">{assignRating}</span>
           </div>
           <button
             type="submit"

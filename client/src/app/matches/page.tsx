@@ -27,7 +27,7 @@ export default function MatchesPage() {
   const [loading, setLoading] = useState(true);
   const [matches, setMatches] = useState<Match[]>([]);
   const [goals, setGoals] = useState<MatchGoal[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [, setExpenses] = useState<Expense[]>([]);
   const [players, setPlayers] = useState<User[]>([]);
 
   // Selected state for details drawer
