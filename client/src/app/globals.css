@@ -64,6 +64,19 @@ a[href],
   cursor: pointer;
 }
 
+/**
+ * iOS Safari auto-zooms when focusing form controls whose font-size is below
+ * 16px. Force a 16px minimum on small screens to disable that zoom without
+ * hurting accessibility (users can still pinch-zoom the page manually).
+ */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='color']),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 /* Skeleton shimmer animation */
 @keyframes shimmer {
   0% {

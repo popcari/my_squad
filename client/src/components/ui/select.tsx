@@ -51,26 +51,51 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       disabled?: boolean;
     }[];
 
-    const [dropdownStyle, setDropdownStyle] = useState({
-      top: 0,
-      left: 0,
-      width: 0,
-    });
+    const [dropdownStyle, setDropdownStyle] = useState<{
+      top?: number;
+      bottom?: number;
+      left: number;
+      width: number;
+      placement: 'top' | 'bottom';
+    }>({ top: 0, left: 0, width: 0, placement: 'bottom' });
 
     const updateDropdownPosition = () => {
-      if (wrapperRef.current) {
-        const rect = wrapperRef.current.getBoundingClientRect();
-        setDropdownStyle((prev) => {
-          if (
-            prev.top === rect.bottom + 4 &&
-            prev.left === rect.left &&
-            prev.width === rect.width
-          ) {
-            return prev; // No change — skip re-render
-          }
-          return { top: rect.bottom + 4, left: rect.left, width: rect.width };
-        });
-      }
+      if (!wrapperRef.current) return;
+      const rect = wrapperRef.current.getBoundingClientRect();
+      const viewportH =
+        typeof window !== 'undefined' ? window.innerHeight : 0;
+      // Flip above the trigger when its top sits in the bottom 30% of the
+      // viewport — prevents the dropdown from being clipped inside a drawer
+      // or when the Select is near the bottom of the screen.
+      const placement: 'top' | 'bottom' =
+        viewportH > 0 && rect.top / viewportH > 0.7 ? 'top' : 'bottom';
+
+      setDropdownStyle((prev) => {
+        const next =
+          placement === 'bottom'
+            ? {
+                top: rect.bottom + 4,
+                left: rect.left,
+                width: rect.width,
+                placement,
+              }
+            : {
+                bottom: viewportH - rect.top + 4,
+                left: rect.left,
+                width: rect.width,
+                placement,
+              };
+        if (
+          prev.placement === next.placement &&
+          prev.top === next.top &&
+          prev.bottom === next.bottom &&
+          prev.left === next.left &&
+          prev.width === next.width
+        ) {
+          return prev;
+        }
+        return next;
+      });
     };
 
     // Keep position synced while open (handles scroll/resize with keepOpen)
@@ -193,9 +218,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           typeof document !== 'undefined' &&
           createPortal(
             <ul
+              data-placement={dropdownStyle.placement}
               style={{
                 position: 'fixed',
                 top: dropdownStyle.top,
+                bottom: dropdownStyle.bottom,
                 left: dropdownStyle.left,
                 width: dropdownStyle.width,
               }}

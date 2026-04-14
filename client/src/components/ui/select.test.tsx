@@ -86,6 +86,58 @@ describe('Select', () => {
     expect(trigger('Beta')).toBeInTheDocument();
   });
 
+  describe('dropdown placement (auto-flip)', () => {
+    const mockRect = (top: number) =>
+      ({
+        top,
+        bottom: top + 38,
+        left: 10,
+        right: 200,
+        width: 190,
+        height: 38,
+        x: 10,
+        y: top,
+        toJSON: () => ({}),
+      }) as DOMRect;
+
+    it('opens dropdown below the trigger when it sits in the top 70% of the viewport', async () => {
+      const user = userEvent.setup();
+      render(
+        <Select value="a" onChange={vi.fn()} aria-label="Letters">
+          <option value="a">Alpha</option>
+          <option value="b">Beta</option>
+        </Select>,
+      );
+
+      const triggerEl = screen.getAllByText('Alpha')[0];
+      const wrapper = triggerEl.closest('div.relative') as HTMLElement;
+      vi.spyOn(wrapper, 'getBoundingClientRect').mockReturnValue(mockRect(100));
+
+      await user.click(triggerEl);
+      const ul = document.querySelector('.select-dropdown-menu');
+      expect(ul).toHaveAttribute('data-placement', 'bottom');
+    });
+
+    it('flips dropdown above the trigger when it sits in the bottom 30% of the viewport', async () => {
+      const user = userEvent.setup();
+      render(
+        <Select value="a" onChange={vi.fn()} aria-label="Letters">
+          <option value="a">Alpha</option>
+          <option value="b">Beta</option>
+        </Select>,
+      );
+
+      // jsdom viewport is 768 tall by default → bottom 30% starts around y≈538
+      const triggerEl = screen.getAllByText('Alpha')[0];
+      const wrapper = triggerEl.closest('div.relative') as HTMLElement;
+      vi.spyOn(wrapper, 'getBoundingClientRect').mockReturnValue(mockRect(700));
+
+      await user.click(triggerEl);
+      const ul = document.querySelector('.select-dropdown-menu');
+      expect(ul).toHaveAttribute('data-placement', 'top');
+    });
+  });
+
   it('closes dropdown when clicking outside', async () => {
     const user = userEvent.setup();
     render(

@@ -315,7 +315,13 @@
     "choosePlayer": "Choose player",
     "noPlayersAvailable": "No players available.",
     "bench": "Bench ({{count}})",
-    "noBenchPlayers": "No bench players",
+    "substitutes": "Substitutes ({{count}})",
+    "addSubstitute": "+ Add substitute...",
+    "attendance": {
+      "total": "Total {{count}}",
+      "breakdown": "{{starting}} starting \u00b7 {{sub}} sub"
+    },
+    "noBenchPlayers": "No substitutes",
     "subBadge": "SUB",
     "removeSubstitute": "Remove substitute {{name}}",
     "groupGK": "Goalkeepers",

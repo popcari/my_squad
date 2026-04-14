@@ -3,8 +3,11 @@
 import { CloseButton } from '@/components/ui/close-button';
 import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
-import { POSITION_GROUPS } from '@/constant';
 import { LINEUP_TYPE, MATCH_STATUS } from '@/constant/enum';
+import {
+  PositionBadge,
+  getPositionGroupWeight,
+} from '@/utils/position-badge';
 import { useConfirm } from '@/contexts/confirm-context';
 import {
   matchesService,
@@ -108,14 +111,8 @@ export function ScoreModal({
     return positions.find((p) => p.id === pUp.positionId) || null;
   };
 
-  const getPositionWeight = (pos?: Position | null) => {
-    if (!pos) return POSITION_GROUPS.UNKNOWN.weight;
-    const name = pos.name.toUpperCase();
-    for (const group of Object.values(POSITION_GROUPS)) {
-      if (group.roles.includes(name)) return group.weight;
-    }
-    return POSITION_GROUPS.UNKNOWN.weight;
-  };
+  const getPositionWeight = (pos?: Position | null) =>
+    getPositionGroupWeight(pos);
 
   // Lineup helpers
   const startingPlayers = [...lineups]
@@ -183,26 +180,7 @@ export function ScoreModal({
     setGoals(goals.filter((_, i) => i !== index));
   };
 
-  const getPositionBadge = (pos?: Position | null) => {
-    if (!pos) return null;
-    const name = pos.name.toUpperCase();
-    let colorClass = POSITION_GROUPS.UNKNOWN.colorClass;
-
-    for (const group of Object.values(POSITION_GROUPS)) {
-      if (group.roles.includes(name)) {
-        colorClass = group.colorClass;
-        break;
-      }
-    }
-
-    return (
-      <span
-        className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${colorClass}`}
-      >
-        {name}
-      </span>
-    );
-  };
+  const getPositionBadge = (pos?: Position | null) => <PositionBadge pos={pos} />;
 
   const getPlayerName = (id: string) => {
     const p = players.find((pl) => pl.id === id);

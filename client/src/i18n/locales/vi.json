@@ -315,6 +315,12 @@
     "choosePlayer": "Chọn cầu thủ",
     "noPlayersAvailable": "Không có cầu thủ.",
     "bench": "Dự bị ({{count}})",
+    "substitutes": "Dự bị ({{count}})",
+    "addSubstitute": "+ Thêm cầu thủ dự bị...",
+    "attendance": {
+      "total": "Tổng {{count}}",
+      "breakdown": "{{starting}} đá chính \u00b7 {{sub}} dự bị"
+    },
     "noBenchPlayers": "Không có cầu thủ dự bị",
     "subBadge": "SUB",
     "removeSubstitute": "Bỏ dự bị {{name}}",
