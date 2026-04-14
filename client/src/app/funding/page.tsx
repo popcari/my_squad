@@ -23,6 +23,7 @@ import type {
   User,
 } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -492,7 +493,7 @@ export default function FundingPage() {
                         </div>
                         {canManage && (
                           <div
-                            className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="flex gap-1"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
@@ -500,15 +501,17 @@ export default function FundingPage() {
                                 setEditingRound(r.id);
                                 setEditRoundName(r.name);
                               }}
-                              className="px-2 py-1 text-xs text-primary hover:bg-primary/20 rounded"
+                              aria-label={t('common.edit')}
+                              className="p-1.5 text-primary hover:bg-primary/20 rounded"
                             >
-                              {t('common.edit')}
+                              <Pencil size={14} />
                             </button>
                             <button
                               onClick={() => handleDeleteRound(r.id)}
-                              className="px-2 py-1 text-xs text-danger hover:bg-danger/20 rounded"
+                              aria-label={t('common.delete')}
+                              className="p-1.5 text-danger hover:bg-danger/20 rounded"
                             >
-                              {t('common.delete')}
+                              <Trash2 size={14} />
                             </button>
                           </div>
                         )}
@@ -702,9 +705,10 @@ export default function FundingPage() {
                             <td className="py-2">
                               <button
                                 onClick={() => handleDeleteContribution(c.id)}
-                                className="text-xs text-danger hover:text-danger/80"
+                                aria-label={t('common.delete')}
+                                className="p-1.5 text-danger hover:bg-danger/20 rounded"
                               >
-                                {t('common.delete')}
+                                <Trash2 size={14} />
                               </button>
                             </td>
                           )}
@@ -903,15 +907,17 @@ export default function FundingPage() {
                             <div className="flex gap-1">
                               <button
                                 onClick={() => handleStartEditExpense(exp)}
-                                className="px-2 py-1 text-xs text-primary hover:bg-primary/20 rounded"
+                                aria-label={t('common.edit')}
+                                className="p-1.5 text-primary hover:bg-primary/20 rounded"
                               >
-                                {t('common.edit')}
+                                <Pencil size={14} />
                               </button>
                               <button
                                 onClick={() => handleDeleteExpense(exp.id)}
-                                className="px-2 py-1 text-xs text-danger hover:bg-danger/20 rounded"
+                                aria-label={t('common.delete')}
+                                className="p-1.5 text-danger hover:bg-danger/20 rounded"
                               >
-                                {t('common.delete')}
+                                <Trash2 size={14} />
                               </button>
                             </div>
                           )}

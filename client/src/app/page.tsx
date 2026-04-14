@@ -15,6 +15,7 @@ import { matchesService } from '@/services';
 import { teamSettingsService } from '@/services/team-settings.service';
 import type { Match } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -224,15 +225,16 @@ export default function HomePage() {
       </div>
 
       {canManage && (
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        <div className="flex gap-1 flex-shrink-0">
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleDelete(m.id);
             }}
-            className="px-2 py-1 bg-danger/20 text-danger rounded text-xs hover:bg-danger/30"
+            aria-label={t('home.del')}
+            className="p-1.5 bg-danger/20 text-danger rounded hover:bg-danger/30"
           >
-            {t('home.del')}
+            <Trash2 size={14} />
           </button>
         </div>
       )}

@@ -51,8 +51,8 @@
     "goals": "{{count}} bàn",
     "assists": "{{count}} kiến tạo",
     "matches": "{{count}} trận",
-    "showMore": "Xem thêm {{count}} \u25be",
-    "showLess": "Thu gọn \u25b4",
+    "showMore": "Xem thêm {{count}}",
+    "showLess": "Thu gọn",
     "unit": {
       "goals": "bàn",
       "assists": "kiến tạo",

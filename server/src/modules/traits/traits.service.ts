@@ -14,11 +14,13 @@ import { Trait } from './types';
 @Injectable()
 export class TraitsService {
   private readonly collection;
+  private readonly userTraitsCol;
 
   constructor(
     @Inject(FIRESTORE) private readonly firestore: admin.firestore.Firestore,
   ) {
     this.collection = this.firestore.collection('traits');
+    this.userTraitsCol = this.firestore.collection('user_traits');
   }
 
   async findAll(): Promise<Trait[]> {
@@ -64,6 +66,11 @@ export class TraitsService {
     if (!doc.exists) {
       throw new NotFoundException(`Trait with id "${id}" not found`);
     }
+    // Cascade: remove the trait from every player that had it assigned.
+    const userTraits = await this.userTraitsCol
+      .where('traitId', '==', id)
+      .get();
+    await Promise.all(userTraits.docs.map((d) => d.ref.delete()));
     await docRef.delete();
   }
 }

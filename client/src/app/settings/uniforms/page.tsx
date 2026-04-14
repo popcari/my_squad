@@ -12,6 +12,7 @@ import {
   uniformsService,
 } from '@/services/uniforms.service';
 import type { TeamUniform } from '@/types/team-uniform';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -196,9 +197,9 @@ export default function UniformsPage() {
                           }
                           aria-label={t('uniforms.editAria', { name: u.name })}
                           title={t('uniforms.editTooltip')}
-                          className="absolute top-2 right-10 w-7 h-7 rounded-full bg-black/70 text-white text-xs hover:bg-primary transition-all flex items-center justify-center"
+                          className="absolute top-2 right-10 w-7 h-7 rounded-full bg-black/70 text-white hover:bg-primary transition-all flex items-center justify-center"
                         >
-                          ✎
+                          <Pencil size={14} />
                         </button>
                         <button
                           type="button"
@@ -207,9 +208,9 @@ export default function UniformsPage() {
                             name: u.name,
                           })}
                           title={t('uniforms.deleteTooltip')}
-                          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white text-xs hover:bg-danger transition-all flex items-center justify-center"
+                          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white hover:bg-danger transition-all flex items-center justify-center"
                         >
-                          ×
+                          <Trash2 size={14} />
                         </button>
                       </>
                     )}

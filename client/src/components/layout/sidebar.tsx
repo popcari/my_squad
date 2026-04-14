@@ -1,19 +1,37 @@
 'use client';
 
+import {
+  BarChart3,
+  Home,
+  LayoutGrid,
+  Menu,
+  Settings,
+  Target,
+  Trophy,
+  Users,
+  Wallet,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const navItems = [
-  { href: '/', labelKey: 'nav.home', icon: '⚽' },
-  { href: '/matches', labelKey: 'nav.stats', icon: '📊' },
-  { href: '/season-dashboard', labelKey: 'nav.seasonDashboard', icon: '🏆' },
-  { href: '/formations', labelKey: 'nav.formations', icon: '📋' },
-  { href: '/funding', labelKey: 'nav.funding', icon: '💰' },
-  { href: '/players', labelKey: 'nav.players', icon: '👥' },
-  { href: '/traits', labelKey: 'nav.traits', icon: '🎯' },
-  { href: '/settings', labelKey: 'nav.settings', icon: '⚙️' },
+const navItems: {
+  href: string;
+  labelKey: string;
+  Icon: LucideIcon;
+  color: string;
+}[] = [
+  { href: '/', labelKey: 'nav.home', Icon: Home, color: 'text-blue-500' },
+  { href: '/matches', labelKey: 'nav.stats', Icon: BarChart3, color: 'text-green-500' },
+  { href: '/season-dashboard', labelKey: 'nav.seasonDashboard', Icon: Trophy, color: 'text-amber-400' },
+  { href: '/formations', labelKey: 'nav.formations', Icon: LayoutGrid, color: 'text-purple-500' },
+  { href: '/funding', labelKey: 'nav.funding', Icon: Wallet, color: 'text-emerald-500' },
+  { href: '/players', labelKey: 'nav.players', Icon: Users, color: 'text-sky-500' },
+  { href: '/traits', labelKey: 'nav.traits', Icon: Target, color: 'text-rose-500' },
+  { href: '/settings', labelKey: 'nav.settings', Icon: Settings, color: 'text-slate-400' },
 ];
 
 export function Sidebar() {
@@ -51,19 +69,7 @@ export function Sidebar() {
         className="fixed top-2 left-2 z-40 w-10 h-10 flex items-center justify-center rounded-lg bg-card border border-border text-foreground md:hidden transition-colors hover:bg-card-hover"
         aria-label="Open menu"
       >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        >
-          <line x1="3" y1="5" x2="17" y2="5" />
-          <line x1="3" y1="10" x2="17" y2="10" />
-          <line x1="3" y1="15" x2="17" y2="15" />
-        </svg>
+        <Menu size={20} />
       </button>
 
       {/* Mobile overlay backdrop */}
@@ -98,10 +104,10 @@ export function Sidebar() {
           {/* Mobile close button */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="w-10 h-10 flex items-center justify-center rounded-lg bg-card-hover text-foreground text-xl transition-colors md:hidden flex-shrink-0"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-card-hover text-foreground transition-colors md:hidden flex-shrink-0"
             aria-label="Close menu"
           >
-            ✕
+            <X size={20} />
           </button>
 
           {/* Desktop collapse button */}
@@ -133,7 +139,11 @@ export function Sidebar() {
                     : 'text-muted hover:text-foreground hover:bg-card-hover'
                 } ${collapsed && !mobileOpen ? 'md:justify-center' : ''}`}
               >
-                <span className="text-lg md:text-base">{item.icon}</span>
+                <item.Icon
+                  size={18}
+                  strokeWidth={2}
+                  className={isActive ? 'text-white' : item.color}
+                />
                 {(!collapsed || mobileOpen) && (
                   <span className="text-base md:text-sm">
                     {t(item.labelKey)}

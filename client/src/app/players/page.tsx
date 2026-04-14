@@ -10,6 +10,7 @@ import {
   usersService,
 } from '@/services';
 import type { Position, User, UserPosition } from '@/types';
+import { Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -225,9 +226,10 @@ export default function PlayersPage() {
                             e.preventDefault();
                             handleDelete(p.id);
                           }}
-                          className="text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
+                          aria-label={t('common.delete')}
+                          className="p-1.5 text-danger hover:bg-danger/20 rounded"
                         >
-                          {t('common.delete')}
+                          <Trash2 size={14} />
                         </button>
                       )}
                     </Link>

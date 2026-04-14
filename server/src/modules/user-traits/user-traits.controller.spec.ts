@@ -50,23 +50,59 @@ describe('UserTraitsController', () => {
     expect(mockService.findByUser).toHaveBeenCalledWith('u1');
   });
 
-  it('POST /user-traits assigns', async () => {
+  it('POST /user-traits assigns with valid half-step rating', async () => {
     (mockService.assign as jest.Mock).mockResolvedValue({ id: 'new' });
     const res = await request(app.getHttpServer())
       .post('/user-traits')
-      .send({ userId: 'u1', traitId: 't1', rating: 80 });
+      .send({ userId: 'u1', traitId: 't1', rating: 3.5 });
     expect(res.status).toBe(201);
   });
 
-  it('PATCH /user-traits/:id updates rating', async () => {
+  it('POST /user-traits accepts integer rating in 1-5 range', async () => {
+    (mockService.assign as jest.Mock).mockResolvedValue({ id: 'new' });
+    const res = await request(app.getHttpServer())
+      .post('/user-traits')
+      .send({ userId: 'u1', traitId: 't1', rating: 5 });
+    expect(res.status).toBe(201);
+  });
+
+  it('POST /user-traits rejects non-half-step rating (3.7)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/user-traits')
+      .send({ userId: 'u1', traitId: 't1', rating: 3.7 });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /user-traits rejects rating below 1 (0.5)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/user-traits')
+      .send({ userId: 'u1', traitId: 't1', rating: 0.5 });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /user-traits rejects rating above 5 (5.5)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/user-traits')
+      .send({ userId: 'u1', traitId: 't1', rating: 5.5 });
+    expect(res.status).toBe(400);
+  });
+
+  it('PATCH /user-traits/:id updates with half-step rating', async () => {
     (mockService.updateRating as jest.Mock).mockResolvedValue({ id: 'ut1' });
     const res = await request(app.getHttpServer())
       .patch('/user-traits/ut1')
-      .send({ rating: 90 });
+      .send({ rating: 4.5 });
     expect(res.status).toBe(200);
     expect(mockService.updateRating).toHaveBeenCalledWith('ut1', {
-      rating: 90,
+      rating: 4.5,
     });
+  });
+
+  it('PATCH /user-traits/:id rejects non-half-step rating', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/user-traits/ut1')
+      .send({ rating: 4.2 });
+    expect(res.status).toBe(400);
   });
 
   it('DELETE /user-traits/:id removes', async () => {

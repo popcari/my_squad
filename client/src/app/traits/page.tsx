@@ -3,6 +3,7 @@
 import { TraitsPageSkeleton } from '@/components/shared/skeleton';
 import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
+import { StarRating } from '@/components/ui/star-rating';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import {
@@ -14,13 +15,9 @@ import {
 import { traitsService, usersService, userTraitsService } from '@/services';
 import type { Trait, User, UserTrait } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import {
-  Controller,
-  useForm,
-  useWatch,
-  type SubmitHandler,
-} from 'react-hook-form';
+import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 export default function TraitsPage() {
@@ -45,14 +42,9 @@ export default function TraitsPage() {
   const assignFormHook = useForm<AssignTraitForm>({
     resolver: zodResolver(assignTraitSchema),
     mode: 'onTouched',
-    defaultValues: { userId: '', traitId: '', rating: 50 },
+    defaultValues: { userId: '', traitId: '', rating: 3 },
   });
   const { handleSubmit: handleAssignSubmit } = assignFormHook;
-  const assignRating = useWatch({
-    control: assignFormHook.control,
-    name: 'rating',
-    defaultValue: 50,
-  });
 
   const reload = async () => {
     const [t, p] = await Promise.all([
@@ -239,16 +231,16 @@ export default function TraitsPage() {
               </Select>
             )}
           />
-          <div className="flex items-center gap-2">
-            <input
-              type="range"
-              min={1}
-              max={100}
-              {...assignFormHook.register('rating', { valueAsNumber: true })}
-              className="flex-1"
-            />
-            <span className="text-sm font-mono w-8">{assignRating}</span>
-          </div>
+          <Controller
+            name="rating"
+            control={assignFormHook.control}
+            render={({ field }) => (
+              <div className="flex items-center gap-2">
+                <StarRating value={field.value} onChange={field.onChange} size={22} />
+                <span className="text-sm font-mono w-10">{field.value}</span>
+              </div>
+            )}
+          />
           <button
             type="submit"
             disabled={assignFormHook.formState.isSubmitting}
@@ -289,9 +281,10 @@ export default function TraitsPage() {
                   {canManage && (
                     <button
                       onClick={() => handleDelete(trait.id)}
-                      className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
+                      aria-label={t('common.delete')}
+                      className="p-1.5 text-danger hover:bg-danger/20 rounded"
                     >
-                      {t('common.delete')}
+                      <Trash2 size={14} />
                     </button>
                   )}
                 </div>
@@ -333,29 +326,22 @@ export default function TraitsPage() {
                         {trait?.name || ut.traitId}
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted">
-                          {ut.rating}/100
-                        </span>
                         {canManage && (
                           <button
                             onClick={() => handleRemoveUserTrait(ut.id)}
-                            className="text-danger text-xs hover:bg-danger/20 px-1 rounded"
+                            aria-label={t('common.remove')}
+                            className="p-1 text-danger hover:bg-danger/20 rounded"
                           >
                             X
                           </button>
                         )}
                       </div>
                     </div>
-                    <input
-                      type="range"
-                      min={1}
-                      max={100}
+                    <StarRating
                       value={ut.rating}
-                      onChange={(e) =>
-                        handleUpdateRating(ut.id, Number(e.target.value))
-                      }
-                      className="w-full"
-                      disabled={!canManage}
+                      onChange={(v) => handleUpdateRating(ut.id, v)}
+                      readOnly={!canManage}
+                      size={20}
                     />
                   </div>
                 );

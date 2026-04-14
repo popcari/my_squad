@@ -6,6 +6,15 @@ import { Select } from '@/components/ui/select';
 import { MATCH_STATUS } from '@/constant/enum';
 import { matchesService, usersService } from '@/services';
 import type { MatchGoal, MatchLineup, User } from '@/types';
+import {
+  CalendarCheck,
+  ChevronDown,
+  ChevronUp,
+  Crown,
+  Goal,
+  Target,
+  type LucideIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -116,12 +125,11 @@ function PodiumItem({ row, size, crown, ring, unit }: PodiumItemProps) {
     >
       <div className="relative">
         {crown && (
-          <span
+          <Crown
             aria-hidden
-            className="absolute -top-4 left-1/2 -translate-x-1/2 text-lg"
-          >
-            👑
-          </span>
+            size={18}
+            className="absolute -top-5 left-1/2 -translate-x-1/2 text-yellow-400 fill-yellow-400"
+          />
         )}
         <AvatarWithLightbox
           name={row.displayName}
@@ -153,13 +161,13 @@ function PodiumItem({ row, size, crown, ring, unit }: PodiumItemProps) {
 
 interface RankCardProps {
   title: string;
-  icon: string;
+  Icon: LucideIcon;
   rows: Row[];
   unitShort: string;
   emptyText: string;
 }
 
-function RankCard({ title, icon, rows, unitShort, emptyText }: RankCardProps) {
+function RankCard({ title, Icon, rows, unitShort, emptyText }: RankCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
@@ -177,9 +185,7 @@ function RankCard({ title, icon, rows, unitShort, emptyText }: RankCardProps) {
   return (
     <section className="bg-card rounded-lg overflow-hidden flex flex-col">
       <h2 className="flex items-center gap-2 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-muted">
-        <span aria-hidden className="text-lg">
-          {icon}
-        </span>
+        <Icon size={16} aria-hidden className="text-primary" />
         {title}
       </h2>
       {ranked.length === 0 ? (
@@ -261,11 +267,19 @@ function RankCard({ title, icon, rows, unitShort, emptyText }: RankCardProps) {
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="w-full py-2 text-xs font-medium text-primary hover:bg-card-hover transition-colors border-t border-border"
+              className="w-full py-2 flex items-center justify-center gap-1 text-xs font-medium text-primary hover:bg-card-hover transition-colors border-t border-border"
             >
-              {expanded
-                ? t('seasonDashboard.showLess')
-                : t('seasonDashboard.showMore', { count: rest.length })}
+              {expanded ? (
+                <>
+                  {t('seasonDashboard.showLess')}
+                  <ChevronUp size={14} />
+                </>
+              ) : (
+                <>
+                  {t('seasonDashboard.showMore', { count: rest.length })}
+                  <ChevronDown size={14} />
+                </>
+              )}
             </button>
           )}
         </>
@@ -378,21 +392,21 @@ export default function SeasonDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 items-start">
         <RankCard
           title={t('seasonDashboard.topScorers')}
-          icon="⚽"
+          Icon={Goal}
           rows={aggregates.scorers}
           unitShort={t('seasonDashboard.unit.goals')}
           emptyText={t('seasonDashboard.noData')}
         />
         <RankCard
           title={t('seasonDashboard.topAssisters')}
-          icon="🎯"
+          Icon={Target}
           rows={aggregates.assisters}
           unitShort={t('seasonDashboard.unit.assists')}
           emptyText={t('seasonDashboard.noData')}
         />
         <RankCard
           title={t('seasonDashboard.topAttendance')}
-          icon="📅"
+          Icon={CalendarCheck}
           rows={aggregates.attendance}
           unitShort={t('seasonDashboard.unit.matches')}
           emptyText={t('seasonDashboard.noData')}

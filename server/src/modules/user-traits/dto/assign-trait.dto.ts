@@ -1,4 +1,5 @@
-import { IsInt, IsNotEmpty, IsString, Max, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, Max, Min } from 'class-validator';
+import { IsHalfStep } from '../../../common';
 
 export class AssignTraitDto {
   @IsString()
@@ -9,8 +10,9 @@ export class AssignTraitDto {
   @IsNotEmpty()
   traitId: string;
 
-  @IsInt()
+  @IsNumber({ maxDecimalPlaces: 1 })
   @Min(1)
-  @Max(100)
+  @Max(5)
+  @IsHalfStep()
   rating: number;
 }

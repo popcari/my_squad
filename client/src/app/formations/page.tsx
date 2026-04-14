@@ -13,6 +13,7 @@ import {
 } from '@/services/formations.service';
 import { uniformsService } from '@/services/uniforms.service';
 import type { Formation, FormationSlot } from '@/types/formation';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -146,17 +147,17 @@ export default function FormationsPage() {
                       setDrawerState({ mode: 'edit', formation: f })
                     }
                     aria-label={t('formations.editAria', { name: f.name })}
-                    className="w-7 h-7 rounded-full bg-black/70 text-white text-xs hover:bg-primary flex items-center justify-center"
+                    className="w-7 h-7 rounded-full bg-black/70 text-white hover:bg-primary flex items-center justify-center"
                   >
-                    ✎
+                    <Pencil size={14} />
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDelete(f)}
                     aria-label={t('formations.deleteAria', { name: f.name })}
-                    className="w-7 h-7 rounded-full bg-black/70 text-white text-xs hover:bg-danger flex items-center justify-center"
+                    className="w-7 h-7 rounded-full bg-black/70 text-white hover:bg-danger flex items-center justify-center"
                   >
-                    ×
+                    <Trash2 size={14} />
                   </button>
                 </div>
               )}

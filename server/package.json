@@ -19,8 +19,10 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "ts-node -r tsconfig-paths/register src/seed.ts",
+    "seed:traits": "ts-node -r tsconfig-paths/register src/scripts/seed-traits.ts",
     "clear:match-lineups": "ts-node -r tsconfig-paths/register src/scripts/clear-match-lineups.ts",
-    "clear:tactics": "ts-node -r tsconfig-paths/register src/scripts/clear-tactics.ts"
+    "clear:tactics": "ts-node -r tsconfig-paths/register src/scripts/clear-tactics.ts",
+    "clear:user-traits": "ts-node -r tsconfig-paths/register src/scripts/clear-user-traits.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

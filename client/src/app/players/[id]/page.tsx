@@ -5,6 +5,7 @@ import { PlayerProfilePageSkeleton } from '@/components/shared/skeleton';
 import { InputText } from '@/components/ui/input-text';
 import { Lightbox } from '@/components/ui/lightbox';
 import { Select } from '@/components/ui/select';
+import { StarRating } from '@/components/ui/star-rating';
 import { USER_ROLE } from '@/constant/enum';
 import { POSITION_GROUPS } from '@/constant';
 import { useConfirm } from '@/contexts/confirm-context';
@@ -19,6 +20,7 @@ import {
   usersService,
 } from '@/services';
 import type { Match, MatchGoal, PlayerProfile, Position, Trait } from '@/types';
+import { X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -62,7 +64,7 @@ export default function PlayerProfilePage() {
   const [showAssignTrait, setShowAssignTrait] = useState(false);
   const [assignTraitForm, setAssignTraitForm] = useState({
     traitId: '',
-    rating: '50',
+    rating: 3,
   });
 
   const [matches, setMatches] = useState<Match[]>([]);
@@ -182,9 +184,9 @@ export default function PlayerProfilePage() {
     await userTraitsService.assign({
       userId: playerId,
       traitId: assignTraitForm.traitId,
-      rating: Number(assignTraitForm.rating),
+      rating: assignTraitForm.rating,
     });
-    setAssignTraitForm({ traitId: '', rating: '50' });
+    setAssignTraitForm({ traitId: '', rating: 3 });
     setShowAssignTrait(false);
     await reload();
   };
@@ -262,7 +264,6 @@ export default function PlayerProfilePage() {
     (t) => !assignedTraitIds.includes(t.id),
   );
 
-  const maxRating = 100;
 
   return (
     <div>
@@ -557,20 +558,14 @@ export default function PlayerProfilePage() {
                 ))}
               </Select>
               <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min={1}
-                  max={100}
+                <StarRating
                   value={assignTraitForm.rating}
-                  onChange={(e) =>
-                    setAssignTraitForm({
-                      ...assignTraitForm,
-                      rating: e.target.value,
-                    })
+                  onChange={(v) =>
+                    setAssignTraitForm({ ...assignTraitForm, rating: v })
                   }
-                  className="flex-1"
+                  size={22}
                 />
-                <span className="text-sm font-mono w-8">
+                <span className="text-sm font-mono w-10">
                   {assignTraitForm.rating}
                 </span>
               </div>
@@ -591,44 +586,24 @@ export default function PlayerProfilePage() {
                 const trait = allTraits.find((t) => t.id === ut.traitId);
                 return (
                   <div key={ut.id} className="group">
-                    <div className="flex justify-between text-sm mb-1">
+                    <div className="flex justify-between items-center text-sm mb-1">
                       <span>{trait?.name || ut.traitId}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted">
-                          {ut.rating}/{maxRating}
-                        </span>
-                        {canManage && (
-                          <button
-                            onClick={() => handleRemoveTrait(ut.id)}
-                            className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-1 rounded transition-all"
-                          >
-                            X
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-background rounded-full h-2">
-                        <div
-                          className="bg-primary rounded-full h-2 transition-all"
-                          style={{
-                            width: `${(ut.rating / maxRating) * 100}%`,
-                          }}
-                        />
-                      </div>
                       {canManage && (
-                        <input
-                          type="range"
-                          min={1}
-                          max={100}
-                          value={ut.rating}
-                          onChange={(e) =>
-                            handleUpdateRating(ut.id, Number(e.target.value))
-                          }
-                          className="w-24"
-                        />
+                        <button
+                          onClick={() => handleRemoveTrait(ut.id)}
+                          aria-label={t('common.remove')}
+                          className="p-1 text-danger hover:bg-danger/20 rounded"
+                        >
+                          <X size={14} />
+                        </button>
                       )}
                     </div>
+                    <StarRating
+                      value={ut.rating}
+                      onChange={(v) => handleUpdateRating(ut.id, v)}
+                      readOnly={!canManage}
+                      size={20}
+                    />
                   </div>
                 );
               })}

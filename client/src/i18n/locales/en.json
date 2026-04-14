@@ -51,8 +51,8 @@
     "goals": "{{count}} goals",
     "assists": "{{count}} assists",
     "matches": "{{count}} matches",
-    "showMore": "View {{count}} more \u25be",
-    "showLess": "Show less \u25b4",
+    "showMore": "View {{count}} more",
+    "showLess": "Show less",
     "unit": {
       "goals": "goals",
       "assists": "assists",
