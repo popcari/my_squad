@@ -56,7 +56,7 @@ export function TraitRadarChart({ data }: TraitRadarChartProps) {
               borderRadius: 8,
               fontSize: 12,
             }}
-            formatter={(value: number) => [`${value} / 5`, 'Rating']}
+            formatter={(value) => [`${value as number} / 5`, 'Rating']}
           />
         </RadarChart>
       </ResponsiveContainer>
