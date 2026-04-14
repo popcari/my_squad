@@ -116,7 +116,7 @@ describe('PlayerProfilePage - Status Display', () => {
 
     render(<PlayerProfilePage />);
 
-    expect(await screen.findByText('common.active')).toBeInTheDocument();
+    expect(await screen.findByText(/^Active$/)).toBeInTheDocument();
   });
 
   it('should display Inactive badge when player status is 0', async () => {
@@ -137,7 +137,7 @@ describe('PlayerProfilePage - Status Display', () => {
 
     render(<PlayerProfilePage />);
 
-    expect(await screen.findByText('common.inactive')).toBeInTheDocument();
+    expect(await screen.findByText(/^Inactive$/)).toBeInTheDocument();
   });
 
   it('should show green styling for active and red for inactive', async () => {
@@ -157,7 +157,7 @@ describe('PlayerProfilePage - Status Display', () => {
 
     render(<PlayerProfilePage />);
 
-    const badge = await screen.findByText('common.active');
+    const badge = await screen.findByText(/^Active$/);
     expect(badge.className).toContain('green');
   });
 });

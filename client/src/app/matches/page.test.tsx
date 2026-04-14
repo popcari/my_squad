@@ -1,3 +1,4 @@
+import '@/i18n';
 import MatchesPage from '@/app/matches/page';
 import { MATCH_STATUS, USER_ROLE } from '@/constant/enum';
 import { useCanManage } from '@/hooks/use-can-manage';
@@ -164,18 +165,18 @@ describe('Stats Dashboard', () => {
       render(<MatchesPage />);
 
       // Assert
-      expect(screen.getByText('Stats Dashboard')).toBeInTheDocument();
+      expect(await screen.findByText('Stats Dashboard')).toBeInTheDocument();
 
       await waitFor(() => {
         expect(matchesService.getAll).toHaveBeenCalled();
       });
 
       // Shows match opponent
-      expect(screen.getByText('FC Vercel')).toBeInTheDocument();
-      expect(screen.getByText('React Utd')).toBeInTheDocument();
+      expect(await screen.findByText('FC Vercel')).toBeInTheDocument();
+      expect(await screen.findByText('React Utd')).toBeInTheDocument();
 
       // Shows score
-      expect(screen.getByText('3 - 1')).toBeInTheDocument();
+      expect(await screen.findByText('3 - 1')).toBeInTheDocument();
     });
 
     it('should filter matches based on month range and render pie chart', async () => {

@@ -10,6 +10,7 @@ import { UniformVisual } from '@/components/uniform-visual';
 import type { MatchLineup, Position, User, UserPosition } from '@/types';
 import type { Formation } from '@/types/formation';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface TacticsPanelProps {
   loading: boolean;
@@ -51,12 +52,12 @@ export interface TacticsPanelProps {
 type PositionGroup = 'GK' | 'DEF' | 'MID' | 'FWD' | 'OTHER';
 
 const GROUP_ORDER: PositionGroup[] = ['GK', 'DEF', 'MID', 'FWD', 'OTHER'];
-const GROUP_LABEL: Record<PositionGroup, string> = {
-  GK: 'Goalkeepers',
-  DEF: 'Defenders',
-  MID: 'Midfielders',
-  FWD: 'Forwards',
-  OTHER: 'Others',
+const GROUP_KEYS: Record<PositionGroup, string> = {
+  GK: 'tactics.groupGK',
+  DEF: 'tactics.groupDEF',
+  MID: 'tactics.groupMID',
+  FWD: 'tactics.groupFWD',
+  OTHER: 'tactics.groupOTHER',
 };
 
 /** Classify a position name into one of 4 football role groups. */
@@ -109,6 +110,7 @@ export function TacticsPanel({
   onUpdateLineup,
   onRemoveLineup,
 }: TacticsPanelProps) {
+  const { t } = useTranslation();
   const selectedFormation = useMemo(
     () => formations.find((f) => f.id === selectedFormationId),
     [formations, selectedFormationId],
@@ -228,15 +230,15 @@ export function TacticsPanel({
   };
 
   if (loading) {
-    return <div className="text-center py-4 text-muted">Loading...</div>;
+    return <div className="text-center py-4 text-muted">{t('tactics.loading')}</div>;
   }
 
   if (formations.length === 0) {
     return (
       <div className="text-center py-6 text-muted text-sm">
-        <p>No formations available.</p>
+        <p>{t('tactics.noFormations')}</p>
         <a href="/formations" className="text-primary hover:underline">
-          Create a formation →
+          {t('tactics.createFormationLink')}
         </a>
       </div>
     );
@@ -255,12 +257,12 @@ export function TacticsPanel({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted">Formation:</span>
+        <span className="text-sm text-muted">{t('tactics.formationLabel')}</span>
         <div className="w-40">
           <Select
             value={selectedFormationId}
             onChange={(e) => onFormationChange(e.target.value)}
-            aria-label="Select formation"
+            aria-label={t('tactics.selectFormation')}
           >
             {formations.map((f) => (
               <option key={f.id} value={f.id}>
@@ -288,7 +290,7 @@ export function TacticsPanel({
               aria-label={
                 player
                   ? `${slot.role} — ${player.displayName}`
-                  : `Assign player to ${slot.role}`
+                  : t('tactics.assignTo', { role: slot.role })
               }
               className={`flex flex-col items-center gap-0.5 transition-all ${
                 canManage ? 'cursor-pointer hover:scale-110' : 'cursor-default'
@@ -346,11 +348,11 @@ export function TacticsPanel({
       {/* Bench */}
       <div className="bg-background rounded-lg p-3">
         <p className="text-xs font-semibold text-yellow-400 uppercase mb-2">
-          Bench ({benchPool.length})
+          {t('tactics.bench', { count: benchPool.length })}
         </p>
         <div className="flex flex-wrap gap-2">
           {benchPool.length === 0 && (
-            <p className="text-xs text-muted">No bench players</p>
+            <p className="text-xs text-muted">{t('tactics.noBenchPlayers')}</p>
           )}
           {benchPool.map((p) => {
             const isSub = substituteLineups.some((l) => l.userId === p.id);
@@ -370,7 +372,9 @@ export function TacticsPanel({
                     type="button"
                     onClick={() => handleRemoveSubstitute(p.id)}
                     className="text-danger hover:bg-danger/20 px-1 rounded"
-                    aria-label={`Remove substitute ${p.displayName}`}
+                    aria-label={t('tactics.removeSubstitute', {
+                      name: p.displayName,
+                    })}
                   >
                     &times;
                   </button>
@@ -388,7 +392,7 @@ export function TacticsPanel({
           aria-label={
             activeSlotPlayer
               ? `Edit ${activeSlotPlayer.displayName}`
-              : `Assign player to ${activeSlotRole}`
+              : t('tactics.assignTo', { role: activeSlotRole })
           }
           className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 p-4"
           onClick={() => setActiveSlot(null)}
@@ -404,7 +408,9 @@ export function TacticsPanel({
                     ? activeSlotPlayer.displayName
                     : `Assign ${activeSlotRole}`}
                 </h3>
-                <p className="text-xs text-muted">Slot: {activeSlotRole}</p>
+                <p className="text-xs text-muted">
+                  {t('tactics.slotLabel', { role: activeSlotRole })}
+                </p>
               </div>
               <button
                 type="button"
@@ -423,16 +429,18 @@ export function TacticsPanel({
                   onClick={() => void handleMoveToBench()}
                   className="w-full px-3 py-2 text-sm text-danger hover:bg-danger/10 rounded-lg text-left mb-2"
                 >
-                  ↓ Move to bench
+                  {t('tactics.moveToBench')}
                 </button>
               )}
 
               <p className="text-xs text-muted uppercase tracking-wide px-3 py-1">
-                {activeSlotPlayer ? 'Swap with' : 'Choose player'}
+                {activeSlotPlayer
+                  ? t('tactics.swapWith')
+                  : t('tactics.choosePlayer')}
               </p>
               {benchPool.length === 0 && (
                 <p className="text-sm text-muted px-3 py-4">
-                  No players available.
+                  {t('tactics.noPlayersAvailable')}
                 </p>
               )}
               {GROUP_ORDER.map((group) => {
@@ -441,7 +449,7 @@ export function TacticsPanel({
                 return (
                   <section key={group} className="mb-2">
                     <h4 className="text-[10px] font-semibold text-muted uppercase tracking-wider px-3 pt-2 pb-1">
-                      {GROUP_LABEL[group]}
+                      {t(GROUP_KEYS[group])}
                     </h4>
                     <ul>
                       {list.map((p) => (
@@ -461,7 +469,7 @@ export function TacticsPanel({
                               (l) => l.userId === p.id,
                             ) && (
                               <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded">
-                                SUB
+                                {t('tactics.subBadge')}
                               </span>
                             )}
                           </button>

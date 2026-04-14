@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface DrawerProps {
   open: boolean;
@@ -15,6 +16,7 @@ interface DrawerProps {
  * while the drawer is open.
  */
 export function Drawer({ open, onClose, title, children }: DrawerProps) {
+  const { t } = useTranslation();
   // Escape-key dismiss
   useEffect(() => {
     if (!open) return;
@@ -60,7 +62,7 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('a11y.close')}
             className="text-muted hover:text-foreground text-2xl leading-none px-2"
           >
             &times;

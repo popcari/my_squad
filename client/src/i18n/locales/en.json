@@ -301,5 +301,35 @@
     "saving": "Saving...",
     "create": "Create",
     "cancel": "Cancel"
+  },
+  "tactics": {
+    "loading": "Loading...",
+    "noFormations": "No formations available.",
+    "createFormationLink": "Create a formation \u2192",
+    "formationLabel": "Formation:",
+    "selectFormation": "Select formation",
+    "assignTo": "Assign player to {{role}}",
+    "slotLabel": "Slot: {{role}}",
+    "moveToBench": "\u2193 Move to bench",
+    "swapWith": "Swap with",
+    "choosePlayer": "Choose player",
+    "noPlayersAvailable": "No players available.",
+    "bench": "Bench ({{count}})",
+    "noBenchPlayers": "No bench players",
+    "subBadge": "SUB",
+    "removeSubstitute": "Remove substitute {{name}}",
+    "groupGK": "Goalkeepers",
+    "groupDEF": "Defenders",
+    "groupMID": "Midfielders",
+    "groupFWD": "Forwards",
+    "groupOTHER": "Others"
+  },
+  "layout": {
+    "teamInfo": "Team Info",
+    "uniforms": "Uniforms"
+  },
+  "a11y": {
+    "close": "Close",
+    "uniformPreview": "Uniform preview"
   }
 }

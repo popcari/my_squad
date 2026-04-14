@@ -1,4 +1,7 @@
+'use client';
+
 import { useId } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface UniformVisualProps {
   shirtColor: string;
@@ -21,6 +24,7 @@ export function UniformVisual({
   number = '10',
   className,
 }: UniformVisualProps) {
+  const { t } = useTranslation();
   const uid = useId().replace(/:/g, '');
 
   const shirtLight = shade(shirtColor, 24);
@@ -88,7 +92,7 @@ export function UniformVisual({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       role="img"
-      aria-label="Uniform preview"
+      aria-label={t('a11y.uniformPreview')}
     >
       <defs>
         <linearGradient id={shirtGradId} x1="0" y1="0" x2="0" y2="1">

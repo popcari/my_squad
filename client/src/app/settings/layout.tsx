@@ -2,22 +2,24 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const tabs = [
-  { href: '/settings', label: 'Team Info' },
-  { href: '/settings/uniforms', label: 'Uniforms' },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function SettingsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const pathname = usePathname();
+
+  const tabs = [
+    { href: '/settings', labelKey: 'layout.teamInfo' },
+    { href: '/settings/uniforms', labelKey: 'layout.uniforms' },
+  ];
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('nav.settings')}</h1>
 
       <nav className="flex gap-1 border-b border-border mb-6">
         {tabs.map((tab) => {
@@ -35,7 +37,7 @@ export default function SettingsLayout({
                   : 'border-transparent text-muted hover:text-foreground'
               }`}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </Link>
           );
         })}

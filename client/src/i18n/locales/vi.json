@@ -301,5 +301,35 @@
     "saving": "Đang lưu...",
     "create": "Tạo",
     "cancel": "Hủy"
+  },
+  "tactics": {
+    "loading": "Đang tải...",
+    "noFormations": "Chưa có đội hình nào.",
+    "createFormationLink": "Tạo đội hình \u2192",
+    "formationLabel": "Đội hình:",
+    "selectFormation": "Chọn đội hình",
+    "assignTo": "Chọn cầu thủ cho {{role}}",
+    "slotLabel": "Vị trí: {{role}}",
+    "moveToBench": "\u2193 Đưa xuống dự bị",
+    "swapWith": "Đổi với",
+    "choosePlayer": "Chọn cầu thủ",
+    "noPlayersAvailable": "Không có cầu thủ.",
+    "bench": "Dự bị ({{count}})",
+    "noBenchPlayers": "Không có cầu thủ dự bị",
+    "subBadge": "SUB",
+    "removeSubstitute": "Bỏ dự bị {{name}}",
+    "groupGK": "Thủ môn",
+    "groupDEF": "Hậu vệ",
+    "groupMID": "Tiền vệ",
+    "groupFWD": "Tiền đạo",
+    "groupOTHER": "Khác"
+  },
+  "layout": {
+    "teamInfo": "Thông tin đội",
+    "uniforms": "Đồng phục"
+  },
+  "a11y": {
+    "close": "Đóng",
+    "uniformPreview": "Xem trước đồng phục"
   }
 }
