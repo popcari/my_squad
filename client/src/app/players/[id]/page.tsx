@@ -6,6 +6,7 @@ import { InputText } from '@/components/ui/input-text';
 import { Lightbox } from '@/components/ui/lightbox';
 import { Select } from '@/components/ui/select';
 import { StarRating } from '@/components/ui/star-rating';
+import { TraitRadarChart } from './trait-radar-chart';
 import { USER_ROLE } from '@/constant/enum';
 import { POSITION_GROUPS } from '@/constant';
 import { useConfirm } from '@/contexts/confirm-context';
@@ -576,6 +577,20 @@ export default function PlayerProfilePage() {
                 {t('common.assign')}
               </button>
             </form>
+          )}
+
+          {profile.traits.length >= 3 && (
+            <div className="mb-4">
+              <TraitRadarChart
+                data={profile.traits.map((ut) => ({
+                  id: ut.id,
+                  name:
+                    allTraits.find((tr) => tr.id === ut.traitId)?.name ??
+                    ut.traitId,
+                  rating: ut.rating,
+                }))}
+              />
+            </div>
           )}
 
           {profile.traits.length === 0 ? (
