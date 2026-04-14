@@ -12,6 +12,7 @@ export const matchesService = {
     api.patch<Match>(`/matches/${id}`, data),
   remove: (id: string) => api.delete(`/matches/${id}`),
 
+  getAllLineups: () => api.get<MatchLineup[]>('/match-lineups'),
   getLineups: (matchId: string) =>
     api.get<MatchLineup[]>(`/match-lineups/${matchId}`),
   addLineup: (data: Partial<MatchLineup>) =>

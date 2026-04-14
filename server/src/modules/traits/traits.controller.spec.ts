@@ -24,7 +24,7 @@ describe('TraitsController', () => {
     }).compile();
 
     app = module.createNestApplication();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     app.use((req: any, _res: any, next: any) => {
       req.user = { id: 'admin-1', role: UserRole.PRESIDENT };
       next();

@@ -31,6 +31,42 @@ describe('MatchLineupsService', () => {
     service = module.get<MatchLineupsService>(MatchLineupsService);
   });
 
+  describe('findAll', () => {
+    it('returns every lineup across all matches', async () => {
+      const mockDocs = [
+        {
+          id: 'l-1',
+          data: () => ({
+            matchId: 'm-1',
+            userId: 'u-1',
+            type: LineupType.STARTING,
+            createdAt: { toDate: () => new Date() },
+          }),
+        },
+        {
+          id: 'l-2',
+          data: () => ({
+            matchId: 'm-2',
+            userId: 'u-2',
+            type: LineupType.SUBSTITUTE,
+            createdAt: { toDate: () => new Date() },
+          }),
+        },
+      ];
+      mockCollection.get.mockResolvedValue({ docs: mockDocs });
+
+      const result = await service.findAll();
+
+      expect(result).toHaveLength(2);
+      expect(result.map((r) => r.matchId).sort()).toEqual(['m-1', 'm-2']);
+    });
+
+    it('returns empty array when no lineups exist', async () => {
+      mockCollection.get.mockResolvedValue({ docs: [] });
+      expect(await service.findAll()).toEqual([]);
+    });
+  });
+
   describe('findByMatch', () => {
     it('should return lineups grouped for a match', async () => {
       const mockDocs = [
@@ -187,9 +223,9 @@ describe('MatchLineupsService', () => {
       mockCollection.doc.mockReturnValue({
         get: jest.fn().mockResolvedValue({ exists: false }),
       });
-      await expect(
-        service.update('missing', { slotIndex: 2 }),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.update('missing', { slotIndex: 2 })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

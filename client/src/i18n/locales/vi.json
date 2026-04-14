@@ -32,7 +32,32 @@
     "funding": "Quỹ",
     "players": "Cầu thủ",
     "traits": "Chỉ số",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "seasonDashboard": "Mùa giải"
+  },
+  "seasonDashboard": {
+    "title": "Bảng tổng kết mùa",
+    "rangeLabel": "Khoảng thời gian",
+    "range": {
+      "1m": "1 tháng",
+      "3m": "3 tháng",
+      "6m": "6 tháng",
+      "12m": "1 năm"
+    },
+    "topScorers": "Ghi bàn nhiều nhất",
+    "topAssisters": "Kiến tạo nhiều nhất",
+    "topAttendance": "Đi nhiều nhất",
+    "noData": "Chưa có dữ liệu",
+    "goals": "{{count}} bàn",
+    "assists": "{{count}} kiến tạo",
+    "matches": "{{count}} trận",
+    "showMore": "Xem thêm {{count}} \u25be",
+    "showLess": "Thu gọn \u25b4",
+    "unit": {
+      "goals": "bàn",
+      "assists": "kiến tạo",
+      "matches": "trận"
+    }
   },
   "auth": {
     "signIn": "Đăng nhập",

@@ -5,9 +5,9 @@ import { FormationsService } from './formations.service';
 
 describe('FormationsService', () => {
   let service: FormationsService;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   let mockFirestore: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   let mockCollection: any;
 
   beforeEach(async () => {

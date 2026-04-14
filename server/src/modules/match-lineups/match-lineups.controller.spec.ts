@@ -11,6 +11,7 @@ describe('MatchLineupsController', () => {
 
   beforeEach(async () => {
     mockService = {
+      findAll: jest.fn().mockResolvedValue([]),
       findByMatch: jest.fn().mockResolvedValue([]),
       add: jest.fn(),
       update: jest.fn(),
@@ -23,7 +24,7 @@ describe('MatchLineupsController', () => {
     }).compile();
 
     app = module.createNestApplication();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     app.use((req: any, _res: any, next: any) => {
       req.user = { id: 'admin-1', role: UserRole.PRESIDENT };
       next();
@@ -40,6 +41,17 @@ describe('MatchLineupsController', () => {
 
   afterEach(async () => {
     await app.close();
+  });
+
+  it('GET /match-lineups returns every lineup', async () => {
+    (mockService.findAll as jest.Mock).mockResolvedValue([
+      { id: 'l1', matchId: 'm1', userId: 'u1', type: 'starting' },
+      { id: 'l2', matchId: 'm2', userId: 'u2', type: 'substitute' },
+    ]);
+    const res = await request(app.getHttpServer()).get('/match-lineups');
+    expect(res.status).toBe(200);
+    expect(mockService.findAll).toHaveBeenCalled();
+    expect(res.body).toHaveLength(2);
   });
 
   it('GET /match-lineups/:matchId returns list', async () => {
@@ -61,14 +73,12 @@ describe('MatchLineupsController', () => {
       id: 'l1',
       slotIndex: 2,
     });
-    const res = await request(app.getHttpServer())
-      .post('/match-lineups')
-      .send({
-        matchId: 'm1',
-        userId: 'u1',
-        type: 'starting',
-        slotIndex: 2,
-      });
+    const res = await request(app.getHttpServer()).post('/match-lineups').send({
+      matchId: 'm1',
+      userId: 'u1',
+      type: 'starting',
+      slotIndex: 2,
+    });
     expect(res.status).toBe(201);
     expect(mockService.add).toHaveBeenCalledWith({
       matchId: 'm1',

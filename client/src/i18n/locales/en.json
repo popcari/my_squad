@@ -32,7 +32,32 @@
     "funding": "Funding",
     "players": "Players",
     "traits": "Traits",
-    "settings": "Settings"
+    "settings": "Settings",
+    "seasonDashboard": "Season"
+  },
+  "seasonDashboard": {
+    "title": "Season Dashboard",
+    "rangeLabel": "Time range",
+    "range": {
+      "1m": "1 month",
+      "3m": "3 months",
+      "6m": "6 months",
+      "12m": "1 year"
+    },
+    "topScorers": "Top Scorers",
+    "topAssisters": "Top Assists",
+    "topAttendance": "Top Attendance",
+    "noData": "No data for this range",
+    "goals": "{{count}} goals",
+    "assists": "{{count}} assists",
+    "matches": "{{count}} matches",
+    "showMore": "View {{count}} more \u25be",
+    "showLess": "Show less \u25b4",
+    "unit": {
+      "goals": "goals",
+      "assists": "assists",
+      "matches": "matches"
+    }
   },
   "auth": {
     "signIn": "Sign In",

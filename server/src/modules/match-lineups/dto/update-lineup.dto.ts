@@ -1,10 +1,4 @@
-import {
-  IsEnum,
-  IsInt,
-  IsOptional,
-  Min,
-  ValidateIf,
-} from 'class-validator';
+import { IsEnum, IsInt, IsOptional, Min, ValidateIf } from 'class-validator';
 import { LineupType } from '../types';
 
 export class UpdateLineupDto {

@@ -21,6 +21,11 @@ export class MatchLineupsService {
     this.collection = this.firestore.collection('match_lineups');
   }
 
+  async findAll(): Promise<MatchLineup[]> {
+    const snapshot = await this.collection.get();
+    return snapshot.docs.map((doc) => mapFirestoreDoc<MatchLineup>(doc));
+  }
+
   async findByMatch(matchId: string): Promise<MatchLineup[]> {
     const snapshot = await this.collection
       .where('matchId', '==', matchId)

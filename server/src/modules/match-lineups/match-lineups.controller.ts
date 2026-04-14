@@ -18,6 +18,11 @@ import { MatchLineupsService } from './match-lineups.service';
 export class MatchLineupsController {
   constructor(private readonly matchLineupsService: MatchLineupsService) {}
 
+  @Get()
+  findAll() {
+    return this.matchLineupsService.findAll();
+  }
+
   @Get(':matchId')
   findByMatch(@Param('matchId') matchId: string) {
     return this.matchLineupsService.findByMatch(matchId);
