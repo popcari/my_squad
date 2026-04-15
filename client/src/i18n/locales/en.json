@@ -78,29 +78,7 @@
     "registrationFailed": "Registration failed",
     "logout": "Logout",
     "logoutConfirmTitle": "Logout",
-    "logoutConfirmMessage": "Are you sure you want to logout?",
-    "forgotPassword": "Forgot password?",
-    "forgotPasswordPrompt": "Enter your email and we'll send you a temporary password.",
-    "forgotPasswordSent": "If an account exists for that email, a temporary password has been sent. Check your inbox.",
-    "sendResetLink": "Send temporary password"
-  },
-  "changePassword": {
-    "title": "Change Password",
-    "currentLabel": "Current password",
-    "newLabel": "New password",
-    "confirmLabel": "Confirm new password",
-    "submit": "Update password",
-    "success": "Password updated.",
-    "unknownError": "Something went wrong."
-  },
-  "resetPassword": {
-    "title": "Reset Password",
-    "newLabel": "New password",
-    "confirmLabel": "Confirm new password",
-    "submit": "Reset password",
-    "success": "Password reset. You can now log in.",
-    "goToLogin": "Go to login",
-    "invalidLink": "This reset link is invalid or has expired."
+    "logoutConfirmMessage": "Are you sure you want to logout?"
   },
   "home": {
     "matchSchedule": "Match Schedule",
