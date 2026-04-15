@@ -1,6 +1,5 @@
 'use client';
 
-import { ForgotPasswordModal } from '@/components/forgot-password-modal';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { InputText } from '@/components/ui/input-text';
 import { useAuth } from '@/contexts/auth-context';
@@ -16,7 +15,6 @@ import { useTranslation } from 'react-i18next';
 export default function LoginPage() {
   const { t } = useTranslation();
   const [serverError, setServerError] = useState('');
-  const [showForgot, setShowForgot] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
@@ -95,16 +93,6 @@ export default function LoginPage() {
               {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </button>
 
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => setShowForgot(true)}
-                className="text-sm text-muted hover:text-primary hover:underline transition-colors"
-              >
-                {t('auth.forgotPassword')}
-              </button>
-            </div>
-
             <p className="text-center text-sm text-muted">
               {t('auth.dontHaveAccount')}{' '}
               <Link href="/register" className="text-primary hover:underline">
@@ -114,11 +102,6 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
-
-      <ForgotPasswordModal
-        open={showForgot}
-        onClose={() => setShowForgot(false)}
-      />
     </div>
   );
 }

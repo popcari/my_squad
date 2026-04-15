@@ -1,6 +1,5 @@
 'use client';
 
-import { ChangePasswordModal } from '@/components/change-password-modal';
 import { LanguageSelector } from '@/components/ui/language-selector';
 import { useAuth } from '@/contexts/auth-context';
 import { useConfirm } from '@/contexts/confirm-context';
@@ -18,7 +17,6 @@ export function Header() {
   const { t } = useTranslation();
   const confirm = useConfirm();
   const [showMenu, setShowMenu] = useState(false);
-  const [showChangePw, setShowChangePw] = useState(false);
 
   if (pathname === '/login' || pathname === '/register') return null;
 
@@ -125,15 +123,6 @@ export function Header() {
 
                 {/* Menu items */}
                 <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    setShowChangePw(true);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-card-hover transition-colors"
-                >
-                  {t('changePassword.title')}
-                </button>
-                <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-danger/10 transition-colors"
                 >
@@ -144,11 +133,6 @@ export function Header() {
           )}
         </div>
       </div>
-
-      <ChangePasswordModal
-        open={showChangePw}
-        onClose={() => setShowChangePw(false)}
-      />
     </header>
   );
 }
