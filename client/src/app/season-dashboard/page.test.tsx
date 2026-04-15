@@ -133,10 +133,7 @@ describe('SeasonDashboardPage', () => {
     );
 
     // Change to 12m → 2 goals
-    await user.selectOptions(
-      screen.getByTestId('range-select'),
-      '12',
-    );
+    await user.selectOptions(screen.getByTestId('range-select'), '12');
     expect(
       within(
         (await screen.findByText(/top scorers/i)).closest('section')!,
@@ -172,9 +169,9 @@ describe('SeasonDashboardPage', () => {
     ]);
 
     render(<SeasonDashboardPage />);
-    const attendanceCard = (
-      await screen.findByText(/top attendance/i)
-    ).closest('section')!;
+    const attendanceCard = (await screen.findByText(/top attendance/i)).closest(
+      'section',
+    )!;
     expect(within(attendanceCard).getByTestId('row-count-u1').textContent).toBe(
       '1',
     );
@@ -191,9 +188,9 @@ describe('SeasonDashboardPage', () => {
     ]);
 
     render(<SeasonDashboardPage />);
-    const attendanceCard = (
-      await screen.findByText(/top attendance/i)
-    ).closest('section')!;
+    const attendanceCard = (await screen.findByText(/top attendance/i)).closest(
+      'section',
+    )!;
     expect(within(attendanceCard).getByTestId('row-count-u1').textContent).toBe(
       '2',
     );
@@ -339,7 +336,10 @@ describe('SeasonDashboardPage', () => {
 
   it('avatar is wrapped in a lightbox trigger when avatar URL is provided', async () => {
     const users = [
-      { ...mkUser('u1', 'Alpha', 10), avatar: 'https://res.cloudinary.com/x.jpg' },
+      {
+        ...mkUser('u1', 'Alpha', 10),
+        avatar: 'https://res.cloudinary.com/x.jpg',
+      },
     ];
     mockGetUsers.mockResolvedValue(users);
     mockGetMatches.mockResolvedValue([mkMatch('m1', 0)]);

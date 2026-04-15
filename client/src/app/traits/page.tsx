@@ -186,9 +186,7 @@ export default function TraitsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
           {filteredPlayers.length === 0 ? (
-            <p className="text-xs text-muted px-2 py-4">
-              {t('common.noData')}
-            </p>
+            <p className="text-xs text-muted px-2 py-4">{t('common.noData')}</p>
           ) : (
             <ul className="flex flex-col gap-1">
               {filteredPlayers.map((p) => {
@@ -206,7 +204,9 @@ export default function TraitsPage() {
                     >
                       <span
                         className={`w-7 h-7 rounded-full flex items-center justify-center overflow-hidden text-[10px] font-bold shrink-0 ${
-                          isActive ? 'bg-white/20 text-white' : 'bg-primary/20 text-primary'
+                          isActive
+                            ? 'bg-white/20 text-white'
+                            : 'bg-primary/20 text-primary'
                         }`}
                       >
                         {p.avatar ? (

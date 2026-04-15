@@ -6,9 +6,8 @@ import { InputText } from '@/components/ui/input-text';
 import { Lightbox } from '@/components/ui/lightbox';
 import { Select } from '@/components/ui/select';
 import { StarRating } from '@/components/ui/star-rating';
-import { TraitRadarChart } from './trait-radar-chart';
-import { USER_ROLE } from '@/constant/enum';
 import { POSITION_GROUPS } from '@/constant';
+import { USER_ROLE } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -37,6 +36,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { TraitRadarChart } from './trait-radar-chart';
 
 export default function PlayerProfilePage() {
   const { t } = useTranslation();
@@ -265,7 +265,6 @@ export default function PlayerProfilePage() {
     (t) => !assignedTraitIds.includes(t.id),
   );
 
-
   return (
     <div>
       <Link
@@ -446,34 +445,39 @@ export default function PlayerProfilePage() {
                 {t('playerProfile.primary')}
               </p>
               <div className="flex flex-wrap gap-2">
-                {[...allPositions].sort((a, b) => {
-                  const getWeight = (name: string) =>
-                    (Object.values(POSITION_GROUPS).find((g) =>
-                      g.roles.includes(name.toUpperCase()),
-                    ) ?? POSITION_GROUPS.UNKNOWN).weight;
-                  return getWeight(a.name) - getWeight(b.name);
-                }).map((pos) => {
-                  const up = profile.positions.find(
-                    (p) => p.positionId === pos.id,
-                  );
-                  const isPrimary = up?.type === 'primary';
-                  const posGroup = Object.values(POSITION_GROUPS).find((g) =>
-                    g.roles.includes(pos.name.toUpperCase()),
-                  ) ?? POSITION_GROUPS.UNKNOWN;
-                  return (
-                    <button
-                      key={pos.id}
-                      onClick={() => handleSetPrimary(pos.id)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                        isPrimary
-                          ? posGroup.colorClass
-                          : 'bg-card-hover text-muted hover:text-foreground'
-                      }`}
-                    >
-                      {pos.name}
-                    </button>
-                  );
-                })}
+                {[...allPositions]
+                  .sort((a, b) => {
+                    const getWeight = (name: string) =>
+                      (
+                        Object.values(POSITION_GROUPS).find((g) =>
+                          g.roles.includes(name.toUpperCase()),
+                        ) ?? POSITION_GROUPS.UNKNOWN
+                      ).weight;
+                    return getWeight(a.name) - getWeight(b.name);
+                  })
+                  .map((pos) => {
+                    const up = profile.positions.find(
+                      (p) => p.positionId === pos.id,
+                    );
+                    const isPrimary = up?.type === 'primary';
+                    const posGroup =
+                      Object.values(POSITION_GROUPS).find((g) =>
+                        g.roles.includes(pos.name.toUpperCase()),
+                      ) ?? POSITION_GROUPS.UNKNOWN;
+                    return (
+                      <button
+                        key={pos.id}
+                        onClick={() => handleSetPrimary(pos.id)}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                          isPrimary
+                            ? posGroup.colorClass
+                            : 'bg-card-hover text-muted hover:text-foreground'
+                        }`}
+                      >
+                        {pos.name}
+                      </button>
+                    );
+                  })}
               </div>
             </div>
 
@@ -482,38 +486,44 @@ export default function PlayerProfilePage() {
                 {t('playerProfile.sub')}
               </p>
               <div className="flex flex-wrap gap-2">
-                {[...allPositions].sort((a, b) => {
-                  const getWeight = (name: string) =>
-                    (Object.values(POSITION_GROUPS).find((g) =>
-                      g.roles.includes(name.toUpperCase()),
-                    ) ?? POSITION_GROUPS.UNKNOWN).weight;
-                  return getWeight(a.name) - getWeight(b.name);
-                }).map((pos) => {
-                  const up = profile.positions.find(
-                    (p) => p.positionId === pos.id,
-                  );
-                  const isPrimary = up?.type === 'primary';
-                  const isSub = up?.type === 'sub';
-                  const posGroup = Object.values(POSITION_GROUPS).find((g) =>
-                    g.roles.includes(pos.name.toUpperCase()),
-                  ) ?? POSITION_GROUPS.UNKNOWN;
-                  return (
-                    <button
-                      key={pos.id}
-                      onClick={() => handleToggleSub(pos.id)}
-                      disabled={isPrimary}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                        isPrimary
-                          ? 'opacity-30 cursor-not-allowed ' + posGroup.colorClass
-                          : isSub
-                            ? posGroup.colorClass
-                            : 'bg-card-hover text-muted hover:text-foreground'
-                      }`}
-                    >
-                      {pos.name}
-                    </button>
-                  );
-                })}
+                {[...allPositions]
+                  .sort((a, b) => {
+                    const getWeight = (name: string) =>
+                      (
+                        Object.values(POSITION_GROUPS).find((g) =>
+                          g.roles.includes(name.toUpperCase()),
+                        ) ?? POSITION_GROUPS.UNKNOWN
+                      ).weight;
+                    return getWeight(a.name) - getWeight(b.name);
+                  })
+                  .map((pos) => {
+                    const up = profile.positions.find(
+                      (p) => p.positionId === pos.id,
+                    );
+                    const isPrimary = up?.type === 'primary';
+                    const isSub = up?.type === 'sub';
+                    const posGroup =
+                      Object.values(POSITION_GROUPS).find((g) =>
+                        g.roles.includes(pos.name.toUpperCase()),
+                      ) ?? POSITION_GROUPS.UNKNOWN;
+                    return (
+                      <button
+                        key={pos.id}
+                        onClick={() => handleToggleSub(pos.id)}
+                        disabled={isPrimary}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                          isPrimary
+                            ? 'opacity-30 cursor-not-allowed ' +
+                              posGroup.colorClass
+                            : isSub
+                              ? posGroup.colorClass
+                              : 'bg-card-hover text-muted hover:text-foreground'
+                        }`}
+                      >
+                        {pos.name}
+                      </button>
+                    );
+                  })}
               </div>
             </div>
           </div>

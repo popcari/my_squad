@@ -357,7 +357,11 @@ export function UniformsPageSkeleton() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="bg-card rounded-lg overflow-hidden">
-                  <Skeleton height="150px" width="100%" className="rounded-none aspect-square" />
+                  <Skeleton
+                    height="150px"
+                    width="100%"
+                    className="rounded-none aspect-square"
+                  />
                   <div className="p-3 space-y-2">
                     <Skeleton height="16px" width="80%" />
                     <Skeleton height="12px" width="40%" />
@@ -386,12 +390,15 @@ export function MatchesPageSkeleton() {
         <div className="bg-card rounded-lg p-6">
           <Skeleton width="150px" height="24px" className="mb-4" />
           <div className="flex justify-center">
-             <Skeleton width="260px" height="260px" className="rounded-full" />
+            <Skeleton width="260px" height="260px" className="rounded-full" />
           </div>
         </div>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-card rounded-lg p-4 flex justify-between items-center">
+            <div
+              key={i}
+              className="bg-card rounded-lg p-4 flex justify-between items-center"
+            >
               <div className="space-y-2">
                 <Skeleton width="100px" height="16px" />
                 <Skeleton width="60px" height="12px" />

@@ -1,7 +1,7 @@
-import '@/i18n';
 import MatchesPage from '@/app/matches/page';
 import { MATCH_STATUS, USER_ROLE } from '@/constant/enum';
 import { useCanManage } from '@/hooks/use-can-manage';
+import '@/i18n';
 import { fundingService, matchesService, usersService } from '@/services';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

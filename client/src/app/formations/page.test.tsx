@@ -116,7 +116,13 @@ describe('FormationsPage', () => {
 
   it('edit and delete buttons are always visible (not hidden without hover)', async () => {
     mockGetAll.mockResolvedValue([
-      { id: 'f1', name: '3-2-1', slots: sampleSlots, createdAt: '', updatedAt: '' },
+      {
+        id: 'f1',
+        name: '3-2-1',
+        slots: sampleSlots,
+        createdAt: '',
+        updatedAt: '',
+      },
     ]);
     render(<FormationsPage />);
     await screen.findByText('3-2-1');
@@ -131,10 +137,25 @@ describe('FormationsPage', () => {
 
   it('renders UniformVisual icons on pitch when uniform data is available', async () => {
     mockGetAll.mockResolvedValue([
-      { id: 'f1', name: '3-2-1', slots: sampleSlots, createdAt: '', updatedAt: '' },
+      {
+        id: 'f1',
+        name: '3-2-1',
+        slots: sampleSlots,
+        createdAt: '',
+        updatedAt: '',
+      },
     ]);
     mockUniformsGetAll.mockResolvedValue([
-      { id: 'un1', year: 2026, name: 'Home', shirtColor: '#ff0000', pantColor: '#000', numberColor: '#fff', createdAt: '', updatedAt: '' },
+      {
+        id: 'un1',
+        year: 2026,
+        name: 'Home',
+        shirtColor: '#ff0000',
+        pantColor: '#000',
+        numberColor: '#fff',
+        createdAt: '',
+        updatedAt: '',
+      },
     ]);
 
     render(<FormationsPage />);

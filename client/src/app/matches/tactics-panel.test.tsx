@@ -148,9 +148,7 @@ describe('TacticsPanel', () => {
       players: [
         mockPlayer({ id: 'u1', displayName: 'Messi', jerseyNumber: 10 }),
       ],
-      lineups: [
-        mockLineup({ id: 'sub-1', userId: 'u1', type: 'substitute' }),
-      ],
+      lineups: [mockLineup({ id: 'sub-1', userId: 'u1', type: 'substitute' })],
     });
     expect(screen.getByText('Messi')).toBeInTheDocument();
   });
@@ -296,10 +294,34 @@ describe('TacticsPanel', () => {
         { id: 'p-st', name: 'Striker', createdAt: '', updatedAt: '' },
       ],
       userPositions: [
-        { id: 'up1', userId: 'u1', positionId: 'p-gk', type: 'primary', createdAt: '' },
-        { id: 'up2', userId: 'u2', positionId: 'p-cb', type: 'primary', createdAt: '' },
-        { id: 'up3', userId: 'u3', positionId: 'p-cm', type: 'primary', createdAt: '' },
-        { id: 'up4', userId: 'u4', positionId: 'p-st', type: 'primary', createdAt: '' },
+        {
+          id: 'up1',
+          userId: 'u1',
+          positionId: 'p-gk',
+          type: 'primary',
+          createdAt: '',
+        },
+        {
+          id: 'up2',
+          userId: 'u2',
+          positionId: 'p-cb',
+          type: 'primary',
+          createdAt: '',
+        },
+        {
+          id: 'up3',
+          userId: 'u3',
+          positionId: 'p-cm',
+          type: 'primary',
+          createdAt: '',
+        },
+        {
+          id: 'up4',
+          userId: 'u4',
+          positionId: 'p-st',
+          type: 'primary',
+          createdAt: '',
+        },
       ],
     });
 
@@ -410,10 +432,34 @@ describe('TacticsPanel', () => {
           { id: 'p-st', name: 'ST', createdAt: '', updatedAt: '' },
         ],
         userPositions: [
-          { id: 'up1', userId: 'u-gk', positionId: 'p-gk', type: 'primary', createdAt: '' },
-          { id: 'up2', userId: 'u-cb', positionId: 'p-cb', type: 'primary', createdAt: '' },
-          { id: 'up3', userId: 'u-cm', positionId: 'p-cm', type: 'primary', createdAt: '' },
-          { id: 'up4', userId: 'u-st', positionId: 'p-st', type: 'primary', createdAt: '' },
+          {
+            id: 'up1',
+            userId: 'u-gk',
+            positionId: 'p-gk',
+            type: 'primary',
+            createdAt: '',
+          },
+          {
+            id: 'up2',
+            userId: 'u-cb',
+            positionId: 'p-cb',
+            type: 'primary',
+            createdAt: '',
+          },
+          {
+            id: 'up3',
+            userId: 'u-cm',
+            positionId: 'p-cm',
+            type: 'primary',
+            createdAt: '',
+          },
+          {
+            id: 'up4',
+            userId: 'u-st',
+            positionId: 'p-st',
+            type: 'primary',
+            createdAt: '',
+          },
         ],
       });
       const names = screen
@@ -446,8 +492,20 @@ describe('TacticsPanel', () => {
           { id: 'p-st', name: 'ST', createdAt: '', updatedAt: '' },
         ],
         userPositions: [
-          { id: 'up1', userId: 'u-cb', positionId: 'p-cb', type: 'primary', createdAt: '' },
-          { id: 'up2', userId: 'u-st', positionId: 'p-st', type: 'primary', createdAt: '' },
+          {
+            id: 'up1',
+            userId: 'u-cb',
+            positionId: 'p-cb',
+            type: 'primary',
+            createdAt: '',
+          },
+          {
+            id: 'up2',
+            userId: 'u-st',
+            positionId: 'p-st',
+            type: 'primary',
+            createdAt: '',
+          },
         ],
       });
       const cbBadge = screen.getByTestId('sub-badge-u-cb');
@@ -464,7 +522,12 @@ describe('TacticsPanel', () => {
           mockPlayer({ id: 'u3', displayName: 'P3', jerseyNumber: 3 }),
         ],
         lineups: [
-          mockLineup({ id: 'l1', userId: 'u1', type: 'starting', slotIndex: 0 }),
+          mockLineup({
+            id: 'l1',
+            userId: 'u1',
+            type: 'starting',
+            slotIndex: 0,
+          }),
           mockLineup({ id: 'l2', userId: 'u2', type: 'substitute' }),
           mockLineup({ id: 'l3', userId: 'u3', type: 'substitute' }),
         ],
@@ -482,23 +545,29 @@ describe('TacticsPanel', () => {
           mockPlayer({ id: 'u2', displayName: 'Bravo', jerseyNumber: 2 }),
           mockPlayer({ id: 'u3', displayName: 'Charlie', jerseyNumber: 3 }),
         ],
-        lineups: [
-          mockLineup({ id: 'l1', userId: 'u1', type: 'substitute' }),
-        ],
+        lineups: [mockLineup({ id: 'l1', userId: 'u1', type: 'substitute' })],
       });
       const select = screen.getByTestId('add-substitute-select');
       const options = within(select).getAllByRole('option');
       // Placeholder + 2 unassigned (u2, u3) — u1 is already a sub
       expect(options).toHaveLength(3);
-      expect(options.map((o) => o.textContent ?? '').join(' ')).toMatch(/Bravo/);
-      expect(options.map((o) => o.textContent ?? '').join(' ')).toMatch(/Charlie/);
-      expect(options.map((o) => o.textContent ?? '').join(' ')).not.toMatch(/Alpha/);
+      expect(options.map((o) => o.textContent ?? '').join(' ')).toMatch(
+        /Bravo/,
+      );
+      expect(options.map((o) => o.textContent ?? '').join(' ')).toMatch(
+        /Charlie/,
+      );
+      expect(options.map((o) => o.textContent ?? '').join(' ')).not.toMatch(
+        /Alpha/,
+      );
     });
 
     it('calls onAddLineup(userId, "substitute", null) when add-sub Select changes', async () => {
       const user = userEvent.setup();
       const { onAddLineup } = renderPanel({
-        players: [mockPlayer({ id: 'u1', displayName: 'Alpha', jerseyNumber: 1 })],
+        players: [
+          mockPlayer({ id: 'u1', displayName: 'Alpha', jerseyNumber: 1 }),
+        ],
         lineups: [],
       });
       const select = screen.getByTestId('add-substitute-select');
@@ -522,7 +591,9 @@ describe('TacticsPanel', () => {
     it('slot-picker modal still lists non-attending players so coach can promote them', async () => {
       const user = userEvent.setup();
       renderPanel({
-        players: [mockPlayer({ id: 'u1', displayName: 'Messi', jerseyNumber: 10 })],
+        players: [
+          mockPlayer({ id: 'u1', displayName: 'Messi', jerseyNumber: 10 }),
+        ],
         lineups: [],
       });
       await user.click(
@@ -530,7 +601,9 @@ describe('TacticsPanel', () => {
       );
       const dialog = screen.getByRole('dialog');
       // Unassigned player still selectable in the slot picker
-      expect(within(dialog).getByRole('button', { name: /Messi/i })).toBeInTheDocument();
+      expect(
+        within(dialog).getByRole('button', { name: /Messi/i }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -549,19 +622,32 @@ describe('TacticsPanel', () => {
 
     it('shows assigned player jersey number on their uniform', () => {
       renderPanel({
-        players: [mockPlayer({ id: 'u1', displayName: 'Messi', jerseyNumber: 10 })],
-        lineups: [mockLineup({ id: 'l1', userId: 'u1', type: 'starting', slotIndex: 6 })],
+        players: [
+          mockPlayer({ id: 'u1', displayName: 'Messi', jerseyNumber: 10 }),
+        ],
+        lineups: [
+          mockLineup({
+            id: 'l1',
+            userId: 'u1',
+            type: 'starting',
+            slotIndex: 6,
+          }),
+        ],
         uniform,
       });
       // jersey number 10 should appear in the slot button area
-      expect(screen.getByRole('button', { name: /ST.*Messi|Messi.*ST/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /ST.*Messi|Messi.*ST/i }),
+      ).toBeInTheDocument();
     });
 
     it('falls back to circle slots when no uniform is provided', () => {
       renderPanel({});
       expect(screen.queryByRole('img', { name: 'Uniform preview' })).toBeNull();
       // Roles still rendered as text
-      expect(screen.getByRole('button', { name: /Assign player to GK/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Assign player to GK/i }),
+      ).toBeInTheDocument();
     });
   });
 });
