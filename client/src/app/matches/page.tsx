@@ -3,6 +3,7 @@
 import { MatchesPageSkeleton } from '@/components/shared/skeleton';
 import { CloseButton } from '@/components/ui/close-button';
 import { InputText } from '@/components/ui/input-text';
+import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
 import { MATCH_STATUS } from '@/constant/enum';
 import { useCanManage } from '@/hooks/use-can-manage';
@@ -353,13 +354,13 @@ export default function MatchesPage() {
       />
 
       {/* Create Match Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
-            onClick={() => setShowCreateModal(false)}
-          />
-          <div className="relative z-50 w-[90%] max-w-md bg-card border border-border shadow-2xl rounded-xl overflow-hidden shadow-xl animate-in fade-in zoom-in-95 duration-200">
+      <Modal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        ariaLabel="Create New Match"
+        panelClassName="md:max-w-md"
+      >
+        <div>
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <h2 className="text-lg font-bold">Create New Match</h2>
               <CloseButton onClick={() => setShowCreateModal(false)} />
@@ -415,9 +416,8 @@ export default function MatchesPage() {
                 </div>
               </form>
             </div>
-          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { CloseButton } from '@/components/ui/close-button';
 import { InputText } from '@/components/ui/input-text';
+import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
 import { LINEUP_TYPE, MATCH_STATUS } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
@@ -243,10 +244,13 @@ export function ScoreModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
-      <div className="relative bg-card border border-border rounded-2xl p-6 w-[90%] md:w-full md:max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl">
+    <Modal
+      open
+      onClose={onClose}
+      ariaLabel="Match Detail"
+      panelClassName="md:max-w-2xl p-6"
+    >
+      <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -561,6 +565,6 @@ export function ScoreModal({
           </>
         )}
       </div>
-    </div>
+    </Modal>
   );
 }

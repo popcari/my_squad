@@ -5,6 +5,7 @@ import {
   type FootballPitchSlot,
   type UniformColors,
 } from '@/components/football-pitch';
+import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
 import { UniformVisual } from '@/components/uniform-visual';
 import type { MatchLineup, Position, User, UserPosition } from '@/types';
@@ -476,22 +477,17 @@ export function TacticsPanel({
         )}
       </aside>
 
-      {activeSlot !== null && canManage && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={
-            activeSlotPlayer
-              ? `Edit ${activeSlotPlayer.displayName}`
-              : t('tactics.assignTo', { role: activeSlotRole })
-          }
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 p-4"
-          onClick={() => setActiveSlot(null)}
-        >
-          <div
-            className="bg-card rounded-xl w-full max-w-md flex flex-col max-h-[80vh] shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+      <Modal
+        open={activeSlot !== null && canManage}
+        onClose={() => setActiveSlot(null)}
+        ariaLabel={
+          activeSlotPlayer
+            ? `Edit ${activeSlotPlayer.displayName}`
+            : t('tactics.assignTo', { role: activeSlotRole })
+        }
+        panelClassName="md:max-w-md flex flex-col"
+      >
+        <div className="flex flex-col">
             <header className="flex items-center justify-between p-4 border-b border-border">
               <div>
                 <h3 className="text-lg font-semibold">
@@ -571,9 +567,8 @@ export function TacticsPanel({
                 );
               })}
             </div>
-          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }
