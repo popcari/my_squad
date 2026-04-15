@@ -78,7 +78,29 @@
     "registrationFailed": "Đăng ký thất bại",
     "logout": "Đăng xuất",
     "logoutConfirmTitle": "Đăng xuất",
-    "logoutConfirmMessage": "Bạn có chắc muốn đăng xuất?"
+    "logoutConfirmMessage": "Bạn có chắc muốn đăng xuất?",
+    "forgotPassword": "Quên mật khẩu?",
+    "forgotPasswordPrompt": "Nhập email của bạn, chúng tôi sẽ gửi mật khẩu tạm thời.",
+    "forgotPasswordSent": "Nếu email đã đăng ký, mật khẩu tạm thời đã được gửi. Kiểm tra hộp thư.",
+    "sendResetLink": "Gửi mật khẩu tạm"
+  },
+  "changePassword": {
+    "title": "Đổi mật khẩu",
+    "currentLabel": "Mật khẩu hiện tại",
+    "newLabel": "Mật khẩu mới",
+    "confirmLabel": "Xác nhận mật khẩu mới",
+    "submit": "Cập nhật mật khẩu",
+    "success": "Đã đổi mật khẩu.",
+    "unknownError": "Có lỗi xảy ra."
+  },
+  "resetPassword": {
+    "title": "Đặt lại mật khẩu",
+    "newLabel": "Mật khẩu mới",
+    "confirmLabel": "Xác nhận mật khẩu mới",
+    "submit": "Đặt lại mật khẩu",
+    "success": "Đã đặt lại mật khẩu. Bạn có thể đăng nhập ngay.",
+    "goToLogin": "Đến trang đăng nhập",
+    "invalidLink": "Link đặt lại không hợp lệ hoặc đã hết hạn."
   },
   "home": {
     "matchSchedule": "Lịch thi đấu",
