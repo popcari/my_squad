@@ -1,5 +1,6 @@
 'use client';
 
+import { Modal } from '@/components/ui/modal';
 import { createContext, useCallback, useContext, useState } from 'react';
 
 interface ConfirmOptions {
@@ -47,38 +48,36 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
 
-      {options && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/60"
+      <Modal
+        open={options !== null}
+        onClose={handleCancel}
+        ariaLabel={options?.title || 'Confirm'}
+        panelClassName="md:max-w-sm p-6"
+        zIndex={60}
+      >
+        <h3 className="text-lg font-bold mb-2">
+          {options?.title || 'Confirm'}
+        </h3>
+        <p className="text-sm text-muted mb-6">{options?.message}</p>
+        <div className="flex gap-3 justify-end">
+          <button
             onClick={handleCancel}
-          />
-          <div className="relative bg-card border border-border rounded-2xl p-6 w-full max-w-sm shadow-xl">
-            <h3 className="text-lg font-bold mb-2">
-              {options.title || 'Confirm'}
-            </h3>
-            <p className="text-sm text-muted mb-6">{options.message}</p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={handleCancel}
-                className="px-4 py-2 bg-card-hover hover:bg-border text-foreground rounded-lg text-sm transition-colors"
-              >
-                {options.cancelText || 'Cancel'}
-              </button>
-              <button
-                onClick={handleConfirm}
-                className={`px-4 py-2 rounded-lg text-sm text-white transition-colors ${
-                  options.danger
-                    ? 'bg-danger hover:bg-danger/80'
-                    : 'bg-primary hover:bg-primary-hover'
-                }`}
-              >
-                {options.confirmText || 'Confirm'}
-              </button>
-            </div>
-          </div>
+            className="px-4 py-2 bg-card-hover hover:bg-border text-foreground rounded-lg text-sm transition-colors"
+          >
+            {options?.cancelText || 'Cancel'}
+          </button>
+          <button
+            onClick={handleConfirm}
+            className={`px-4 py-2 rounded-lg text-sm text-white transition-colors ${
+              options?.danger
+                ? 'bg-danger hover:bg-danger/80'
+                : 'bg-primary hover:bg-primary-hover'
+            }`}
+          >
+            {options?.confirmText || 'Confirm'}
+          </button>
         </div>
-      )}
+      </Modal>
     </ConfirmContext.Provider>
   );
 }

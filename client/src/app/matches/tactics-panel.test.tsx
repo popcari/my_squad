@@ -270,7 +270,10 @@ describe('TacticsPanel', () => {
     );
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /^close$/i }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    // Modal animates out before unmounting — wait for it.
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
   });
 
   it('groups bench players in modal by primary position (GK/Defenders/Midfielders/Forwards)', async () => {
