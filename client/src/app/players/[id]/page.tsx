@@ -1,24 +1,45 @@
 'use client';
 
 import { AvatarPickerModal } from '@/components/avatar-picker-modal';
-import { PlayerProfilePageSkeleton } from '@/components/skeleton';
+import { PlayerProfilePageSkeleton } from '@/components/shared/skeleton';
+import { InputText } from '@/components/ui/input-text';
+import { Lightbox } from '@/components/ui/lightbox';
+import { Select } from '@/components/ui/select';
+import { StarRating } from '@/components/ui/star-rating';
+import { POSITION_GROUPS } from '@/constant';
+import { USER_ROLE } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import {
+  matchesService,
   positionsService,
   traitsService,
   userPositionsService,
   userTraitsService,
   usersService,
 } from '@/services';
-import type { PlayerProfile, Position, Trait } from '@/types';
+import type { Match, MatchGoal, PlayerProfile, Position, Trait } from '@/types';
+import { X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { TraitRadarChart } from './trait-radar-chart';
 
 export default function PlayerProfilePage() {
+  const { t } = useTranslation();
   const params = useParams();
   const playerId = params.id as string;
   const canManage = useCanManage();
@@ -44,38 +65,45 @@ export default function PlayerProfilePage() {
   const [showAssignTrait, setShowAssignTrait] = useState(false);
   const [assignTraitForm, setAssignTraitForm] = useState({
     traitId: '',
-    rating: '50',
+    rating: 3,
   });
 
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [goals, setGoals] = useState<MatchGoal[]>([]);
+  const [filterMonth, setFilterMonth] = useState<string>('');
+
   const reload = async () => {
-    const [p, pos, traits] = await Promise.all([
+    const [p, pos, traits, m, g] = await Promise.all([
       usersService.getProfile(playerId),
       positionsService.getAll(),
       traitsService.getAll(),
+      matchesService.getAll(),
+      matchesService.getAllGoals(),
     ]);
     setProfile(p);
     setAllPositions(pos);
     setAllTraits(traits);
+    setMatches(m || []);
+    setGoals(
+      (g || []).filter(
+        (goal) => goal.scorerId === playerId || goal.assistId === playerId,
+      ),
+    );
     setLoading(false);
   };
 
   useEffect(() => {
-    const load = async () => {
-      const [p, pos, traits] = await Promise.all([
-        usersService.getProfile(playerId),
-        positionsService.getAll(),
-        traitsService.getAll(),
-      ]);
-      setProfile(p);
-      setAllPositions(pos);
-      setAllTraits(traits);
-      setLoading(false);
-    };
-    load();
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerId]);
 
   const startEdit = () => {
-    if (!profile) return;
+    if (
+      !profile ||
+      (currentUser?.id !== playerId &&
+        currentUser?.email !== 'admin@example.com')
+    )
+      return;
     setEditForm({
       displayName: profile.displayName,
       jerseyNumber: profile.jerseyNumber?.toString() || '',
@@ -157,9 +185,9 @@ export default function PlayerProfilePage() {
     await userTraitsService.assign({
       userId: playerId,
       traitId: assignTraitForm.traitId,
-      rating: Number(assignTraitForm.rating),
+      rating: assignTraitForm.rating,
     });
-    setAssignTraitForm({ traitId: '', rating: '50' });
+    setAssignTraitForm({ traitId: '', rating: 3 });
     setShowAssignTrait(false);
     await reload();
   };
@@ -171,15 +199,63 @@ export default function PlayerProfilePage() {
 
   const handleRemoveTrait = async (utId: string) => {
     const ok = await confirm({
-      title: 'Remove Trait',
-      message: 'Remove this trait from the player?',
-      confirmText: 'Remove',
+      title: t('common.remove'),
+      message: 'Remove this trait from the player?', // Keep minimal change
+      confirmText: t('common.remove'),
       danger: true,
     });
     if (!ok) return;
     await userTraitsService.remove(utId);
     await reload();
   };
+
+  const monthlyStats = useMemo(() => {
+    const stats: Record<
+      string,
+      { month: string; goals: number; assists: number }
+    > = {};
+    matches.forEach((m) => {
+      const monthStr = m.matchDate.substring(0, 7);
+      if (!stats[monthStr]) {
+        stats[monthStr] = { month: monthStr, goals: 0, assists: 0 };
+      }
+    });
+
+    goals.forEach((g) => {
+      const match = matches.find((m) => m.id === g.matchId);
+      if (match) {
+        const monthStr = match.matchDate.substring(0, 7);
+        if (g.scorerId === playerId) stats[monthStr].goals += 1;
+        if (g.assistId === playerId) stats[monthStr].assists += 1;
+      }
+    });
+
+    let data = Object.values(stats).sort((a, b) =>
+      a.month.localeCompare(b.month),
+    );
+    if (filterMonth) {
+      data = data.filter((d) => d.month === filterMonth);
+    }
+    return data;
+  }, [goals, matches, filterMonth, playerId]);
+
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    matches.forEach((m) => months.add(m.matchDate.substring(0, 7)));
+    return Array.from(months).sort((a, b) => b.localeCompare(a));
+  }, [matches]);
+
+  const displayStats = useMemo(() => {
+    if (!filterMonth) return profile?.stats || { goals: 0, assists: 0 };
+    return monthlyStats.reduce(
+      (acc, curr) => {
+        acc.goals += curr.goals;
+        acc.assists += curr.assists;
+        return acc;
+      },
+      { goals: 0, assists: 0 },
+    );
+  }, [monthlyStats, filterMonth, profile?.stats]);
 
   if (loading) return <PlayerProfilePageSkeleton />;
   if (!profile) return <p className="text-danger">Player not found.</p>;
@@ -188,8 +264,6 @@ export default function PlayerProfilePage() {
   const unassignedTraits = allTraits.filter(
     (t) => !assignedTraitIds.includes(t.id),
   );
-
-  const maxRating = 100;
 
   return (
     <div>
@@ -206,60 +280,79 @@ export default function PlayerProfilePage() {
           <div className="relative group">
             <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-2xl font-bold overflow-hidden">
               {profile.avatar ? (
-                <Image
-                  src={profile.avatar}
-                  alt={profile.displayName}
-                  width={64}
-                  height={64}
-                  className="w-full h-full object-cover"
-                />
+                editing ? (
+                  <Image
+                    src={profile.avatar}
+                    alt={profile.displayName}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Lightbox src={profile.avatar} alt={profile.displayName}>
+                    <Image
+                      src={profile.avatar}
+                      alt={profile.displayName}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover"
+                    />
+                  </Lightbox>
+                )
               ) : (
                 profile.jerseyNumber || '#'
               )}
             </div>
-            {currentUser?.id === playerId && (
+            {editing && currentUser?.id === playerId && (
               <button
                 onClick={() => setShowAvatarPicker(true)}
                 className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition-opacity"
               >
-                Edit
+                {t('playerProfile.change')}
               </button>
             )}
           </div>
 
           <div className="flex-1">
             {editing ? (
-              <div className="space-y-2">
-                <input
+              <div className="space-y-2 alo">
+                <InputText
                   value={editForm.displayName}
                   onChange={(e) =>
                     setEditForm({ ...editForm, displayName: e.target.value })
                   }
-                  className="bg-background border border-border rounded px-3 py-1 text-lg font-bold w-full"
+                  className="text-lg font-bold"
                 />
                 <div className="flex gap-2">
-                  <input
-                    type="number"
-                    min={1}
-                    max={99}
-                    placeholder="Jersey #"
-                    value={editForm.jerseyNumber}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, jerseyNumber: e.target.value })
-                    }
-                    className="bg-background border border-border rounded px-3 py-1 text-sm w-24"
-                  />
-                  <select
-                    value={editForm.role}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, role: e.target.value })
-                    }
-                    className="bg-background border border-border rounded px-3 py-1 text-sm"
-                  >
-                    <option value="player">Player</option>
-                    <option value="coach">Coach</option>
-                    <option value="president">President</option>
-                  </select>
+                  <div className="w-[50%] md:w-[25%]">
+                    <InputText
+                      type="number"
+                      min={1}
+                      max={99}
+                      placeholder="Jersey #"
+                      value={editForm.jerseyNumber}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          jerseyNumber: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="w-[50%] md:w-[75%]">
+                    <Select
+                      value={editForm.role}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, role: e.target.value })
+                      }
+                      className="text-sm"
+                      disabled={!canManage}
+                    >
+                      <option value={USER_ROLE.PLAYER}>Player</option>
+                      <option value={USER_ROLE.COACH}>Coach</option>
+                      <option value={USER_ROLE.PRESIDENT}>President</option>
+                    </Select>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -267,13 +360,13 @@ export default function PlayerProfilePage() {
                     disabled={saving}
                     className="px-3 py-1 bg-primary hover:bg-primary-hover text-white rounded text-sm transition-colors"
                   >
-                    {saving ? 'Saving...' : 'Save'}
+                    {saving ? t('common.saving') : t('common.save')}
                   </button>
                   <button
                     onClick={cancelEdit}
                     className="px-3 py-1 bg-card-hover hover:bg-border text-foreground rounded text-sm transition-colors"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                 </div>
               </div>
@@ -288,18 +381,23 @@ export default function PlayerProfilePage() {
                         : 'bg-red-500/20 text-red-400'
                     }`}
                   >
-                    {profile.status === 1 ? 'Active' : 'Inactive'}
+                    {profile.status === 1
+                      ? t('common.active')
+                      : t('common.inactive')}
                   </span>
-                  {canManage && (
+                  {(currentUser?.id === playerId ||
+                    currentUser?.email === 'admin@example.com') && (
                     <button
                       onClick={startEdit}
                       className="text-muted hover:text-primary text-sm transition-colors"
                     >
-                      Edit
+                      {t('common.edit')}
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-muted">{profile.phone} &middot; {profile.email}</p>
+                <p className="text-sm text-muted">
+                  {profile.phone} &middot; {profile.email}
+                </p>
                 <div className="flex gap-2 mt-2 flex-wrap">
                   {profile.positions
                     .slice()
@@ -334,101 +432,115 @@ export default function PlayerProfilePage() {
         </div>
       </div>
 
-      {/* Positions Edit */}
-      {canManage && (
-        <div className="bg-card rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">Positions</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Positions */}
+        {profile && (
+          <div className="bg-card rounded-lg p-6">
+            <h2 className="text-lg font-semibold mb-4">
+              {t('playerProfile.positions')}
+            </h2>
 
-          <div className="mb-4">
-            <p className="text-xs text-muted mb-2 uppercase tracking-wide">
-              Primary Position (click to set)
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {allPositions.map((pos) => {
-                const up = profile.positions.find(
-                  (p) => p.positionId === pos.id,
-                );
-                const isPrimary = up?.type === 'primary';
-                return (
-                  <button
-                    key={pos.id}
-                    onClick={() => handleSetPrimary(pos.id)}
-                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                      isPrimary
-                        ? 'bg-primary text-white'
-                        : 'bg-card-hover text-muted hover:text-foreground'
-                    }`}
-                  >
-                    {pos.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted mb-2 uppercase tracking-wide">
-              Sub Positions (click to toggle)
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {allPositions.map((pos) => {
-                const up = profile.positions.find(
-                  (p) => p.positionId === pos.id,
-                );
-                const isPrimary = up?.type === 'primary';
-                const isSub = up?.type === 'sub';
-                return (
-                  <button
-                    key={pos.id}
-                    onClick={() => handleToggleSub(pos.id)}
-                    disabled={isPrimary}
-                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                      isPrimary
-                        ? 'bg-primary/30 text-primary/50 cursor-not-allowed'
-                        : isSub
-                          ? 'bg-accent text-white'
-                          : 'bg-card-hover text-muted hover:text-foreground'
-                    }`}
-                  >
-                    {pos.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Stats */}
-        <div className="bg-card rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-4">Stats</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-background rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-primary">
-                {profile.stats.goals}
+            <div className="mb-4">
+              <p className="text-xs text-muted mb-2 uppercase tracking-wide">
+                {t('playerProfile.primary')}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[...allPositions]
+                  .sort((a, b) => {
+                    const getWeight = (name: string) =>
+                      (
+                        Object.values(POSITION_GROUPS).find((g) =>
+                          g.roles.includes(name.toUpperCase()),
+                        ) ?? POSITION_GROUPS.UNKNOWN
+                      ).weight;
+                    return getWeight(a.name) - getWeight(b.name);
+                  })
+                  .map((pos) => {
+                    const up = profile.positions.find(
+                      (p) => p.positionId === pos.id,
+                    );
+                    const isPrimary = up?.type === 'primary';
+                    const posGroup =
+                      Object.values(POSITION_GROUPS).find((g) =>
+                        g.roles.includes(pos.name.toUpperCase()),
+                      ) ?? POSITION_GROUPS.UNKNOWN;
+                    return (
+                      <button
+                        key={pos.id}
+                        onClick={() => handleSetPrimary(pos.id)}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                          isPrimary
+                            ? posGroup.colorClass
+                            : 'bg-card-hover text-muted hover:text-foreground'
+                        }`}
+                      >
+                        {pos.name}
+                      </button>
+                    );
+                  })}
               </div>
-              <div className="text-sm text-muted">Goals</div>
             </div>
-            <div className="bg-background rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-accent">
-                {profile.stats.assists}
+
+            <div>
+              <p className="text-xs text-muted mb-2 uppercase tracking-wide">
+                {t('playerProfile.sub')}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[...allPositions]
+                  .sort((a, b) => {
+                    const getWeight = (name: string) =>
+                      (
+                        Object.values(POSITION_GROUPS).find((g) =>
+                          g.roles.includes(name.toUpperCase()),
+                        ) ?? POSITION_GROUPS.UNKNOWN
+                      ).weight;
+                    return getWeight(a.name) - getWeight(b.name);
+                  })
+                  .map((pos) => {
+                    const up = profile.positions.find(
+                      (p) => p.positionId === pos.id,
+                    );
+                    const isPrimary = up?.type === 'primary';
+                    const isSub = up?.type === 'sub';
+                    const posGroup =
+                      Object.values(POSITION_GROUPS).find((g) =>
+                        g.roles.includes(pos.name.toUpperCase()),
+                      ) ?? POSITION_GROUPS.UNKNOWN;
+                    return (
+                      <button
+                        key={pos.id}
+                        onClick={() => handleToggleSub(pos.id)}
+                        disabled={isPrimary}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                          isPrimary
+                            ? 'opacity-30 cursor-not-allowed ' +
+                              posGroup.colorClass
+                            : isSub
+                              ? posGroup.colorClass
+                              : 'bg-card-hover text-muted hover:text-foreground'
+                        }`}
+                      >
+                        {pos.name}
+                      </button>
+                    );
+                  })}
               </div>
-              <div className="text-sm text-muted">Assists</div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Traits */}
         <div className="bg-card rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Traits</h2>
+            <h2 className="text-lg font-semibold">
+              {t('playerProfile.traits')}
+            </h2>
             {canManage && unassignedTraits.length > 0 && (
               <button
                 onClick={() => setShowAssignTrait(!showAssignTrait)}
                 className="text-sm text-primary hover:text-primary-hover transition-colors"
               >
-                {showAssignTrait ? 'Cancel' : '+ Assign'}
+                {showAssignTrait ? t('common.cancel') : t('traits.assignTrait')}
               </button>
             )}
           </div>
@@ -438,7 +550,7 @@ export default function PlayerProfilePage() {
               onSubmit={handleAssignTrait}
               className="bg-background p-3 rounded-lg mb-4 space-y-2"
             >
-              <select
+              <Select
                 value={assignTraitForm.traitId}
                 onChange={(e) =>
                   setAssignTraitForm({
@@ -446,31 +558,25 @@ export default function PlayerProfilePage() {
                     traitId: e.target.value,
                   })
                 }
-                className="bg-card border border-border rounded px-3 py-1.5 text-sm w-full"
+                className="text-sm w-full"
                 required
               >
-                <option value="">Select trait...</option>
+                <option value="">{t('traits.selectTrait')}</option>
                 {unassignedTraits.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
                   </option>
                 ))}
-              </select>
+              </Select>
               <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min={1}
-                  max={100}
+                <StarRating
                   value={assignTraitForm.rating}
-                  onChange={(e) =>
-                    setAssignTraitForm({
-                      ...assignTraitForm,
-                      rating: e.target.value,
-                    })
+                  onChange={(v) =>
+                    setAssignTraitForm({ ...assignTraitForm, rating: v })
                   }
-                  className="flex-1"
+                  size={22}
                 />
-                <span className="text-sm font-mono w-8">
+                <span className="text-sm font-mono w-10">
                   {assignTraitForm.rating}
                 </span>
               </div>
@@ -478,63 +584,152 @@ export default function PlayerProfilePage() {
                 type="submit"
                 className="w-full bg-primary hover:bg-primary-hover text-white py-1.5 rounded text-sm transition-colors"
               >
-                Assign
+                {t('common.assign')}
               </button>
             </form>
           )}
 
+          {profile.traits.length >= 3 && (
+            <div className="mb-4">
+              <TraitRadarChart
+                data={profile.traits.map((ut) => ({
+                  id: ut.id,
+                  name:
+                    allTraits.find((tr) => tr.id === ut.traitId)?.name ??
+                    ut.traitId,
+                  rating: ut.rating,
+                }))}
+              />
+            </div>
+          )}
+
           {profile.traits.length === 0 ? (
-            <p className="text-sm text-muted">No traits assigned yet.</p>
+            <p className="text-sm text-muted">{t('playerProfile.noTraits')}</p>
           ) : (
             <div className="space-y-3">
               {profile.traits.map((ut) => {
                 const trait = allTraits.find((t) => t.id === ut.traitId);
                 return (
                   <div key={ut.id} className="group">
-                    <div className="flex justify-between text-sm mb-1">
+                    <div className="flex justify-between items-center text-sm mb-1">
                       <span>{trait?.name || ut.traitId}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted">
-                          {ut.rating}/{maxRating}
-                        </span>
-                        {canManage && (
-                          <button
-                            onClick={() => handleRemoveTrait(ut.id)}
-                            className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-1 rounded transition-all"
-                          >
-                            X
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-background rounded-full h-2">
-                        <div
-                          className="bg-primary rounded-full h-2 transition-all"
-                          style={{
-                            width: `${(ut.rating / maxRating) * 100}%`,
-                          }}
-                        />
-                      </div>
                       {canManage && (
-                        <input
-                          type="range"
-                          min={1}
-                          max={100}
-                          value={ut.rating}
-                          onChange={(e) =>
-                            handleUpdateRating(ut.id, Number(e.target.value))
-                          }
-                          className="w-24"
-                        />
+                        <button
+                          onClick={() => handleRemoveTrait(ut.id)}
+                          aria-label={t('common.remove')}
+                          className="p-1 text-danger hover:bg-danger/20 rounded"
+                        >
+                          <X size={14} />
+                        </button>
                       )}
                     </div>
+                    <StarRating
+                      value={ut.rating}
+                      onChange={(v) => handleUpdateRating(ut.id, v)}
+                      readOnly={!canManage}
+                      size={20}
+                    />
                   </div>
                 );
               })}
             </div>
           )}
         </div>
+      </div>
+
+      {/* Stats Below */}
+      <div className="bg-card rounded-lg p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">{t('playerProfile.stats')}</h2>
+          <div className="w-[150px]">
+            <Select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+            >
+              <option value="">{t('playerProfile.allTime')}</option>
+              {availableMonths.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-background rounded-lg p-4 text-center">
+            <div className="text-3xl font-bold text-primary">
+              {displayStats.goals}
+            </div>
+            <div className="text-sm text-muted">{t('playerProfile.goals')}</div>
+          </div>
+          <div className="bg-background rounded-lg p-4 text-center">
+            <div className="text-3xl font-bold text-accent">
+              {displayStats.assists}
+            </div>
+            <div className="text-sm text-muted">
+              {t('playerProfile.assists')}
+            </div>
+          </div>
+        </div>
+
+        {monthlyStats.length > 0 ? (
+          <div className="h-[300px] w-full bg-background p-4 rounded-lg">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={monthlyStats}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  opacity={0.2}
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  cursor={{ fill: 'currentColor', opacity: 0.1 }}
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    borderColor: 'hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Legend
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
+                />
+                <Bar
+                  dataKey="goals"
+                  fill="#2563eb"
+                  name={t('playerProfile.goals')}
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={40}
+                />
+                <Bar
+                  dataKey="assists"
+                  fill="#d97706"
+                  name={t('playerProfile.assists')}
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={40}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-[200px] w-full bg-background flex items-center justify-center rounded-lg">
+            <span className="text-muted text-sm">{t('common.noData')}</span>
+          </div>
+        )}
       </div>
 
       {showAvatarPicker && (

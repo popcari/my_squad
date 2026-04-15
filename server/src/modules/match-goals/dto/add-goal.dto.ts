@@ -21,7 +21,8 @@ export class AddGoalDto {
   assistId?: string;
 
   @IsInt()
-  @Min(1)
+  @Min(0)
   @Max(120)
-  minute: number;
+  @IsOptional()
+  minute: number | null;
 }

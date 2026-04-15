@@ -1,23 +1,24 @@
 'use client';
 
-import { PlayersPageSkeleton } from '@/components/skeleton';
+import { PlayersPageSkeleton } from '@/components/shared/skeleton';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+import { usePlayersByPositionGroup } from '@/hooks/use-players-by-position-group';
+
 import {
   positionsService,
   userPositionsService,
   usersService,
 } from '@/services';
 import type { Position, User, UserPosition } from '@/types';
+import { Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
-
-interface PlayerWithPositions extends User {
-  positionNames: string[];
-}
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function PlayersPage() {
+  const { t } = useTranslation();
   const canManage = useCanManage();
   const confirm = useConfirm();
   const [players, setPlayers] = useState<User[]>([]);
@@ -56,56 +57,20 @@ export default function PlayersPage() {
     load();
   }, []);
 
-  // Build players with position names
-  const playersWithPositions: PlayerWithPositions[] = useMemo(() => {
-    return players.map((p) => {
-      const userPos = allUserPositions.filter((up) => up.userId === p.id);
-      const names = userPos
-        .map((up) => positions.find((pos) => pos.id === up.positionId)?.name)
-        .filter((n): n is string => Boolean(n));
-      return { ...p, positionNames: names };
-    });
-  }, [players, allUserPositions, positions]);
+  const { groups: playerGroups } = usePlayersByPositionGroup({
+    players,
+    positions,
+    userPositions: allUserPositions,
+  });
 
-  // Group players by PRIMARY position, sorted by jersey number within each group
-  const groupedByPosition = useMemo(() => {
-    const groups: Record<string, PlayerWithPositions[]> = {};
-
-    for (const player of playersWithPositions) {
-      const primaryUp = allUserPositions.find(
-        (up) => up.userId === player.id && up.type === 'primary',
-      );
-      const groupName = primaryUp
-        ? positions.find((p) => p.id === primaryUp.positionId)?.name ||
-          'Unassigned'
-        : 'Unassigned';
-      if (!groups[groupName]) groups[groupName] = [];
-      groups[groupName].push(player);
-    }
-
-    // Sort players within each group by jersey number
-    for (const key of Object.keys(groups)) {
-      groups[key].sort(
-        (a, b) => (a.jerseyNumber ?? 99) - (b.jerseyNumber ?? 99),
-      );
-    }
-
-    // Sort groups: position names alphabetically, "Unassigned" last
-    const sortedEntries = Object.entries(groups).sort(([a], [b]) => {
-      if (a === 'Unassigned') return 1;
-      if (b === 'Unassigned') return -1;
-      return a.localeCompare(b);
-    });
-
-    return sortedEntries;
-  }, [playersWithPositions, allUserPositions, positions]);
+  // Drop empty groups for display (eg. no GK on team yet → don't render header).
+  const visibleGroups = playerGroups.filter((g) => g.players.length > 0);
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
-      title: 'Delete Player',
-      message:
-        'Are you sure you want to delete this player? This action cannot be undone.',
-      confirmText: 'Delete',
+      title: t('common.delete'),
+      message: t('common.deleteConfirm'),
+      confirmText: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
@@ -117,75 +82,87 @@ export default function PlayersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Players</h1>
+        <h1 className="text-2xl font-bold">{t('players.title')}</h1>
       </div>
 
       {loading ? (
         <PlayersPageSkeleton />
-      ) : groupedByPosition.length === 0 ? (
-        <p className="text-muted">No players yet.</p>
+      ) : visibleGroups.length === 0 ? (
+        <p className="text-muted">{t('common.noData')}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {groupedByPosition.map(([positionName, posPlayers]) => (
-            <div key={positionName}>
-              <h2 className="text-lg font-bold mb-3">{positionName}</h2>
-              <div className="space-y-1">
-                {posPlayers.map((p) => (
-                  <Link
-                    key={`${positionName}-${p.id}`}
-                    href={`/players/${p.id}`}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
-                      {p.avatar ? (
-                        <Image
-                          src={p.avatar}
-                          alt={p.displayName}
-                          width={40}
-                          height={40}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-primary font-bold text-sm">
-                          {p.displayName.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-                          {p.displayName}
-                        </p>
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                            p.status === 1
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'bg-red-500/20 text-red-400'
-                          }`}
-                        >
-                          {p.status === 1 ? 'Active' : 'Inactive'}
-                        </span>
+          {visibleGroups.map((group) => {
+            return (
+              <div key={group.key}>
+                <h2
+                  className={`text-lg font-bold mb-3 border-l-4 pl-2 ${group.borderClass}`}
+                >
+                  {t(group.labelKey)}
+                </h2>
+                <div className="space-y-1">
+                  {group.players.map((p) => (
+                    <Link
+                      key={`${group.key}-${p.id}`}
+                      href={`/players/${p.id}`}
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
+                        {p.avatar ? (
+                          <Image
+                            src={p.avatar}
+                            alt={p.displayName}
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-primary font-bold text-sm">
+                            {p.displayName.charAt(0).toUpperCase()}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-muted">
-                        {p.jerseyNumber ?? '-'} &middot; {p.phone} &middot; {p.email}
-                      </p>
-                    </div>
-                    {canManage && (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleDelete(p.id);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 text-danger text-xs hover:bg-danger/20 px-2 py-1 rounded transition-all"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </Link>
-                ))}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                            {p.displayName}
+                          </p>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              p.status === 1
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-red-500/20 text-red-400'
+                            }`}
+                          >
+                            {p.status === 1
+                              ? t('common.active')
+                              : t('common.inactive')}
+                          </span>
+                          <span className="text-md font-bold">
+                            #{p.jerseyNumber ?? '-'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted">
+                          {p.phone} &middot; {p.email}
+                        </p>
+                      </div>
+                      {canManage && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleDelete(p.id);
+                          }}
+                          aria-label={t('common.delete')}
+                          className="p-1.5 text-danger hover:bg-danger/20 rounded"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

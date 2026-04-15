@@ -1,4 +1,11 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 import { LineupType } from '../types';
 
 export class AddLineupDto {
@@ -12,4 +19,9 @@ export class AddLineupDto {
 
   @IsEnum(LineupType)
   type: LineupType;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  slotIndex?: number | null;
 }

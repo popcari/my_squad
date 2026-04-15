@@ -42,7 +42,7 @@ export class MatchesService {
 
   async findUpcoming(): Promise<Match[]> {
     const snapshot = await this.collection
-      .where('status', '==', MatchStatus.SCHEDULED)
+      .where('status', '==', MatchStatus.PENDING)
       .get();
     const now = new Date();
     return snapshot.docs
@@ -60,7 +60,7 @@ export class MatchesService {
       opponent: dto.opponent,
       matchDate: new Date(dto.matchDate),
       location: dto.location,
-      status: dto.status ?? MatchStatus.SCHEDULED,
+      status: dto.status ?? MatchStatus.PENDING,
       homeScore: undefined,
       awayScore: undefined,
       notes: dto.notes,

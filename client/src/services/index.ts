@@ -1,3 +1,4 @@
+export { fundingService } from './funding.service';
 export { matchesService } from './matches.service';
 export { positionsService } from './positions.service';
 export { traitsService } from './traits.service';

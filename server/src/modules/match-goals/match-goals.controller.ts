@@ -16,6 +16,11 @@ import { MatchGoalsService } from './match-goals.service';
 export class MatchGoalsController {
   constructor(private readonly matchGoalsService: MatchGoalsService) {}
 
+  @Get()
+  findAll() {
+    return this.matchGoalsService.findAll();
+  }
+
   @Get('match/:matchId')
   findByMatch(@Param('matchId') matchId: string) {
     return this.matchGoalsService.findByMatch(matchId);

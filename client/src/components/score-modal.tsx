@@ -1,8 +1,19 @@
 'use client';
 
+import { CloseButton } from '@/components/ui/close-button';
+import { InputText } from '@/components/ui/input-text';
+import { Modal } from '@/components/ui/modal';
+import { Select } from '@/components/ui/select';
+import { LINEUP_TYPE, MATCH_STATUS } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
-import { matchesService, usersService } from '@/services';
-import type { Match, User } from '@/types';
+import {
+  matchesService,
+  positionsService,
+  userPositionsService,
+  usersService,
+} from '@/services';
+import type { LineupType, Match, Position, User, UserPosition } from '@/types';
+import { PositionBadge, getPositionGroupWeight } from '@/utils/position-badge';
 import { useEffect, useState } from 'react';
 
 interface GoalEntry {
@@ -14,7 +25,7 @@ interface GoalEntry {
 interface LineupEntry {
   id?: string;
   userId: string;
-  type: 'starting' | 'substitute';
+  type: LineupType;
 }
 
 interface ScoreModalProps {
@@ -34,6 +45,8 @@ export function ScoreModal({
 }: ScoreModalProps) {
   const confirmDialog = useConfirm();
   const [players, setPlayers] = useState<User[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [userPositions, setUserPositions] = useState<UserPosition[]>([]);
   const [homeScore, setHomeScore] = useState(
     match.homeScore?.toString() ?? '0',
   );
@@ -47,19 +60,27 @@ export function ScoreModal({
 
   useEffect(() => {
     const load = async () => {
-      const [p, existingGoals, existingLineups] = await Promise.all([
+      const [p, existingGoals, existingLineups, pos] = await Promise.all([
         usersService.getAll(),
         matchesService.getGoals(match.id),
         matchesService.getLineups(match.id),
+        positionsService.getAll(),
       ]);
+
+      const upResults = await Promise.all(
+        p.map((u) => userPositionsService.getByUser(u.id)),
+      );
+
       setPlayers(p);
+      setPositions(pos);
+      setUserPositions(upResults.flat());
 
       if (existingGoals.length > 0) {
         setGoals(
           existingGoals.map((g) => ({
             scorerId: g.scorerId,
             assistId: g.assistId || '',
-            minute: String(g.minute),
+            minute: g.minute != null ? String(g.minute) : '',
           })),
         );
       }
@@ -69,7 +90,7 @@ export function ScoreModal({
           existingLineups.map((l) => ({
             id: l.id,
             userId: l.userId,
-            type: l.type as 'starting' | 'substitute',
+            type: l.type as LineupType,
           })),
         );
       }
@@ -79,13 +100,38 @@ export function ScoreModal({
     load();
   }, [match.id]);
 
+  // Position helpers (must be declared before usage in sort)
+  const getPrimaryPosition = (userId: string) => {
+    const pUp = userPositions.find(
+      (up) => up.userId === userId && up.type === 'primary',
+    );
+    if (!pUp) return null;
+    return positions.find((p) => p.id === pUp.positionId) || null;
+  };
+
+  const getPositionWeight = (pos?: Position | null) =>
+    getPositionGroupWeight(pos);
+
   // Lineup helpers
-  const startingPlayers = lineups.filter((l) => l.type === 'starting');
-  const substitutePlayers = lineups.filter((l) => l.type === 'substitute');
+  const startingPlayers = [...lineups]
+    .filter((l) => l.type === LINEUP_TYPE.STARTING)
+    .sort((a, b) => {
+      const posA = getPrimaryPosition(a.userId);
+      const posB = getPrimaryPosition(b.userId);
+      return getPositionWeight(posA) - getPositionWeight(posB);
+    });
+
+  const substitutePlayers = [...lineups]
+    .filter((l) => l.type === LINEUP_TYPE.SUBSTITUTE)
+    .sort((a, b) => {
+      const posA = getPrimaryPosition(a.userId);
+      const posB = getPrimaryPosition(b.userId);
+      return getPositionWeight(posA) - getPositionWeight(posB);
+    });
   const assignedIds = new Set(lineups.map((l) => l.userId));
   const availablePlayers = players.filter((p) => !assignedIds.has(p.id));
 
-  const addToLineup = (userId: string, type: 'starting' | 'substitute') => {
+  const addToLineup = (userId: string, type: LineupType) => {
     if (!userId) return;
     setLineups([...lineups, { userId, type }]);
   };
@@ -95,6 +141,31 @@ export function ScoreModal({
   };
 
   // Goal helpers
+  const handleHomeScoreChange = (val: string) => {
+    setHomeScore(val);
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num >= 0) {
+      setGoals((prev) => {
+        if (num === prev.length) return prev;
+        if (num > prev.length) {
+          const toAdd = num - prev.length;
+          return [
+            ...prev,
+            ...Array.from({ length: toAdd }, () => ({
+              scorerId: '',
+              assistId: '',
+              minute: '',
+            })),
+          ];
+        } else {
+          return prev.slice(0, num);
+        }
+      });
+    } else {
+      setGoals([]);
+    }
+  };
+
   const addGoal = () => {
     setGoals([...goals, { scorerId: '', assistId: '', minute: '' }]);
   };
@@ -106,6 +177,10 @@ export function ScoreModal({
   const removeGoal = (index: number) => {
     setGoals(goals.filter((_, i) => i !== index));
   };
+
+  const getPositionBadge = (pos?: Position | null) => (
+    <PositionBadge pos={pos} />
+  );
 
   const getPlayerName = (id: string) => {
     const p = players.find((pl) => pl.id === id);
@@ -125,7 +200,7 @@ export function ScoreModal({
     await matchesService.update(match.id, {
       homeScore: Number(homeScore),
       awayScore: Number(awayScore),
-      status: 'completed',
+      status: MATCH_STATUS.COMPLETED,
     });
 
     // Delete existing lineups & goals, then re-save
@@ -153,13 +228,13 @@ export function ScoreModal({
     // Save goals
     await Promise.all(
       goals
-        .filter((g) => g.scorerId && g.minute)
+        .filter((g) => g.scorerId)
         .map((g) =>
           matchesService.addGoal({
             matchId: match.id,
             scorerId: g.scorerId,
             assistId: g.assistId || undefined,
-            minute: Number(g.minute),
+            minute: g.minute ? Number(g.minute) : null,
           }),
         ),
     );
@@ -169,10 +244,13 @@ export function ScoreModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
-      <div className="relative bg-card border border-border rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl">
+    <Modal
+      open
+      onClose={onClose}
+      ariaLabel="Match Detail"
+      panelClassName="md:max-w-2xl p-6"
+    >
+      <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -190,12 +268,7 @@ export function ScoreModal({
               {match.location}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-muted hover:text-foreground text-xl"
-          >
-            &times;
-          </button>
+          <CloseButton onClick={onClose} />
         </div>
 
         {loading ? (
@@ -208,29 +281,29 @@ export function ScoreModal({
                 <div className="text-center">
                   <p className="text-xs text-muted mb-2">{teamName}</p>
                   {canManage ? (
-                    <input
+                    <InputText
                       type="number"
                       min={0}
                       value={homeScore}
-                      onChange={(e) => setHomeScore(e.target.value)}
-                      className="w-full bg-card border border-border rounded-lg px-3 py-3 text-2xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-primary"
+                      onChange={(e) => handleHomeScoreChange(e.target.value)}
+                      className="text-2xl font-bold text-center"
                     />
                   ) : (
                     <div className="text-2xl font-bold">{homeScore}</div>
                   )}
                 </div>
-                <div className="text-center text-2xl font-bold text-muted">
+                <div className="text-center text-2xl font-bold text-muted align-self-end h-[38px]">
                   -
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-muted mb-2">{match.opponent}</p>
                   {canManage ? (
-                    <input
+                    <InputText
                       type="number"
                       min={0}
                       value={awayScore}
                       onChange={(e) => setAwayScore(e.target.value)}
-                      className="w-full bg-card border border-border rounded-lg px-3 py-3 text-2xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="text-2xl font-bold text-center"
                     />
                   ) : (
                     <div className="text-2xl font-bold">{awayScore}</div>
@@ -242,7 +315,7 @@ export function ScoreModal({
             {/* Lineups */}
             <div className="mb-6">
               <h3 className="text-sm font-semibold mb-3">Lineups</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Starting */}
                 <div className="bg-background rounded-lg p-3">
                   <div className="flex items-center justify-between mb-2">
@@ -256,7 +329,12 @@ export function ScoreModal({
                         key={l.userId}
                         className="flex items-center justify-between text-sm py-1"
                       >
-                        <span>{getPlayerName(l.userId)}</span>
+                        <div className="flex items-center gap-2">
+                          {getPositionBadge(getPrimaryPosition(l.userId))}
+                          <span className="truncate max-w-[120px] md:max-w-[150px]">
+                            {getPlayerName(l.userId)}
+                          </span>
+                        </div>
                         {canManage && (
                           <button
                             onClick={() => removeFromLineup(l.userId)}
@@ -272,18 +350,25 @@ export function ScoreModal({
                     )}
                   </div>
                   {canManage && availablePlayers.length > 0 && (
-                    <select
+                    <Select
                       value=""
-                      onChange={(e) => addToLineup(e.target.value, 'starting')}
-                      className="mt-2 w-full bg-card border border-border rounded px-2 py-1.5 text-xs"
+                      onChange={(e) =>
+                        addToLineup(e.target.value, LINEUP_TYPE.STARTING)
+                      }
+                      className="mt-2 text-xs w-full"
+                      keepOpen
                     >
                       <option value="">+ Add starting...</option>
-                      {availablePlayers.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          #{p.jerseyNumber} {p.displayName}
-                        </option>
-                      ))}
-                    </select>
+                      {availablePlayers.map((p) => {
+                        const pos = getPrimaryPosition(p.id);
+                        return (
+                          <option key={p.id} value={p.id}>
+                            #{p.jerseyNumber} {p.displayName}{' '}
+                            {pos ? `(${pos.name})` : ''}
+                          </option>
+                        );
+                      })}
+                    </Select>
                   )}
                 </div>
 
@@ -300,7 +385,12 @@ export function ScoreModal({
                         key={l.userId}
                         className="flex items-center justify-between text-sm py-1"
                       >
-                        <span>{getPlayerName(l.userId)}</span>
+                        <div className="flex items-center gap-2">
+                          {getPositionBadge(getPrimaryPosition(l.userId))}
+                          <span className="truncate max-w-[120px] md:max-w-[150px]">
+                            {getPlayerName(l.userId)}
+                          </span>
+                        </div>
                         {canManage && (
                           <button
                             onClick={() => removeFromLineup(l.userId)}
@@ -316,20 +406,25 @@ export function ScoreModal({
                     )}
                   </div>
                   {canManage && availablePlayers.length > 0 && (
-                    <select
+                    <Select
                       value=""
                       onChange={(e) =>
-                        addToLineup(e.target.value, 'substitute')
+                        addToLineup(e.target.value, LINEUP_TYPE.SUBSTITUTE)
                       }
-                      className="mt-2 w-full bg-card border border-border rounded px-2 py-1.5 text-xs"
+                      className="mt-2 text-xs w-full"
+                      keepOpen
                     >
                       <option value="">+ Add substitute...</option>
-                      {availablePlayers.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          #{p.jerseyNumber} {p.displayName}
-                        </option>
-                      ))}
-                    </select>
+                      {availablePlayers.map((p) => {
+                        const pos = getPrimaryPosition(p.id);
+                        return (
+                          <option key={p.id} value={p.id}>
+                            #{p.jerseyNumber} {p.displayName}{' '}
+                            {pos ? `(${pos.name})` : ''}
+                          </option>
+                        );
+                      })}
+                    </Select>
                   )}
                 </div>
               </div>
@@ -372,12 +467,12 @@ export function ScoreModal({
                         </button>
                       </div>
                       <div className="grid grid-cols-5 gap-2">
-                        <select
+                        <Select
                           value={goal.scorerId}
                           onChange={(e) =>
                             updateGoal(i, 'scorerId', e.target.value)
                           }
-                          className="col-span-2 bg-card border border-border rounded px-2 py-1.5 text-sm"
+                          className="col-span-2 text-sm"
                         >
                           <option value="">Scorer *</option>
                           {players.map((p) => (
@@ -385,13 +480,13 @@ export function ScoreModal({
                               #{p.jerseyNumber} {p.displayName}
                             </option>
                           ))}
-                        </select>
-                        <select
+                        </Select>
+                        <Select
                           value={goal.assistId}
                           onChange={(e) =>
                             updateGoal(i, 'assistId', e.target.value)
                           }
-                          className="col-span-2 bg-card border border-border rounded px-2 py-1.5 text-sm"
+                          className="col-span-2 text-sm"
                         >
                           <option value="">Assist</option>
                           {players
@@ -401,8 +496,8 @@ export function ScoreModal({
                                 #{p.jerseyNumber} {p.displayName}
                               </option>
                             ))}
-                        </select>
-                        <input
+                        </Select>
+                        <InputText
                           type="number"
                           min={1}
                           max={120}
@@ -411,7 +506,7 @@ export function ScoreModal({
                           onChange={(e) =>
                             updateGoal(i, 'minute', e.target.value)
                           }
-                          className="bg-card border border-border rounded px-2 py-1.5 text-sm text-center"
+                          className="text-center"
                         />
                       </div>
                     </div>
@@ -426,7 +521,7 @@ export function ScoreModal({
                       className="bg-background rounded-lg p-2 flex items-center gap-3 text-sm"
                     >
                       <span className="text-muted text-xs w-10">
-                        {goal.minute}&apos;
+                        {goal.minute ? `${goal.minute}'` : '-'}
                       </span>
                       <span className="font-medium">
                         {getPlayerName(goal.scorerId)}
@@ -470,6 +565,6 @@ export function ScoreModal({
           </>
         )}
       </div>
-    </div>
+    </Modal>
   );
 }

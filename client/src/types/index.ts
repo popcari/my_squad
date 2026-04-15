@@ -1,6 +1,13 @@
-export type UserRole = 'president' | 'coach' | 'player';
-export type MatchStatus = 'scheduled' | 'completed' | 'cancelled';
-export type LineupType = 'starting' | 'substitute';
+import {
+  CONTRIBUTION_TYPE,
+  LINEUP_TYPE,
+  MATCH_STATUS,
+  USER_ROLE,
+} from '@/constant/enum';
+
+export type UserRole = `${USER_ROLE}`;
+export type MatchStatus = `${MATCH_STATUS}`;
+export type LineupType = `${LINEUP_TYPE}`;
 
 export interface User {
   id: string;
@@ -74,6 +81,7 @@ export interface MatchLineup {
   matchId: string;
   userId: string;
   type: LineupType;
+  slotIndex?: number | null;
   createdAt: string;
 }
 
@@ -82,6 +90,45 @@ export interface MatchGoal {
   matchId: string;
   scorerId: string;
   assistId?: string;
-  minute: number;
+  minute: number | null;
   createdAt: string;
+}
+
+// ─── FUNDING ──────────────────────────────────────────────
+
+export type ContributionType = `${CONTRIBUTION_TYPE}`;
+
+export interface FundingRound {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Contribution {
+  id: string;
+  roundId: string;
+  userId: string;
+  amount: number;
+  type: ContributionType;
+  note?: string;
+  date: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+  matchId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FundingSummary {
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
 }

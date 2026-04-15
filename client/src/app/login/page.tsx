@@ -1,38 +1,19 @@
 'use client';
 
-import { InputText } from '@/components/input-text';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { InputText } from '@/components/ui/input-text';
 import { useAuth } from '@/contexts/auth-context';
+import { loginSchema, type LoginForm } from '@/schemas/login.schema';
 import { authService } from '@/services/auth.service';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().superRefine((val, ctx) => {
-    if (val.length === 0) {
-      ctx.addIssue({ code: 'custom', message: 'Password is required' });
-      return;
-    }
-    if (val.length < 6) {
-      ctx.addIssue({ code: 'custom', message: 'Password must be at least 6 characters' });
-    }
-    if (!/[A-Z]/.test(val)) {
-      ctx.addIssue({ code: 'custom', message: 'Password must contain at least 1 uppercase letter' });
-    }
-    if (!/\d/.test(val)) {
-      ctx.addIssue({ code: 'custom', message: 'Password must contain at least 1 number' });
-    }
-  }),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
+import { useTranslation } from 'react-i18next';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [serverError, setServerError] = useState('');
   const { login } = useAuth();
   const router = useRouter();
@@ -55,42 +36,46 @@ export default function LoginPage() {
       login(user);
       router.push('/');
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'Login failed');
+      setServerError(
+        err instanceof Error ? err.message : t('auth.loginFailed'),
+      );
     }
   };
 
   return (
-    <div className="min-h-screen w-[370px] md:w-[600px] m-auto flex items-center justify-center bg-background">
-      <ThemeToggle />
-      <div className="w-full max-w-lg">
-        <div className="bg-card rounded-2xl p-8 shadow-lg border border-border">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">&#9917;</span>
-            </div>
-            <h1 className="text-2xl font-bold">My Squad</h1>
+    <div className="min-h-screen w-full md:w-[600px] m-auto flex items-center justify-center bg-background">
+      <div className="fixed top-4 right-4 z-10 flex items-center gap-2">
+        {/* <LanguageSelector /> */}
+        <ThemeToggle />
+      </div>
+      <div className="w-[90%] md:w-full md:max-w-lg">
+        <div className="bg-card rounded-2xl p-4 shadow-lg border border-border">
+          <div className="text-center mb-4">
+            <h1 className="text-2xl font-bold">{t('common.appName')}</h1>
             <p className="text-sm text-muted mt-1">
-              Sign in to manage your team
+              {t('auth.signInToAccount')}
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <InputText
               id="email"
-              label="Email"
+              label={t('auth.email')}
               type="email"
               placeholder="your@email.com"
               error={errors.email}
+              required
               autoFocus
               {...register('email')}
             />
 
             <InputText
               id="password"
-              label="Password"
+              label={t('auth.password')}
               type="password"
-              placeholder="Enter your password"
+              placeholder={t('auth.password')}
               error={errors.password}
+              required
               {...register('password')}
             />
 
@@ -105,13 +90,13 @@ export default function LoginPage() {
               disabled={isSubmitting || !isValid}
               className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-3 rounded-lg text-sm font-medium transition-colors"
             >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+              {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </button>
 
             <p className="text-center text-sm text-muted">
-              Don&apos;t have an account?{' '}
+              {t('auth.dontHaveAccount')}{' '}
               <Link href="/register" className="text-primary hover:underline">
-                Register
+                {t('auth.register')}
               </Link>
             </p>
           </form>

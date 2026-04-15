@@ -4,24 +4,35 @@ import { describe, expect, it, vi } from 'vitest';
 import RegisterPage from './page';
 
 // Mock dependencies
+const mockPush = vi.fn();
+const mockCtxLogin = vi.fn();
+const mockRegister = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: mockPush }),
 }));
 vi.mock('@/contexts/auth-context', () => ({
-  useAuth: () => ({ user: null, login: vi.fn(), logout: vi.fn() }),
+  useAuth: () => ({ user: null, login: mockCtxLogin, logout: vi.fn() }),
 }));
 vi.mock('@/services/auth.service', () => ({
-  authService: { register: vi.fn() },
+  authService: { register: (...args: unknown[]) => mockRegister(...args) },
 }));
 
 describe('RegisterPage', () => {
   it('should render all form fields', () => {
     render(<RegisterPage />);
-    expect(screen.getByLabelText('Display Name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
-    expect(screen.getByLabelText('Password')).toBeInTheDocument();
-    expect(screen.getByLabelText('Phone')).toBeInTheDocument();
-    expect(screen.getByLabelText('Jersey # (optional)')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Display Name', { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Email', { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Password', { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Phone', { exact: false }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Jersey')).toBeInTheDocument();
   });
 
   describe('phone validation', () => {
@@ -29,12 +40,14 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const input = screen.getByLabelText('Phone');
+      const input = screen.getByLabelText('Phone', { exact: false });
       await user.click(input);
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText('Phone number is required')).toBeInTheDocument();
+        expect(
+          screen.getByText('Phone number is required'),
+        ).toBeInTheDocument();
       });
     });
   });
@@ -44,7 +57,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.click(passwordInput);
       await user.tab(); // blur
 
@@ -57,7 +70,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.type(passwordInput, 'abcdef1');
       await user.tab();
 
@@ -72,7 +85,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.type(passwordInput, 'Abcdefg');
       await user.tab();
 
@@ -87,7 +100,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.type(passwordInput, 'Ab1');
       await user.tab();
 
@@ -102,7 +115,7 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.type(passwordInput, 'abc');
       await user.tab();
 
@@ -123,14 +136,12 @@ describe('RegisterPage', () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByLabelText('Password');
+      const passwordInput = screen.getByLabelText('Password', { exact: false });
       await user.type(passwordInput, 'Hello123');
       await user.tab();
 
       await waitFor(() => {
-        expect(
-          screen.queryByText(/Password must/),
-        ).not.toBeInTheDocument();
+        expect(screen.queryByText(/Password must/)).not.toBeInTheDocument();
       });
     });
   });
@@ -139,5 +150,69 @@ describe('RegisterPage', () => {
     render(<RegisterPage />);
     const submitButton = screen.getByRole('button', { name: 'Register' });
     expect(submitButton).toBeDisabled();
+  });
+
+  it('submits and redirects on successful register', async () => {
+    mockRegister.mockResolvedValue({ id: 'new', email: 'n@x.com' });
+    const user = userEvent.setup();
+    render(<RegisterPage />);
+
+    await user.type(
+      screen.getByLabelText('Display Name', { exact: false }),
+      'New User',
+    );
+    await user.type(
+      screen.getByLabelText('Email', { exact: false }),
+      'n@x.com',
+    );
+    await user.type(
+      screen.getByLabelText('Password', { exact: false }),
+      'Hello123',
+    );
+    await user.type(
+      screen.getByLabelText('Phone', { exact: false }),
+      '0901234567',
+    );
+
+    const submitBtn = screen.getByRole('button', { name: 'Register' });
+    await waitFor(() => expect(submitBtn).toBeEnabled());
+    await user.click(submitBtn);
+
+    await waitFor(() => {
+      expect(mockRegister).toHaveBeenCalled();
+      expect(mockCtxLogin).toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith('/');
+    });
+  });
+
+  it('shows server error when register fails', async () => {
+    mockRegister.mockRejectedValue(new Error('Email taken'));
+    const user = userEvent.setup();
+    render(<RegisterPage />);
+
+    await user.type(
+      screen.getByLabelText('Display Name', { exact: false }),
+      'New User',
+    );
+    await user.type(
+      screen.getByLabelText('Email', { exact: false }),
+      'n@x.com',
+    );
+    await user.type(
+      screen.getByLabelText('Password', { exact: false }),
+      'Hello123',
+    );
+    await user.type(
+      screen.getByLabelText('Phone', { exact: false }),
+      '0901234567',
+    );
+
+    const submitBtn = screen.getByRole('button', { name: 'Register' });
+    await waitFor(() => expect(submitBtn).toBeEnabled());
+    await user.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Email taken')).toBeInTheDocument();
+    });
   });
 });

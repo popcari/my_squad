@@ -41,7 +41,7 @@ describe('MatchesService', () => {
             opponent: 'Team A',
             matchDate: { toDate: () => new Date('2026-04-15') },
             location: 'Stadium X',
-            status: MatchStatus.SCHEDULED,
+            status: MatchStatus.PENDING,
             createdAt: { toDate: () => new Date() },
             updatedAt: { toDate: () => new Date() },
           }),
@@ -75,7 +75,7 @@ describe('MatchesService', () => {
           opponent: 'Team A',
           matchDate: { toDate: () => new Date('2026-04-15') },
           location: 'Stadium X',
-          status: MatchStatus.SCHEDULED,
+          status: MatchStatus.PENDING,
           createdAt: { toDate: () => new Date() },
           updatedAt: { toDate: () => new Date() },
         }),
@@ -105,7 +105,7 @@ describe('MatchesService', () => {
             opponent: 'April Team',
             matchDate: { toDate: () => new Date('2026-04-15') },
             location: 'Stadium',
-            status: MatchStatus.SCHEDULED,
+            status: MatchStatus.PENDING,
             createdAt: { toDate: () => new Date() },
             updatedAt: { toDate: () => new Date() },
           }),
@@ -151,7 +151,7 @@ describe('MatchesService', () => {
             opponent: 'Future Team',
             matchDate: { toDate: () => new Date('2026-12-01') },
             location: 'Stadium',
-            status: MatchStatus.SCHEDULED,
+            status: MatchStatus.PENDING,
             createdAt: { toDate: () => new Date() },
             updatedAt: { toDate: () => new Date() },
           }),
@@ -180,7 +180,7 @@ describe('MatchesService', () => {
 
       expect(result.id).toBe('new-m');
       expect(result.opponent).toBe('Team B');
-      expect(result.status).toBe(MatchStatus.SCHEDULED);
+      expect(result.status).toBe(MatchStatus.PENDING);
     });
   });
 

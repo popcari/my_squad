@@ -1,33 +1,45 @@
 'use client';
 
-import { SettingsPageSkeleton } from '@/components/skeleton';
+import { SettingsPageSkeleton } from '@/components/shared/skeleton';
+import { InputText } from '@/components/ui/input-text';
+import { Lightbox } from '@/components/ui/lightbox';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+import {
+  teamSettingsSchema,
+  type TeamSettingsForm,
+} from '@/schemas/team-settings.schema';
 import { teamSettingsService } from '@/services/team-settings.service';
 import type { TeamSettings } from '@/types/team-settings';
+import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const canManage = useCanManage();
   const confirm = useConfirm();
   const [settings, setSettings] = useState<TeamSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    description: '',
-    foundedDate: '',
-    logo: '',
-    homeStadium: '',
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<TeamSettingsForm>({
+    resolver: zodResolver(teamSettingsSchema),
+    mode: 'onTouched',
   });
-  const [saving, setSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
     const data = await teamSettingsService.get();
     setSettings(data);
-    setForm({
+    reset({
       name: data.name || '',
       description: data.description || '',
       foundedDate: data.foundedDate || '',
@@ -42,7 +54,7 @@ export default function SettingsPage() {
       setLoading(true);
       const data = await teamSettingsService.get();
       setSettings(data);
-      setForm({
+      reset({
         name: data.name || '',
         description: data.description || '',
         foundedDate: data.foundedDate || '',
@@ -52,21 +64,18 @@ export default function SettingsPage() {
       setLoading(false);
     };
     init();
-  }, []);
+  }, [reset]);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: TeamSettingsForm) => {
     const ok = await confirm({
-      title: 'Save Settings',
-      message: 'Save changes to team settings?',
-      confirmText: 'Save',
+      title: t('common.save'),
+      message: t('settings.teamSettings') + '?',
+      confirmText: t('common.save'),
     });
     if (!ok) return;
-    setSaving(true);
-    await teamSettingsService.update(form);
+    await teamSettingsService.update(data);
     setEditing(false);
     await load();
-    setSaving(false);
   };
 
   if (loading) return <SettingsPageSkeleton />;
@@ -74,95 +83,69 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Team Settings</h1>
+        <h1 className="text-2xl font-bold">{t('settings.teamSettings')}</h1>
         {canManage && !editing && (
           <button
             onClick={() => setEditing(true)}
             className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm transition-colors"
           >
-            Edit
+            {t('common.edit')}
           </button>
         )}
       </div>
 
       {editing ? (
         <form
-          onSubmit={handleSave}
+          onSubmit={handleSubmit(onSubmit)}
           className="bg-card rounded-lg p-6 space-y-4 max-w-2xl"
         >
-          <div>
-            <label className="block text-sm font-medium mb-1">Team Name</label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-            />
-          </div>
+          <InputText
+            label={t('settings.teamName')}
+            error={errors.name}
+            required
+            {...register('name')}
+          />
           <div>
             <label className="block text-sm font-medium mb-1">
-              Description
+              {t('settings.description')}
             </label>
             <textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
+              {...register('description')}
               rows={3}
               className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Founded Date
-              </label>
-              <input
-                type="date"
-                value={form.foundedDate}
-                onChange={(e) =>
-                  setForm({ ...form, foundedDate: e.target.value })
-                }
-                className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Home Stadium
-              </label>
-              <input
-                value={form.homeStadium}
-                onChange={(e) =>
-                  setForm({ ...form, homeStadium: e.target.value })
-                }
-                placeholder="Stadium name"
-                className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Logo URL</label>
-            <input
-              value={form.logo}
-              onChange={(e) => setForm({ ...form, logo: e.target.value })}
-              placeholder="https://..."
-              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            <InputText
+              label={t('settings.foundedDate')}
+              type="date"
+              {...register('foundedDate')}
+            />
+            <InputText
+              label={t('settings.homeStadium')}
+              placeholder={t('settings.stadium')}
+              {...register('homeStadium')}
             />
           </div>
+          <InputText
+            label={t('settings.logoUrl')}
+            placeholder="https://..."
+            {...register('logo')}
+          />
           <div className="flex gap-3">
             <button
               type="submit"
-              disabled={saving}
+              disabled={isSubmitting}
               className="px-6 py-2 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-lg text-sm transition-colors"
             >
-              {saving ? 'Saving...' : 'Save'}
+              {isSubmitting ? t('common.saving') : t('common.save')}
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
               className="px-6 py-2 bg-card-hover hover:bg-border text-foreground rounded-lg text-sm transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
           </div>
         </form>
@@ -172,13 +155,15 @@ export default function SettingsPage() {
           <div className="bg-card rounded-lg p-6">
             <div className="flex items-center gap-4 mb-4">
               {settings?.logo ? (
-                <Image
-                  src={settings.logo}
-                  alt="Team logo"
-                  width={64}
-                  height={64}
-                  className="w-16 h-16 rounded-full object-cover"
-                />
+                <Lightbox src={settings.logo} alt="Team logo">
+                  <Image
+                    src={settings.logo}
+                    alt="Team logo"
+                    width={64}
+                    height={64}
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                </Lightbox>
               ) : (
                 <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-2xl">
                   ⚽
@@ -201,7 +186,9 @@ export default function SettingsPage() {
                 <div className="text-2xl font-bold text-primary">
                   {settings?.playerCount ?? 0}
                 </div>
-                <div className="text-xs text-muted mt-1">Players</div>
+                <div className="text-xs text-muted mt-1">
+                  {t('common.players')}
+                </div>
               </div>
               <div className="bg-background rounded-lg p-4 text-center">
                 <div className="text-sm font-medium">
@@ -209,13 +196,17 @@ export default function SettingsPage() {
                     ? new Date(settings.foundedDate).toLocaleDateString('vi-VN')
                     : '-'}
                 </div>
-                <div className="text-xs text-muted mt-1">Founded</div>
+                <div className="text-xs text-muted mt-1">
+                  {t('settings.founded')}
+                </div>
               </div>
               <div className="bg-background rounded-lg p-4 text-center">
                 <div className="text-sm font-medium truncate">
                   {settings?.homeStadium || '-'}
                 </div>
-                <div className="text-xs text-muted mt-1">Home Stadium</div>
+                <div className="text-xs text-muted mt-1">
+                  {t('settings.stadium')}
+                </div>
               </div>
             </div>
           </div>

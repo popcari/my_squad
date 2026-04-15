@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/link', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,9 +17,18 @@ const mockGetAllPositions = vi.fn();
 const mockGetByUser = vi.fn();
 
 vi.mock('@/services', () => ({
-  usersService: { getAll: (...args: unknown[]) => mockGetAllUsers(...args), create: vi.fn(), remove: vi.fn() },
-  positionsService: { getAll: (...args: unknown[]) => mockGetAllPositions(...args) },
-  userPositionsService: { getByUser: (...args: unknown[]) => mockGetByUser(...args), assign: vi.fn() },
+  usersService: {
+    getAll: (...args: unknown[]) => mockGetAllUsers(...args),
+    create: vi.fn(),
+    remove: vi.fn(),
+  },
+  positionsService: {
+    getAll: (...args: unknown[]) => mockGetAllPositions(...args),
+  },
+  userPositionsService: {
+    getByUser: (...args: unknown[]) => mockGetByUser(...args),
+    assign: vi.fn(),
+  },
 }));
 
 import PlayersPage from './page';
@@ -31,7 +40,13 @@ describe('PlayersPage - Status Display', () => {
       { id: 'pos-1', name: 'GK', createdAt: '', updatedAt: '' },
     ]);
     mockGetByUser.mockResolvedValue([
-      { id: 'up-1', userId: 'u-1', positionId: 'pos-1', type: 'primary', createdAt: '' },
+      {
+        id: 'up-1',
+        userId: 'u-1',
+        positionId: 'pos-1',
+        type: 'primary',
+        createdAt: '',
+      },
     ]);
   });
 
@@ -72,7 +87,7 @@ describe('PlayersPage - Status Display', () => {
 
     render(<PlayersPage />);
 
-    expect(await screen.findByText('Active')).toBeInTheDocument();
+    expect(await screen.findByText(/^Active$/)).toBeInTheDocument();
   });
 
   it('should display inactive status badge when player status is 0', async () => {
@@ -92,7 +107,7 @@ describe('PlayersPage - Status Display', () => {
 
     render(<PlayersPage />);
 
-    expect(await screen.findByText('Inactive')).toBeInTheDocument();
+    expect(await screen.findByText(/^Inactive$/)).toBeInTheDocument();
   });
 
   it('should show green styling for active and red styling for inactive', async () => {
@@ -121,13 +136,29 @@ describe('PlayersPage - Status Display', () => {
       },
     ]);
     mockGetByUser
-      .mockResolvedValueOnce([{ id: 'up-1', userId: 'u-1', positionId: 'pos-1', type: 'primary', createdAt: '' }])
-      .mockResolvedValueOnce([{ id: 'up-2', userId: 'u-2', positionId: 'pos-1', type: 'primary', createdAt: '' }]);
+      .mockResolvedValueOnce([
+        {
+          id: 'up-1',
+          userId: 'u-1',
+          positionId: 'pos-1',
+          type: 'primary',
+          createdAt: '',
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'up-2',
+          userId: 'u-2',
+          positionId: 'pos-1',
+          type: 'primary',
+          createdAt: '',
+        },
+      ]);
 
     render(<PlayersPage />);
 
-    const activeBadge = await screen.findByText('Active');
-    const inactiveBadge = await screen.findByText('Inactive');
+    const activeBadge = await screen.findByText(/^Active$/);
+    const inactiveBadge = await screen.findByText(/^Inactive$/);
 
     expect(activeBadge.className).toContain('green');
     expect(inactiveBadge.className).toContain('red');

@@ -6,6 +6,7 @@ import { TraitsService } from './traits.service';
 describe('TraitsService', () => {
   let service: TraitsService;
   let mockCollection: any;
+  let mockUserTraitsCollection: any;
   let mockFirestore: any;
 
   beforeEach(async () => {
@@ -16,8 +17,18 @@ describe('TraitsService', () => {
       add: jest.fn(),
     };
 
+    mockUserTraitsCollection = {
+      doc: jest.fn(),
+      where: jest.fn(),
+      get: jest.fn(),
+      add: jest.fn(),
+    };
+
     mockFirestore = {
-      collection: jest.fn().mockReturnValue(mockCollection),
+      collection: jest.fn((name: string) => {
+        if (name === 'user_traits') return mockUserTraitsCollection;
+        return mockCollection;
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -146,6 +157,10 @@ describe('TraitsService', () => {
         delete: jest.fn().mockResolvedValue(undefined),
       };
       mockCollection.doc.mockReturnValue(mockDocRef);
+      // No cascade rows by default
+      mockUserTraitsCollection.where.mockReturnValue({
+        get: jest.fn().mockResolvedValue({ docs: [] }),
+      });
 
       await service.remove('t-1');
       expect(mockDocRef.delete).toHaveBeenCalled();
@@ -156,6 +171,44 @@ describe('TraitsService', () => {
         get: jest.fn().mockResolvedValue({ exists: false }),
       });
       await expect(service.remove('x')).rejects.toThrow(NotFoundException);
+    });
+
+    it('cascades: deletes all user_traits rows referencing the trait', async () => {
+      const mockDocRef = {
+        get: jest.fn().mockResolvedValue({ exists: true }),
+        delete: jest.fn().mockResolvedValue(undefined),
+      };
+      mockCollection.doc.mockReturnValue(mockDocRef);
+
+      const utDocs = [
+        { ref: { delete: jest.fn().mockResolvedValue(undefined) } },
+        { ref: { delete: jest.fn().mockResolvedValue(undefined) } },
+      ];
+      const whereGet = jest.fn().mockResolvedValue({ docs: utDocs });
+      mockUserTraitsCollection.where.mockReturnValue({ get: whereGet });
+
+      await service.remove('t-1');
+
+      // Queried user_traits by the deleted traitId
+      expect(mockUserTraitsCollection.where).toHaveBeenCalledWith(
+        'traitId',
+        '==',
+        't-1',
+      );
+      // Every referencing row was deleted
+      expect(utDocs[0].ref.delete).toHaveBeenCalled();
+      expect(utDocs[1].ref.delete).toHaveBeenCalled();
+      // Trait itself was also deleted
+      expect(mockDocRef.delete).toHaveBeenCalled();
+    });
+
+    it('does NOT touch user_traits collection when the trait does not exist', async () => {
+      mockCollection.doc.mockReturnValue({
+        get: jest.fn().mockResolvedValue({ exists: false }),
+      });
+
+      await expect(service.remove('nope')).rejects.toThrow(NotFoundException);
+      expect(mockUserTraitsCollection.where).not.toHaveBeenCalled();
     });
   });
 });

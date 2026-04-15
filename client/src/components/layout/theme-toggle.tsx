@@ -8,7 +8,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="fixed top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-card border border-border hover:bg-card-hover transition-colors z-10"
+      className="w-10 h-10 flex items-center justify-center rounded-full bg-card border border-border hover:bg-card-hover transition-colors"
       title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
     >
       {theme === 'dark' ? '☀️' : '🌙'}

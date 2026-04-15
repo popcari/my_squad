@@ -1,11 +1,13 @@
 'use client';
 
+import '@/i18n';
+
 import { useAuth } from '@/contexts/auth-context';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { LoadingSpinner } from './loading-spinner';
-import { Header } from './header';
-import { Sidebar } from './sidebar';
+import { Header } from './layout/header';
+import { Sidebar } from './layout/sidebar';
+import { LoadingSpinner } from './shared/loading-spinner';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();

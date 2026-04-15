@@ -12,14 +12,18 @@ export const matchesService = {
     api.patch<Match>(`/matches/${id}`, data),
   remove: (id: string) => api.delete(`/matches/${id}`),
 
+  getAllLineups: () => api.get<MatchLineup[]>('/match-lineups'),
   getLineups: (matchId: string) =>
     api.get<MatchLineup[]>(`/match-lineups/${matchId}`),
   addLineup: (data: Partial<MatchLineup>) =>
     api.post<MatchLineup>('/match-lineups', data),
+  updateLineup: (id: string, data: Partial<MatchLineup>) =>
+    api.patch<MatchLineup>(`/match-lineups/${id}`, data),
   removeLineup: (id: string) => api.delete(`/match-lineups/${id}`),
 
   getGoals: (matchId: string) =>
     api.get<MatchGoal[]>(`/match-goals/match/${matchId}`),
+  getAllGoals: () => api.get<MatchGoal[]>('/match-goals'),
   addGoal: (data: Partial<MatchGoal>) =>
     api.post<MatchGoal>('/match-goals', data),
   removeGoal: (id: string) => api.delete(`/match-goals/${id}`),
