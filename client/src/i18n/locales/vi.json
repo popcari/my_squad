@@ -185,7 +185,14 @@
     "selectPlayer": "Chọn cầu thủ...",
     "selectTrait": "Chọn chỉ số",
     "traitName": "Tên chỉ số (VD: Tốc độ, Thể lực)",
-    "descriptionOptional": "Mô tả (tùy chọn)"
+    "descriptionOptional": "Mô tả (tùy chọn)",
+    "managePool": "Quản lý chỉ số",
+    "searchPlayers": "Tìm cầu thủ...",
+    "chooseAPlayer": "Chọn cầu thủ để xem và chỉnh sửa chỉ số.",
+    "addTrait": "+ Thêm chỉ số",
+    "confirmAdd": "Thêm",
+    "allAssigned": "Cầu thủ này đã có tất cả chỉ số.",
+    "emptyPool": "Chưa có chỉ số nào. Tạo mới từ 'Quản lý chỉ số'."
   },
   "funding": {
     "all": "Tổng quỹ",

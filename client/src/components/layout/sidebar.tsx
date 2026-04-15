@@ -25,13 +25,48 @@ const navItems: {
   color: string;
 }[] = [
   { href: '/', labelKey: 'nav.home', Icon: Home, color: 'text-blue-500' },
-  { href: '/matches', labelKey: 'nav.stats', Icon: BarChart3, color: 'text-green-500' },
-  { href: '/season-dashboard', labelKey: 'nav.seasonDashboard', Icon: Trophy, color: 'text-amber-400' },
-  { href: '/formations', labelKey: 'nav.formations', Icon: LayoutGrid, color: 'text-purple-500' },
-  { href: '/funding', labelKey: 'nav.funding', Icon: Wallet, color: 'text-emerald-500' },
-  { href: '/players', labelKey: 'nav.players', Icon: Users, color: 'text-sky-500' },
-  { href: '/traits', labelKey: 'nav.traits', Icon: Target, color: 'text-rose-500' },
-  { href: '/settings', labelKey: 'nav.settings', Icon: Settings, color: 'text-slate-400' },
+  {
+    href: '/matches',
+    labelKey: 'nav.stats',
+    Icon: BarChart3,
+    color: 'text-green-500',
+  },
+  {
+    href: '/season-dashboard',
+    labelKey: 'nav.seasonDashboard',
+    Icon: Trophy,
+    color: 'text-amber-400',
+  },
+  {
+    href: '/formations',
+    labelKey: 'nav.formations',
+    Icon: LayoutGrid,
+    color: 'text-purple-500',
+  },
+  {
+    href: '/funding',
+    labelKey: 'nav.funding',
+    Icon: Wallet,
+    color: 'text-emerald-500',
+  },
+  {
+    href: '/players',
+    labelKey: 'nav.players',
+    Icon: Users,
+    color: 'text-sky-500',
+  },
+  {
+    href: '/traits',
+    labelKey: 'nav.traits',
+    Icon: Target,
+    color: 'text-rose-500',
+  },
+  {
+    href: '/settings',
+    labelKey: 'nav.settings',
+    Icon: Settings,
+    color: 'text-slate-400',
+  },
 ];
 
 export function Sidebar() {

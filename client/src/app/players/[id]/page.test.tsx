@@ -167,7 +167,9 @@ describe('PlayerProfilePage - Position Section', () => {
     vi.clearAllMocks();
     mockGetAllTraits.mockResolvedValue([]);
     (matchesService.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (matchesService.getAllGoals as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (matchesService.getAllGoals as ReturnType<typeof vi.fn>).mockResolvedValue(
+      [],
+    );
   });
 
   const baseProfile = {
@@ -213,7 +215,15 @@ describe('PlayerProfilePage - Position Section', () => {
     ]);
     mockGetProfile.mockResolvedValue({
       ...baseProfile,
-      positions: [{ id: 'up1', positionId: 'p-gk', type: 'primary', userId: 'u-1', createdAt: '' }],
+      positions: [
+        {
+          id: 'up1',
+          positionId: 'p-gk',
+          type: 'primary',
+          userId: 'u-1',
+          createdAt: '',
+        },
+      ],
     });
 
     render(<PlayerProfilePage />);
@@ -231,7 +241,15 @@ describe('PlayerProfilePage - Position Section', () => {
     ]);
     mockGetProfile.mockResolvedValue({
       ...baseProfile,
-      positions: [{ id: 'up1', positionId: 'p-cb', type: 'sub', userId: 'u-1', createdAt: '' }],
+      positions: [
+        {
+          id: 'up1',
+          positionId: 'p-cb',
+          type: 'sub',
+          userId: 'u-1',
+          createdAt: '',
+        },
+      ],
     });
 
     render(<PlayerProfilePage />);

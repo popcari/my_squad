@@ -62,8 +62,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const updateDropdownPosition = () => {
       if (!wrapperRef.current) return;
       const rect = wrapperRef.current.getBoundingClientRect();
-      const viewportH =
-        typeof window !== 'undefined' ? window.innerHeight : 0;
+      const viewportH = typeof window !== 'undefined' ? window.innerHeight : 0;
       // Flip above the trigger when its top sits in the bottom 30% of the
       // viewport — prevents the dropdown from being clipped inside a drawer
       // or when the Select is near the bottom of the screen.

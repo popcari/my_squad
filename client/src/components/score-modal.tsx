@@ -4,10 +4,6 @@ import { CloseButton } from '@/components/ui/close-button';
 import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
 import { LINEUP_TYPE, MATCH_STATUS } from '@/constant/enum';
-import {
-  PositionBadge,
-  getPositionGroupWeight,
-} from '@/utils/position-badge';
 import { useConfirm } from '@/contexts/confirm-context';
 import {
   matchesService,
@@ -16,6 +12,7 @@ import {
   usersService,
 } from '@/services';
 import type { LineupType, Match, Position, User, UserPosition } from '@/types';
+import { PositionBadge, getPositionGroupWeight } from '@/utils/position-badge';
 import { useEffect, useState } from 'react';
 
 interface GoalEntry {
@@ -180,7 +177,9 @@ export function ScoreModal({
     setGoals(goals.filter((_, i) => i !== index));
   };
 
-  const getPositionBadge = (pos?: Position | null) => <PositionBadge pos={pos} />;
+  const getPositionBadge = (pos?: Position | null) => (
+    <PositionBadge pos={pos} />
+  );
 
   const getPlayerName = (id: string) => {
     const p = players.find((pl) => pl.id === id);

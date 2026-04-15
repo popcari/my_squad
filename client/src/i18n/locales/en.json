@@ -185,7 +185,14 @@
     "selectPlayer": "Select a player...",
     "selectTrait": "Select Trait",
     "traitName": "Trait name (e.g. Speed, Stamina)",
-    "descriptionOptional": "Description (optional)"
+    "descriptionOptional": "Description (optional)",
+    "managePool": "Manage Traits",
+    "searchPlayers": "Search players...",
+    "chooseAPlayer": "Choose a player to view and edit their traits.",
+    "addTrait": "+ Add Trait",
+    "confirmAdd": "Add",
+    "allAssigned": "This player has all available traits.",
+    "emptyPool": "No traits in the catalog. Create one from Manage Traits."
   },
   "funding": {
     "all": "Total funding",

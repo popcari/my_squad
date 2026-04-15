@@ -3,6 +3,7 @@
 import { PlayersPageSkeleton } from '@/components/shared/skeleton';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+import { usePlayersByPositionGroup } from '@/hooks/use-players-by-position-group';
 
 import {
   positionsService,
@@ -13,12 +14,8 @@ import type { Position, User, UserPosition } from '@/types';
 import { Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
-interface PlayerWithPositions extends User {
-  positionNames: string[];
-}
 
 export default function PlayersPage() {
   const { t } = useTranslation();
@@ -60,71 +57,14 @@ export default function PlayersPage() {
     load();
   }, []);
 
-  // Build players with position names
-  const playersWithPositions: PlayerWithPositions[] = useMemo(() => {
-    return players.map((p) => {
-      const userPos = allUserPositions.filter((up) => up.userId === p.id);
-      const names = userPos
-        .map((up) => positions.find((pos) => pos.id === up.positionId)?.name)
-        .filter((n): n is string => Boolean(n));
-      return { ...p, positionNames: names };
-    });
-  }, [players, allUserPositions, positions]);
+  const { groups: playerGroups } = usePlayersByPositionGroup({
+    players,
+    positions,
+    userPositions: allUserPositions,
+  });
 
-  // Group players by MACRO position, sorted by jersey number
-  const groupedByPosition = useMemo(() => {
-    const groups: Record<string, PlayerWithPositions[]> = {};
-
-    const getMacroGroup = (posName: string) => {
-      const n = (posName || '').toUpperCase();
-      if (['GK', 'GOALKEEPER'].includes(n)) return '1_Goalkeepers';
-      if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'SW', 'DEFENDER'].includes(n))
-        return '2_Defenders';
-      if (['CDM', 'CM', 'CAM', 'LM', 'RM', 'MIDFIELDER'].includes(n))
-        return '3_Midfielders';
-      if (['ST', 'CF', 'LW', 'RW', 'SS', 'FORWARD', 'ATTACKER'].includes(n))
-        return '4_Forwards';
-      return '5_Unassigned';
-    };
-
-    for (const player of playersWithPositions) {
-      const primaryUp = allUserPositions.find(
-        (up) => up.userId === player.id && up.type === 'primary',
-      );
-      const posName = primaryUp
-        ? positions.find((p) => p.id === primaryUp.positionId)?.name ||
-          'Unassigned'
-        : 'Unassigned';
-
-      const groupName = getMacroGroup(posName);
-      if (!groups[groupName]) groups[groupName] = [];
-      groups[groupName].push(player);
-    }
-
-    // Sort players within each group by jersey number
-    for (const key of Object.keys(groups)) {
-      groups[key].sort(
-        (a, b) => (a.jerseyNumber ?? 99) - (b.jerseyNumber ?? 99),
-      );
-    }
-
-    // Sort groups by the order prefix, then strip the prefix for display
-    const sortedEntries = Object.entries(groups)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, groupPlayers]) => {
-        const name = key.substring(2);
-        let label = name;
-        if (name === 'Goalkeepers') label = t('players.goalkeepers');
-        if (name === 'Defenders') label = t('players.defenders');
-        if (name === 'Midfielders') label = t('players.midfielders');
-        if (name === 'Forwards') label = t('players.forwards');
-        if (name === 'Unassigned') label = t('players.unassigned');
-
-        return [label, groupPlayers] as [string, PlayerWithPositions[]];
-      });
-
-    return sortedEntries;
-  }, [playersWithPositions, allUserPositions, positions, t]);
+  // Drop empty groups for display (eg. no GK on team yet → don't render header).
+  const visibleGroups = playerGroups.filter((g) => g.players.length > 0);
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
@@ -147,37 +87,22 @@ export default function PlayersPage() {
 
       {loading ? (
         <PlayersPageSkeleton />
-      ) : groupedByPosition.length === 0 ? (
+      ) : visibleGroups.length === 0 ? (
         <p className="text-muted">{t('common.noData')}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {groupedByPosition.map(([positionName, posPlayers]) => {
-            const getBorderColorClass = (name: string) => {
-              const enName =
-                Object.entries({
-                  [t('players.goalkeepers')]: 'Goalkeeper',
-                  [t('players.defenders')]: 'Defender',
-                  [t('players.midfielders')]: 'Midfielder',
-                  [t('players.forwards')]: 'Forward',
-                }).find(([k]) => k === name)?.[1] || name;
-
-              if (enName.includes('Goalkeeper')) return 'border-yellow-500';
-              if (enName.includes('Defender')) return 'border-blue-500';
-              if (enName.includes('Midfielder')) return 'border-green-500';
-              if (enName.includes('Forward')) return 'border-red-500';
-              return 'border-gray-500';
-            };
+          {visibleGroups.map((group) => {
             return (
-              <div key={positionName}>
+              <div key={group.key}>
                 <h2
-                  className={`text-lg font-bold mb-3 border-l-4 pl-2 ${getBorderColorClass(positionName)}`}
+                  className={`text-lg font-bold mb-3 border-l-4 pl-2 ${group.borderClass}`}
                 >
-                  {positionName}
+                  {t(group.labelKey)}
                 </h2>
                 <div className="space-y-1">
-                  {posPlayers.map((p) => (
+                  {group.players.map((p) => (
                     <Link
-                      key={`${positionName}-${p.id}`}
+                      key={`${group.key}-${p.id}`}
                       href={`/players/${p.id}`}
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group"
                     >

@@ -6,13 +6,19 @@ import { VN_CURRENCY } from '@/constant';
 import { CONTRIBUTION_TYPE } from '@/constant/enum';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+import { usePlayersByPositionGroup } from '@/hooks/use-players-by-position-group';
 import {
   expenseSchema,
   matchExpenseSchema,
   type ExpenseForm,
   type MatchExpenseForm,
 } from '@/schemas/funding.schema';
-import { matchesService, usersService } from '@/services';
+import {
+  matchesService,
+  positionsService,
+  userPositionsService,
+  usersService,
+} from '@/services';
 import { fundingService } from '@/services/funding.service';
 import type {
   Contribution,
@@ -20,7 +26,9 @@ import type {
   FundingRound,
   FundingSummary,
   Match,
+  Position,
   User,
+  UserPosition,
 } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -48,6 +56,8 @@ export default function FundingPage() {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [players, setPlayers] = useState<User[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [userPositions, setUserPositions] = useState<UserPosition[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -119,19 +129,25 @@ export default function FundingPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [s, r, c, e, p, m] = await Promise.all([
+      const [s, r, c, e, p, m, pos] = await Promise.all([
         fundingService.getSummary(),
         fundingService.getRounds(),
         fundingService.getContributions(),
         fundingService.getExpenses(),
         usersService.getAll(),
         matchesService.getAll(),
+        positionsService.getAll(),
       ]);
+      const upResults = await Promise.all(
+        p.map((u) => userPositionsService.getByUser(u.id)),
+      );
       setSummary(s);
       setRounds(r);
       setContributions(c);
       setExpenses(e);
       setPlayers(p);
+      setPositions(pos);
+      setUserPositions(upResults.flat());
       setMatches(m);
     } catch {
       // handle errors silently
@@ -142,6 +158,12 @@ export default function FundingPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const { flatSorted: sortedPlayers } = usePlayersByPositionGroup({
+    players,
+    positions,
+    userPositions,
+  });
 
   // Filter contributions by selected round
   const filteredContributions = selectedRound
@@ -559,7 +581,7 @@ export default function FundingPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    {players.map((p) => {
+                    {sortedPlayers.map((p) => {
                       const existing = filteredContributions.find(
                         (c) => c.userId === p.id,
                       );

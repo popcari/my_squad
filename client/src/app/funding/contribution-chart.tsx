@@ -55,7 +55,6 @@ export function ContributionChart({
   const [showAll, setShowAll] = useState(false);
 
   const VISIBLE_COUNT = 5;
-  const ITEM_HEIGHT_PX = 72;
 
   // Filter contributions by round
   const filtered = useMemo(
@@ -98,7 +97,9 @@ export function ContributionChart({
   return (
     <div className="bg-card rounded-lg p-4 border border-border mb-6">
       <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-2">
-        <h2 className="text-lg font-semibold">{t('funding.contributionStats')}</h2>
+        <h2 className="text-lg font-semibold">
+          {t('funding.contributionStats')}
+        </h2>
         <div className="w-full md:w-[30%] ">
           <Select
             value={selectedRoundId}
@@ -211,7 +212,8 @@ export function ContributionChart({
                         />
                       </div>
                       <span className="text-[10px] text-muted">
-                        {player.percentage.toFixed(1)}{t('funding.percentOfTotal')}
+                        {player.percentage.toFixed(1)}
+                        {t('funding.percentOfTotal')}
                       </span>
                     </div>
                   </div>
@@ -227,7 +229,9 @@ export function ContributionChart({
               >
                 {showAll
                   ? t('funding.showLess')
-                  : t('funding.showMore', { count: ranking.length - VISIBLE_COUNT })}
+                  : t('funding.showMore', {
+                      count: ranking.length - VISIBLE_COUNT,
+                    })}
               </button>
             )}
           </div>

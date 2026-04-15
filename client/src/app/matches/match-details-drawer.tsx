@@ -4,6 +4,7 @@ import { InputText } from '@/components/ui/input-text';
 import { Select } from '@/components/ui/select';
 import { MATCH_STATUS } from '@/constant/enum';
 import { useCanManage } from '@/hooks/use-can-manage';
+import { usePlayersByPositionGroup } from '@/hooks/use-players-by-position-group';
 import {
   updateMatchSchema,
   type UpdateMatchForm,
@@ -60,6 +61,12 @@ export function MatchDetailsDrawer({
   const formHook = useForm<UpdateMatchForm>({
     resolver: zodResolver(updateMatchSchema),
     mode: 'onTouched',
+  });
+
+  const { flatSorted: sortedPlayers } = usePlayersByPositionGroup({
+    players,
+    positions,
+    userPositions,
   });
 
   const [lineups, setLineups] = useState<MatchLineup[]>([]);
@@ -484,7 +491,7 @@ export function MatchDetailsDrawer({
                     onChange={(e) => setNewGoalScorerId(e.target.value)}
                   >
                     <option value="">Select scorer...</option>
-                    {players.map((p) => (
+                    {sortedPlayers.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.displayName}
                       </option>
@@ -504,7 +511,7 @@ export function MatchDetailsDrawer({
                     onChange={(e) => setNewGoalAssistId(e.target.value)}
                   >
                     <option value="">None</option>
-                    {players
+                    {sortedPlayers
                       .filter((p) => p.id !== newGoalScorerId)
                       .map((p) => (
                         <option key={p.id} value={p.id}>

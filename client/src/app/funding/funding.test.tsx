@@ -38,6 +38,12 @@ vi.mock('@/services', () => ({
   usersService: {
     getAll: vi.fn().mockResolvedValue([]),
   },
+  positionsService: {
+    getAll: vi.fn().mockResolvedValue([]),
+  },
+  userPositionsService: {
+    getByUser: vi.fn().mockResolvedValue([]),
+  },
 }));
 
 vi.mock('@/hooks/use-can-manage', () => ({

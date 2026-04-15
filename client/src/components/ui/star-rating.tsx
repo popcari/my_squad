@@ -42,9 +42,7 @@ export function StarRating({
       return <Star size={size} className={tierClass} strokeWidth={1.5} />;
     }
     if (diff >= 0.5) {
-      return (
-        <StarHalf size={size} className={tierClass} strokeWidth={1.5} />
-      );
+      return <StarHalf size={size} className={tierClass} strokeWidth={1.5} />;
     }
     return (
       <Star
