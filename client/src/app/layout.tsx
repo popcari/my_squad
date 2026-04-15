@@ -1,9 +1,9 @@
+import { AnalyticsGate } from '@/components/analytics-gate';
 import { AuthGuard } from '@/components/auth-guard';
 import { NavigationProgress } from '@/components/shared/navigation-progress';
 import { AuthProvider } from '@/contexts/auth-context';
 import { ConfirmProvider } from '@/contexts/confirm-context';
 import { ThemeProvider } from '@/contexts/theme-context';
-import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -43,7 +43,7 @@ export default function RootLayout({
             </AuthProvider>
           </ConfirmProvider>
         </ThemeProvider>
-        <Analytics />
+        <AnalyticsGate />
       </body>
     </html>
   );
