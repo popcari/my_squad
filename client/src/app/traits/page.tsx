@@ -7,12 +7,19 @@ import { Select } from '@/components/ui/select';
 import { StarRating } from '@/components/ui/star-rating';
 import { useConfirm } from '@/contexts/confirm-context';
 import { useCanManage } from '@/hooks/use-can-manage';
+import { usePlayersByPositionGroup } from '@/hooks/use-players-by-position-group';
 import {
   createTraitSchema,
   type CreateTraitForm,
 } from '@/schemas/trait.schema';
-import { traitsService, usersService, userTraitsService } from '@/services';
-import type { Trait, User, UserTrait } from '@/types';
+import {
+  positionsService,
+  traitsService,
+  usersService,
+  userPositionsService,
+  userTraitsService,
+} from '@/services';
+import type { Position, Trait, User, UserPosition, UserTrait } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Settings2, Trash2, X } from 'lucide-react';
 import Image from 'next/image';
@@ -36,6 +43,8 @@ export default function TraitsPage() {
 
   const [traits, setTraits] = useState<Trait[]>([]);
   const [players, setPlayers] = useState<User[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [userPositions, setUserPositions] = useState<UserPosition[]>([]);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -55,12 +64,18 @@ export default function TraitsPage() {
 
   useEffect(() => {
     const load = async () => {
-      const [ts, ps] = await Promise.all([
+      const [ts, ps, pos] = await Promise.all([
         traitsService.getAll(),
         usersService.getAll(),
+        positionsService.getAll(),
       ]);
+      const upResults = await Promise.all(
+        ps.map((u) => userPositionsService.getByUser(u.id)),
+      );
       setTraits(ts);
       setPlayers(ps);
+      setPositions(pos);
+      setUserPositions(upResults.flat());
       setLoading(false);
     };
     load();
@@ -137,15 +152,26 @@ export default function TraitsPage() {
     await refreshCurrentPlayer();
   };
 
-  const filteredPlayers = useMemo(() => {
+  const { groups: playerGroups } = usePlayersByPositionGroup({
+    players,
+    positions,
+    userPositions,
+  });
+
+  const filteredGroups = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return players;
-    return players.filter(
-      (p) =>
-        p.displayName.toLowerCase().includes(q) ||
-        String(p.jerseyNumber ?? '').includes(q),
-    );
-  }, [players, search]);
+    if (!q) return playerGroups;
+    return playerGroups
+      .map((g) => ({
+        ...g,
+        players: g.players.filter(
+          (p) =>
+            p.displayName.toLowerCase().includes(q) ||
+            String(p.jerseyNumber ?? '').includes(q),
+        ),
+      }))
+      .filter((g) => g.players.length > 0);
+  }, [playerGroups, search]);
 
   const selectedPlayerObj = useMemo(
     () => players.find((p) => p.id === selectedPlayer),
@@ -177,7 +203,7 @@ export default function TraitsPage() {
       </div>
 
       {/* Master-detail */}
-      <div className="grid grid-cols-1 md:grid-cols-[280px,1fr] gap-4 md:gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 items-start">
         {/* Player list */}
         <aside className="bg-card rounded-lg p-3 flex flex-col gap-2 md:max-h-[70vh] md:overflow-y-auto">
           <InputText
@@ -185,57 +211,68 @@ export default function TraitsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          {filteredPlayers.length === 0 ? (
+          {filteredGroups.length === 0 ? (
             <p className="text-xs text-muted px-2 py-4">{t('common.noData')}</p>
           ) : (
-            <ul className="flex flex-col gap-1">
-              {filteredPlayers.map((p) => {
-                const isActive = selectedPlayer === p.id;
-                return (
-                  <li key={p.id}>
-                    <button
-                      type="button"
-                      onClick={() => loadPlayerTraits(p.id)}
-                      className={`w-full flex items-center gap-2 px-2 py-2 rounded-md text-left transition-colors ${
-                        isActive
-                          ? 'bg-primary text-white'
-                          : 'hover:bg-card-hover text-foreground'
-                      }`}
-                    >
-                      <span
-                        className={`w-7 h-7 rounded-full flex items-center justify-center overflow-hidden text-[10px] font-bold shrink-0 ${
-                          isActive
-                            ? 'bg-white/20 text-white'
-                            : 'bg-primary/20 text-primary'
-                        }`}
-                      >
-                        {p.avatar ? (
-                          <Image
-                            src={p.avatar}
-                            alt={p.displayName}
-                            width={28}
-                            height={28}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          initialsOf(p.displayName)
-                        )}
-                      </span>
-                      <span
-                        className={`text-[11px] font-bold shrink-0 ${
-                          isActive ? 'text-white/80' : 'text-primary'
-                        }`}
-                      >
-                        #{p.jerseyNumber ?? '-'}
-                      </span>
-                      <span className="flex-1 text-sm truncate">
-                        {p.displayName}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="flex flex-col gap-3">
+              {filteredGroups.map((g) => (
+                <div key={g.key}>
+                  <h3
+                    className={`text-[10px] font-bold uppercase tracking-wider text-muted px-2 mb-1 border-l-2 pl-2 ${g.borderClass}`}
+                  >
+                    {t(g.labelKey)} ({g.players.length})
+                  </h3>
+                  <ul className="flex flex-col gap-1">
+                    {g.players.map((p) => {
+                      const isActive = selectedPlayer === p.id;
+                      return (
+                        <li key={p.id}>
+                          <button
+                            type="button"
+                            onClick={() => loadPlayerTraits(p.id)}
+                            className={`w-full flex items-center gap-2 px-2 py-2 rounded-md text-left transition-colors ${
+                              isActive
+                                ? 'bg-primary text-white'
+                                : 'hover:bg-card-hover text-foreground'
+                            }`}
+                          >
+                            <span
+                              className={`w-7 h-7 rounded-full flex items-center justify-center overflow-hidden text-[10px] font-bold shrink-0 ${
+                                isActive
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-primary/20 text-primary'
+                              }`}
+                            >
+                              {p.avatar ? (
+                                <Image
+                                  src={p.avatar}
+                                  alt={p.displayName}
+                                  width={28}
+                                  height={28}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                initialsOf(p.displayName)
+                              )}
+                            </span>
+                            <span
+                              className={`text-[11px] font-bold shrink-0 ${
+                                isActive ? 'text-white/80' : 'text-primary'
+                              }`}
+                            >
+                              #{p.jerseyNumber ?? '-'}
+                            </span>
+                            <span className="flex-1 text-sm truncate">
+                              {p.displayName}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
           )}
         </aside>
 
