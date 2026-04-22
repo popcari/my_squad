@@ -1,9 +1,10 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthMiddleware } from './common';
-import { FirebaseModule, firebaseConfig } from './config';
+import { JwtAuthGuard } from './common';
+import { FirebaseModule, firebaseConfig, jwtConfig } from './config';
 import cloudinaryConfig from './config/cloudinary.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { FormationsModule } from './modules/formations/formations.module';
@@ -24,7 +25,7 @@ import { UsersModule } from './modules/users/users.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [firebaseConfig, cloudinaryConfig],
+      load: [firebaseConfig, cloudinaryConfig, jwtConfig],
     }),
     FirebaseModule,
     UsersModule,
@@ -43,10 +44,12 @@ import { UsersModule } from './modules/users/users.module';
     UploadModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}

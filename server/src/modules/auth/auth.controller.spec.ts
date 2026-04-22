@@ -1,13 +1,16 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 import request from 'supertest';
 import { UsersService } from '../users/users.service';
 import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 
 describe('AuthController', () => {
   let app: INestApplication;
   let mockUsersService: Partial<UsersService>;
+  let jwtService: JwtService;
 
   beforeEach(async () => {
     mockUsersService = {
@@ -16,9 +19,20 @@ describe('AuthController', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        JwtModule.register({
+          secret: 'test-secret',
+          signOptions: { expiresIn: '1d' },
+        }),
+      ],
       controllers: [AuthController],
-      providers: [{ provide: UsersService, useValue: mockUsersService }],
+      providers: [
+        AuthService,
+        { provide: UsersService, useValue: mockUsersService },
+      ],
     }).compile();
+
+    jwtService = module.get<JwtService>(JwtService);
 
     app = module.createNestApplication();
     app.useGlobalPipes(
@@ -49,7 +63,7 @@ describe('AuthController', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should return 201 when registering with valid password', async () => {
+    it('should return 201 with accessToken and user when registering', async () => {
       const dto = {
         email: 'test@test.com',
         displayName: 'Test',
@@ -69,9 +83,14 @@ describe('AuthController', () => {
         .send(dto);
 
       expect(response.status).toBe(201);
-      expect(response.body.id).toBe('new-id');
-      // Password should not be in response
-      expect(response.body.password).toBeUndefined();
+      expect(response.body.user.id).toBe('new-id');
+      expect(response.body.user.password).toBeUndefined();
+      expect(typeof response.body.accessToken).toBe('string');
+      const decoded = jwtService.verify<{ sub: string; role: string }>(
+        response.body.accessToken,
+      );
+      expect(decoded.sub).toBe('new-id');
+      expect(decoded.role).toBe('player');
     });
 
     it('should return 400 when password has no uppercase letter', async () => {
@@ -139,6 +158,7 @@ describe('AuthController', () => {
       };
       (mockUsersService.create as jest.Mock).mockResolvedValue({
         id: 'new-id',
+        role: 'player',
       });
 
       await request(app.getHttpServer()).post('/auth/register').send(dto);
@@ -152,12 +172,13 @@ describe('AuthController', () => {
   });
 
   describe('POST /auth/login', () => {
-    it('should return 200 when email and password match', async () => {
+    it('should return 200 with accessToken and user when credentials match', async () => {
       const hashedPassword = await bcrypt.hash('Hello123', 10);
       (mockUsersService.findByEmail as jest.Mock).mockResolvedValue({
         id: 'user-1',
         email: 'test@test.com',
         displayName: 'Test',
+        role: 'player',
         password: hashedPassword,
       });
 
@@ -166,9 +187,14 @@ describe('AuthController', () => {
         .send({ email: 'test@test.com', password: 'Hello123' });
 
       expect(response.status).toBe(201);
-      expect(response.body.id).toBe('user-1');
-      // Password should not be in response
-      expect(response.body.password).toBeUndefined();
+      expect(response.body.user.id).toBe('user-1');
+      expect(response.body.user.password).toBeUndefined();
+      expect(typeof response.body.accessToken).toBe('string');
+      const decoded = jwtService.verify<{ sub: string; role: string }>(
+        response.body.accessToken,
+      );
+      expect(decoded.sub).toBe('user-1');
+      expect(decoded.role).toBe('player');
     });
 
     it('should return 401 when user not found', async () => {
@@ -186,6 +212,7 @@ describe('AuthController', () => {
       (mockUsersService.findByEmail as jest.Mock).mockResolvedValue({
         id: 'user-1',
         email: 'test@test.com',
+        role: 'player',
         password: hashedPassword,
       });
 
