@@ -61,8 +61,9 @@ describe('UsersController', () => {
     app = module.createNestApplication();
     app.use((req: any, _res: any, next: any) => {
       const userId = req.headers['x-user-id'];
+      const role = req.headers['x-user-role'];
       if (userId) {
-        req.user = { id: userId };
+        req.user = { id: userId, ...(role ? { role } : {}) };
       }
       next();
     });
@@ -190,98 +191,6 @@ describe('UsersController', () => {
     });
   });
 
-  describe('POST /users', () => {
-    it('should return 201 when creating user with valid data', async () => {
-      const dto = {
-        email: 'new@test.com',
-        displayName: 'New User',
-        role: 'player',
-        password: 'Hello123',
-        phone: '0901234567',
-      };
-      const createdUser = {
-        id: 'new-id',
-        ...dto,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      (mockService.create as jest.Mock).mockResolvedValue(createdUser);
-
-      const response = await request(app.getHttpServer())
-        .post('/users')
-        .send(dto);
-
-      expect(response.status).toBe(201);
-      expect(response.body.id).toBe('new-id');
-      expect(response.body.phone).toBe('0901234567');
-    });
-
-    it('should return 400 when phone is missing', async () => {
-      const response = await request(app.getHttpServer()).post('/users').send({
-        email: 'test@test.com',
-        displayName: 'No Phone',
-        role: 'player',
-        password: 'Hello123',
-      });
-
-      expect(response.status).toBe(400);
-    });
-
-    it('should return 400 when email is missing', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/users')
-        .send({ displayName: 'No Email', role: 'player', phone: '0901234567' });
-
-      expect(response.status).toBe(400);
-    });
-
-    it('should return 400 when role is invalid', async () => {
-      const response = await request(app.getHttpServer()).post('/users').send({
-        email: 'test@test.com',
-        displayName: 'Bad Role',
-        role: 'admin',
-      });
-
-      expect(response.status).toBe(400);
-    });
-
-    it('should return 400 when jerseyNumber is out of range', async () => {
-      const response = await request(app.getHttpServer()).post('/users').send({
-        email: 'test@test.com',
-        displayName: 'Test',
-        role: 'player',
-        jerseyNumber: 100,
-      });
-
-      expect(response.status).toBe(400);
-    });
-
-    it('should return 201 when creating user with jerseyNumber', async () => {
-      const dto = {
-        email: 'player@test.com',
-        displayName: 'Player',
-        role: 'player',
-        password: 'Hello123',
-        phone: '0901234567',
-        jerseyNumber: 10,
-      };
-      const created = {
-        id: 'p-1',
-        ...dto,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      (mockService.create as jest.Mock).mockResolvedValue(created);
-
-      const response = await request(app.getHttpServer())
-        .post('/users')
-        .send(dto);
-
-      expect(response.status).toBe(201);
-      expect(response.body.jerseyNumber).toBe(10);
-    });
-  });
-
   describe('PATCH /users/:id', () => {
     it('should return 200 when updating user', async () => {
       const updatedUser = {
@@ -380,14 +289,43 @@ describe('UsersController', () => {
   });
 
   describe('DELETE /users/:id', () => {
-    it('should return 200 when deleting user', async () => {
+    it('should return 200 when president deletes user', async () => {
       (mockService.remove as jest.Mock).mockResolvedValue(undefined);
 
+      const response = await request(app.getHttpServer())
+        .delete('/users/user-1')
+        .set('X-User-Id', 'admin-1')
+        .set('X-User-Role', UserRole.PRESIDENT);
+
+      expect(response.status).toBe(200);
+      expect(mockService.remove).toHaveBeenCalledWith('user-1');
+    });
+
+    it('should return 403 when coach tries to delete', async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/users/user-1')
+        .set('X-User-Id', 'coach-1')
+        .set('X-User-Role', UserRole.COACH);
+
+      expect(response.status).toBe(403);
+      expect(mockService.remove).not.toHaveBeenCalled();
+    });
+
+    it('should return 403 when player tries to delete', async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/users/user-1')
+        .set('X-User-Id', 'player-1')
+        .set('X-User-Role', UserRole.PLAYER);
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should return 403 when unauthenticated tries to delete', async () => {
       const response = await request(app.getHttpServer()).delete(
         '/users/user-1',
       );
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(403);
     });
   });
 

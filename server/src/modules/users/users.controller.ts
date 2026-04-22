@@ -10,14 +10,15 @@ import {
   Post,
   Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Roles, RolesGuard } from '../../common';
 import { MatchGoalsService } from '../match-goals/match-goals.service';
 import { UploadService } from '../upload/upload.service';
 import { UserPositionsService } from '../user-positions/user-positions.service';
 import { UserTraitsService } from '../user-traits/user-traits.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from './types';
 import { UsersService } from './users.service';
@@ -69,11 +70,6 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Post()
-  create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
-  }
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
@@ -103,6 +99,8 @@ export class UsersController {
     return this.usersService.update(id, { avatar: url });
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.PRESIDENT)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
