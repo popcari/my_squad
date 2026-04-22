@@ -128,7 +128,10 @@ describe('LoginPage', () => {
   });
 
   it('submits and redirects on successful login', async () => {
-    mockServiceLogin.mockResolvedValue({ id: 'u-1', email: 'a@b.com' });
+    mockServiceLogin.mockResolvedValue({
+      accessToken: 'jwt-token',
+      user: { id: 'u-1', email: 'a@b.com' },
+    });
     const user = userEvent.setup();
     render(<LoginPage />);
 
@@ -147,7 +150,10 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(mockServiceLogin).toHaveBeenCalledWith('a@b.com', 'Hello123');
-      expect(mockAuthContextLogin).toHaveBeenCalled();
+      expect(mockAuthContextLogin).toHaveBeenCalledWith(
+        { id: 'u-1', email: 'a@b.com' },
+        'jwt-token',
+      );
       expect(mockPush).toHaveBeenCalledWith('/');
     });
   });

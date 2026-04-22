@@ -1,27 +1,28 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
-function getUserId(): string | null {
-  if (typeof window === 'undefined') return null;
-  const stored = localStorage.getItem('user');
-  if (!stored) return null;
-  try {
-    return (JSON.parse(stored) as { id: string }).id;
-  } catch {
-    return null;
-  }
+let unauthorizedHandler: (() => void) | null = null;
+
+export function onUnauthorized(handler: (() => void) | null): void {
+  unauthorizedHandler = handler;
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const userId = getUserId();
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(userId ? { 'X-User-Id': userId } : {}),
-  };
+function getAccessToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('access_token');
+}
 
-  const res = await fetch(`${API_URL}${path}`, {
-    headers,
-    ...options,
-  });
+function buildHeaders(extra?: Record<string, string>): Record<string, string> {
+  const token = getAccessToken();
+  return {
+    ...(extra ?? {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+async function handleResponse<T>(res: Response): Promise<T> {
+  if (res.status === 401 && unauthorizedHandler) {
+    unauthorizedHandler();
+  }
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: res.statusText }));
@@ -35,24 +36,24 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
-  const userId = getUserId();
-  const headers: Record<string, string> = {
-    ...(userId ? { 'X-User-Id': userId } : {}),
-  };
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: buildHeaders({
+      'Content-Type': 'application/json',
+      ...(options?.headers as Record<string, string> | undefined),
+    }),
+  });
+  return handleResponse<T>(res);
+}
 
+async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
-    headers,
+    headers: buildHeaders(),
     body: formData,
   });
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(error.message || 'API Error');
-  }
-
-  return res.json();
+  return handleResponse<T>(res);
 }
 
 function uploadFileWithProgress<T>(
@@ -61,16 +62,19 @@ function uploadFileWithProgress<T>(
   onProgress: (percent: number) => void,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
-    const userId = getUserId();
+    const token = getAccessToken();
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_URL}${path}`);
-    if (userId) xhr.setRequestHeader('X-User-Id', userId);
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.upload.addEventListener('progress', (e) => {
       if (e.lengthComputable) {
         onProgress(Math.round((e.loaded / e.total) * 100));
       }
     });
     xhr.onload = () => {
+      if (xhr.status === 401 && unauthorizedHandler) {
+        unauthorizedHandler();
+      }
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(JSON.parse(xhr.responseText) as T);
       } else {

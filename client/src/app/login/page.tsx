@@ -32,8 +32,11 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     setServerError('');
     try {
-      const user = await authService.login(data.email, data.password);
-      login(user);
+      const { accessToken, user } = await authService.login(
+        data.email,
+        data.password,
+      );
+      login(user, accessToken);
       router.push('/');
     } catch (err) {
       setServerError(

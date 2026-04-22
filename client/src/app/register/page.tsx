@@ -33,7 +33,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     setServerError('');
     try {
-      const user = await authService.register({
+      const { accessToken, user } = await authService.register({
         displayName: data.displayName,
         email: data.email,
         password: data.password,
@@ -41,7 +41,7 @@ export default function RegisterPage() {
         role: USER_ROLE.PLAYER,
         jerseyNumber: data.jerseyNumber ? Number(data.jerseyNumber) : undefined,
       });
-      login(user);
+      login(user, accessToken);
       router.push('/');
     } catch (err) {
       setServerError(

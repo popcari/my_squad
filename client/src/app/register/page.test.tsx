@@ -153,7 +153,10 @@ describe('RegisterPage', () => {
   });
 
   it('submits and redirects on successful register', async () => {
-    mockRegister.mockResolvedValue({ id: 'new', email: 'n@x.com' });
+    mockRegister.mockResolvedValue({
+      accessToken: 'jwt-token',
+      user: { id: 'new', email: 'n@x.com' },
+    });
     const user = userEvent.setup();
     render(<RegisterPage />);
 
@@ -180,7 +183,10 @@ describe('RegisterPage', () => {
 
     await waitFor(() => {
       expect(mockRegister).toHaveBeenCalled();
-      expect(mockCtxLogin).toHaveBeenCalled();
+      expect(mockCtxLogin).toHaveBeenCalledWith(
+        { id: 'new', email: 'n@x.com' },
+        'jwt-token',
+      );
       expect(mockPush).toHaveBeenCalledWith('/');
     });
   });
