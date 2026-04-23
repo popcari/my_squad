@@ -1,3 +1,4 @@
+import { AnalyticsGate } from '@/components/analytics-gate';
 import { AuthGuard } from '@/components/auth-guard';
 import { NavigationProgress } from '@/components/shared/navigation-progress';
 import { AuthProvider } from '@/contexts/auth-context';
@@ -42,6 +43,7 @@ export default function RootLayout({
             </AuthProvider>
           </ConfirmProvider>
         </ThemeProvider>
+        <AnalyticsGate />
       </body>
     </html>
   );

@@ -364,7 +364,19 @@
   },
   "layout": {
     "teamInfo": "Team Info",
-    "uniforms": "Uniforms"
+    "uniforms": "Uniforms",
+    "appAnalytics": "App Analytics"
+  },
+  "appAnalytics": {
+    "title": "Vercel Web Analytics",
+    "description": "Anonymous usage tracking that helps us understand how the app is used. No personal data is collected.",
+    "toggleAria": "Toggle analytics",
+    "statusOn": "\u2022 Tracking is ON",
+    "statusOff": "\u2022 Tracking is OFF",
+    "dashboardSection": "Dashboard",
+    "dashboardHint": "View page views, top pages, devices and referrers on the Vercel dashboard.",
+    "openDashboard": "Open Vercel dashboard",
+    "privacyNote": "Vercel Analytics does not use cookies or store IP addresses. Disabling here only affects the current device."
   },
   "a11y": {
     "close": "Close",

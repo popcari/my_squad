@@ -364,7 +364,19 @@
   },
   "layout": {
     "teamInfo": "Thông tin đội",
-    "uniforms": "Đồng phục"
+    "uniforms": "Đồng phục",
+    "appAnalytics": "Thống kê app"
+  },
+  "appAnalytics": {
+    "title": "Vercel Web Analytics",
+    "description": "Theo dõi sử dụng ẩn danh giúp hiểu cách app được dùng. Không thu thập dữ liệu cá nhân.",
+    "toggleAria": "Bật/tắt theo dõi",
+    "statusOn": "\u2022 Đang theo dõi",
+    "statusOff": "\u2022 Đã tắt theo dõi",
+    "dashboardSection": "Bảng thống kê",
+    "dashboardHint": "Xem lượt truy cập, trang phổ biến, thiết bị và nguồn truy cập trên Vercel.",
+    "openDashboard": "Mở Vercel dashboard",
+    "privacyNote": "Vercel Analytics không dùng cookies và không lưu địa chỉ IP. Tắt ở đây chỉ ảnh hưởng tới thiết bị hiện tại."
   },
   "a11y": {
     "close": "Đóng",

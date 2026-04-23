@@ -15,6 +15,7 @@ export default function SettingsLayout({
   const tabs = [
     { href: '/settings', labelKey: 'layout.teamInfo' },
     { href: '/settings/uniforms', labelKey: 'layout.uniforms' },
+    { href: '/settings/app-analytics', labelKey: 'layout.appAnalytics' },
   ];
 
   return (
