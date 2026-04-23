@@ -1,2 +1,2 @@
 export { UserRole } from './user-role.enum';
-export type { User } from './user.interface';
+export type { PublicUser, User } from './user.interface';

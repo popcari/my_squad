@@ -9,11 +9,11 @@ import { mapFirestoreDoc } from '../../common';
 import { FIRESTORE } from '../../config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User, UserRole } from './types';
+import { PublicUser, User, UserRole } from './types';
 
 @Injectable()
 export class UsersService {
-  private readonly collection;
+  private readonly collection: admin.firestore.CollectionReference;
 
   constructor(
     @Inject(FIRESTORE) private readonly firestore: admin.firestore.Firestore,
@@ -21,20 +21,27 @@ export class UsersService {
     this.collection = this.firestore.collection('users');
   }
 
-  async findAll(): Promise<User[]> {
-    const snapshot = await this.collection.get();
-    return snapshot.docs.map((doc) => mapFirestoreDoc<User>(doc));
+  private stripPassword(user: User): PublicUser {
+    const { password: _password, ...rest } = user;
+    return rest;
   }
 
-  async findOne(id: string): Promise<User> {
+  async findAll(): Promise<PublicUser[]> {
+    const snapshot = await this.collection.get();
+    return snapshot.docs.map((doc) =>
+      this.stripPassword(mapFirestoreDoc<User>(doc)),
+    );
+  }
+
+  async findOne(id: string): Promise<PublicUser> {
     const doc = await this.collection.doc(id).get();
     if (!doc.exists) {
       throw new NotFoundException(`User with id "${id}" not found`);
     }
-    return mapFirestoreDoc<User>(doc);
+    return this.stripPassword(mapFirestoreDoc<User>(doc));
   }
 
-  async create(dto: CreateUserDto): Promise<User> {
+  async create(dto: CreateUserDto): Promise<PublicUser> {
     const existing = await this.collection
       .where('email', '==', dto.email)
       .get();
@@ -53,10 +60,10 @@ export class UsersService {
     };
 
     const docRef = await this.collection.add(data);
-    return { id: docRef.id, ...data };
+    return this.stripPassword({ id: docRef.id, ...data } as User);
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<User> {
+  async update(id: string, dto: UpdateUserDto): Promise<PublicUser> {
     const docRef = this.collection.doc(id);
     const doc = await docRef.get();
     if (!doc.exists) {
@@ -66,7 +73,7 @@ export class UsersService {
     await docRef.update({ ...dto, updatedAt: new Date() });
 
     const updated = await docRef.get();
-    return mapFirestoreDoc<User>(updated);
+    return this.stripPassword(mapFirestoreDoc<User>(updated));
   }
 
   async remove(id: string): Promise<void> {
@@ -84,8 +91,10 @@ export class UsersService {
     return mapFirestoreDoc<User>(snapshot.docs[0]);
   }
 
-  async findByRole(role: UserRole): Promise<User[]> {
+  async findByRole(role: UserRole): Promise<PublicUser[]> {
     const snapshot = await this.collection.where('role', '==', role).get();
-    return snapshot.docs.map((doc) => mapFirestoreDoc<User>(doc));
+    return snapshot.docs.map((doc) =>
+      this.stripPassword(mapFirestoreDoc<User>(doc)),
+    );
   }
 }

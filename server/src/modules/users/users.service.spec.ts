@@ -80,6 +80,27 @@ describe('UsersService', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('should not expose password field in returned users', async () => {
+      const mockDocs = [
+        {
+          id: 'user-1',
+          data: () => ({
+            email: 'president@test.com',
+            displayName: 'Boss',
+            password: 'hashed-secret',
+            role: UserRole.PRESIDENT,
+            createdAt: { toDate: () => new Date('2026-01-01') },
+            updatedAt: { toDate: () => new Date('2026-01-01') },
+          }),
+        },
+      ];
+      mockCollection.get.mockResolvedValue({ docs: mockDocs });
+
+      const result = await service.findAll();
+
+      expect(result[0]).not.toHaveProperty('password');
+    });
   });
 
   describe('findOne', () => {
@@ -114,6 +135,28 @@ describe('UsersService', () => {
       await expect(service.findOne('nonexistent')).rejects.toThrow(
         NotFoundException,
       );
+    });
+
+    it('should not expose password field in returned user', async () => {
+      const mockDoc = {
+        exists: true,
+        id: 'user-1',
+        data: () => ({
+          email: 'player@test.com',
+          displayName: 'Player 1',
+          password: 'hashed-secret',
+          role: UserRole.PLAYER,
+          createdAt: { toDate: () => new Date('2026-01-01') },
+          updatedAt: { toDate: () => new Date('2026-01-01') },
+        }),
+      };
+      mockCollection.doc.mockReturnValue({
+        get: jest.fn().mockResolvedValue(mockDoc),
+      });
+
+      const result = await service.findOne('user-1');
+
+      expect(result).not.toHaveProperty('password');
     });
   });
 
@@ -154,6 +197,24 @@ describe('UsersService', () => {
 
       await expect(service.create(dto)).rejects.toThrow(ConflictException);
     });
+
+    it('should not expose password field in returned user', async () => {
+      const dto = {
+        email: 'new@test.com',
+        displayName: 'New User',
+        password: 'hashed-secret',
+        role: UserRole.PLAYER,
+      };
+
+      mockCollection.where.mockReturnValue({
+        get: jest.fn().mockResolvedValue({ empty: true }),
+      });
+      mockCollection.add.mockResolvedValue({ id: 'new-id' });
+
+      const result = await service.create(dto);
+
+      expect(result).not.toHaveProperty('password');
+    });
   });
 
   describe('update', () => {
@@ -192,6 +253,31 @@ describe('UsersService', () => {
       await expect(
         service.update('nonexistent', { displayName: 'X' }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should not expose password field in returned user', async () => {
+      const mockDocRef = {
+        get: jest.fn().mockResolvedValue({
+          exists: true,
+          id: 'user-1',
+          data: () => ({
+            email: 'old@test.com',
+            displayName: 'Updated Name',
+            password: 'hashed-secret',
+            role: UserRole.PLAYER,
+            createdAt: { toDate: () => new Date('2026-01-01') },
+            updatedAt: { toDate: () => new Date('2026-04-08') },
+          }),
+        }),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
+      mockCollection.doc.mockReturnValue(mockDocRef);
+
+      const result = await service.update('user-1', {
+        displayName: 'Updated Name',
+      });
+
+      expect(result).not.toHaveProperty('password');
     });
   });
 
@@ -376,6 +462,65 @@ describe('UsersService', () => {
       const result = await service.findByRole(UserRole.PRESIDENT);
 
       expect(result).toEqual([]);
+    });
+
+    it('should not expose password field in returned users', async () => {
+      const mockDocs = [
+        {
+          id: 'player-1',
+          data: () => ({
+            email: 'p1@test.com',
+            displayName: 'Player 1',
+            password: 'hashed-secret',
+            role: UserRole.PLAYER,
+            createdAt: { toDate: () => new Date('2026-01-01') },
+            updatedAt: { toDate: () => new Date('2026-01-01') },
+          }),
+        },
+      ];
+      mockCollection.where.mockReturnValue({
+        get: jest.fn().mockResolvedValue({ docs: mockDocs }),
+      });
+
+      const result = await service.findByRole(UserRole.PLAYER);
+
+      expect(result[0]).not.toHaveProperty('password');
+    });
+  });
+
+  describe('findByEmail', () => {
+    it('should return user with password field for auth verification', async () => {
+      const mockDocs = [
+        {
+          id: 'user-1',
+          data: () => ({
+            email: 'login@test.com',
+            displayName: 'Login User',
+            password: 'hashed-secret',
+            role: UserRole.PLAYER,
+            createdAt: { toDate: () => new Date('2026-01-01') },
+            updatedAt: { toDate: () => new Date('2026-01-01') },
+          }),
+        },
+      ];
+      mockCollection.where.mockReturnValue({
+        get: jest.fn().mockResolvedValue({ empty: false, docs: mockDocs }),
+      });
+
+      const result = await service.findByEmail('login@test.com');
+
+      expect(result).not.toBeNull();
+      expect(result).toHaveProperty('password', 'hashed-secret');
+    });
+
+    it('should return null when no user found', async () => {
+      mockCollection.where.mockReturnValue({
+        get: jest.fn().mockResolvedValue({ empty: true, docs: [] }),
+      });
+
+      const result = await service.findByEmail('none@test.com');
+
+      expect(result).toBeNull();
     });
   });
 });

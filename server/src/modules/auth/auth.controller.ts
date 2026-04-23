@@ -43,11 +43,10 @@ export class AuthController {
       password: hashedPassword,
     });
 
-    const { password: _, ...safeUser } = user;
     const accessToken = this.authService.generateAccessToken({
       id: user.id,
       role: user.role,
     });
-    return { accessToken, user: safeUser };
+    return { accessToken, user };
   }
 }
